@@ -18,9 +18,9 @@ public class NoticeController {
     private final NoticeService noticeService;
 
     @PostMapping("/admin/notion")
-    public ResponseMessage<Notice> createNotice(@RequestBody NoticeRequestDto noticeRequestDto) {
+    public ResponseMessage<NoticeResponseDto> createNotice(@RequestBody NoticeRequestDto noticeRequestDto) {
         Notice notice = this.noticeService.create(noticeRequestDto);
-        return new ResponseMessage<>("공지사항 생성이 완료되었습니다.", String.valueOf(HttpStatus.OK.value()), notice);
+        return new ResponseMessage<>("공지사항 생성이 완료되었습니다.", String.valueOf(HttpStatus.OK.value()), new NoticeResponseDto(notice));
     }
 }
 
