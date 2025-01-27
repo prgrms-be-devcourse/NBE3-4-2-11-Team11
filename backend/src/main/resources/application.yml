@@ -1,0 +1,5 @@
+spring:
+  config:
+    import: optional:file:.env[.properties] # Backend 폴더 안에 .env파일 생성
+  application:
+    name: POFO-Service
