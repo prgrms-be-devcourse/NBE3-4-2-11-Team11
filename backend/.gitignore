@@ -1,5 +1,4 @@
 HELP.md
-.idea/
 .gradle
 build/
 !gradle/wrapper/gradle-wrapper.jar
@@ -20,7 +19,7 @@ bin/
 
 ### IntelliJ IDEA ###
 ./application.yml
-.idea
+.idea/
 *.iws
 *.iml
 *.ipr
