@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: backend
+  config:
+    import: optional:file:.env[.properties]
+
