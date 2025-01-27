@@ -1,18 +1,18 @@
 package com.pofo.backend.domain.notice.entity;
 
+import com.pofo.backend.common.jpa.entity.BaseTime;
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Getter
-@RequiredArgsConstructor
 @Builder
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "notices")
-public class Notice {
+public class Notice extends BaseTime {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) // auto_increment
