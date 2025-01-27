@@ -41,16 +41,11 @@ public class NoticeControllerTest {
     @DisplayName("공지 생성 테스트")
     void createNotice() throws Exception {
 
-        Notice notice = Notice.builder()
-                .subject("테스트 공지")
-                .content("공지사항 테스트입니다.")
-                .createdAt(LocalDateTime.now())
-                .build();
-
         mockMvc.perform(post("/api/v1/admin/notion")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"subject\":\"테스트 공지\", \"content\":\"공지사항 테스트입니다.\"}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.subject").value("테스트 공지"));
+                .andExpect(jsonPath("$.data.subject").value("테스트 공지"))
+                .andExpect(jsonPath("$.data.content").value("공지사항 테스트입니다."));
     }
 }
