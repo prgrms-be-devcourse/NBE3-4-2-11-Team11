@@ -3,9 +3,8 @@ package com.pofo.backend.domain.notice.dto;
 import lombok.*;
 
 @Getter
-@Builder
+@Setter
 @NoArgsConstructor
-@AllArgsConstructor
 public class NoticeRequestDto {
     private Long id;
     private String subject;

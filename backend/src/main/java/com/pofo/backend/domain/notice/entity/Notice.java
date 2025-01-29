@@ -7,10 +7,10 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Builder
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@Builder
 @Table(name = "notices")
 public class Notice extends BaseTime {
 
@@ -28,7 +28,8 @@ public class Notice extends BaseTime {
     @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
 
-    private LocalDateTime createdAt;
-
-    private LocalDateTime updatedAt;
+    public void update(String subject, String content) {
+        this.subject = subject;
+        this.content = content;
+    }
 }
