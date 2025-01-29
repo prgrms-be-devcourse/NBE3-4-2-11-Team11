@@ -5,47 +5,58 @@ import com.pofo.backend.domain.notice.dto.NoticeRequestDto;
 import com.pofo.backend.domain.notice.dto.NoticeResponseDto;
 import com.pofo.backend.domain.notice.entity.Notice;
 import com.pofo.backend.domain.notice.repository.NoticeRepository;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
 public class NoticeService {
 
-    private final NoticeRepository noticeRepository;
+	private final NoticeRepository noticeRepository;
 
-    @Transactional
-    public NoticeResponseDto create(NoticeRequestDto noticeRequestDto) {
+	@Transactional
+	public NoticeResponseDto create(NoticeRequestDto noticeRequestDto) {
 
-        Notice notice = Notice.builder()
-                .subject(noticeRequestDto.getSubject())
-                .content(noticeRequestDto.getContent())
-                .build();
+		Notice notice = Notice.builder()
+			.subject(noticeRequestDto.getSubject())
+			.content(noticeRequestDto.getContent())
+			.build();
 
-        noticeRepository.save(notice);
-        return new NoticeResponseDto(notice);
-    }
+		noticeRepository.save(notice);
+		return new NoticeResponseDto(notice);
+	}
 
-    @Transactional
-    public NoticeResponseDto update(Long id, NoticeRequestDto noticeRequestDto) {
+	@Transactional
+	public NoticeResponseDto update(Long id, NoticeRequestDto noticeRequestDto) {
 
-        Notice notice = this.noticeRepository.findById(id).orElseThrow(() -> new ServiceException("404", "해당 공지사항을 찾을 수 없습니다."));
-        notice.update(noticeRequestDto.getSubject(), noticeRequestDto.getContent());
+		Notice notice = this.noticeRepository.findById(id)
+			.orElseThrow(() -> new ServiceException("404", "해당 공지사항을 찾을 수 없습니다."));
+		notice.update(noticeRequestDto.getSubject(), noticeRequestDto.getContent());
 
-        return new NoticeResponseDto(notice);
-    }
+		return new NoticeResponseDto(notice);
+	}
 
-    @Transactional
-    public NoticeResponseDto findById(Long id) {
-        Notice notice = noticeRepository.findById(id).orElseThrow(() -> new ServiceException("404", "해당 공지사항을 찾을 수 없습니다."));
+	@Transactional
+	public void delete(Long id) {
 
-        return new NoticeResponseDto(notice);
-    }
+		Notice notice = this.noticeRepository.findById(id)
+			.orElseThrow(() -> new ServiceException("404", "해당 공지사항을 찾을 수 없습니다."));
 
-    public Long count() {
-        return this.noticeRepository.count();
-    }
+        this.noticeRepository.delete(notice);
+	}
+
+	@Transactional
+	public NoticeResponseDto findById(Long id) {
+		Notice notice = noticeRepository.findById(id)
+			.orElseThrow(() -> new ServiceException("404", "해당 공지사항을 찾을 수 없습니다."));
+
+		return new NoticeResponseDto(notice);
+	}
+
+	public Long count() {
+		return this.noticeRepository.count();
+	}
 }

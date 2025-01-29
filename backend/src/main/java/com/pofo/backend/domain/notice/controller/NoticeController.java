@@ -1,11 +1,8 @@
 package com.pofo.backend.domain.notice.controller;
 
-import java.util.List;
-
 import com.pofo.backend.common.response.ResponseMessage;
 import com.pofo.backend.domain.notice.dto.NoticeRequestDto;
 import com.pofo.backend.domain.notice.dto.NoticeResponseDto;
-import com.pofo.backend.domain.notice.entity.Notice;
 import com.pofo.backend.domain.notice.service.NoticeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -21,15 +18,19 @@ public class NoticeController {
     @PostMapping("/admin/notice")
     public ResponseMessage<NoticeResponseDto> createNotice(@RequestBody NoticeRequestDto noticeRequestDto) {
         NoticeResponseDto notice = this.noticeService.create(noticeRequestDto);
-
         return new ResponseMessage<>("공지사항 생성이 완료되었습니다.", String.valueOf(HttpStatus.OK.value()), notice);
     }
 
     @PatchMapping("/admin/notice/{id}")
     public ResponseMessage<NoticeResponseDto> updateNotice(@PathVariable("id") Long id, @RequestBody NoticeRequestDto noticeRequestDto) {
         NoticeResponseDto notice = this.noticeService.update(id, noticeRequestDto);
-
         return new ResponseMessage<>("공지사항 수정이 완료되었습니다.", String.valueOf(HttpStatus.OK.value()), notice);
+    }
+
+    @DeleteMapping("/admin/notice/{id}")
+    public ResponseMessage<NoticeResponseDto> deleteNotice(@PathVariable("id") Long id) {
+        this.noticeService.delete(id);
+        return new ResponseMessage<>("공지사항 삭제가 완료되었습니다.", String.valueOf(HttpStatus.OK), null);
     }
 
     // @GetMapping("/common/notices")

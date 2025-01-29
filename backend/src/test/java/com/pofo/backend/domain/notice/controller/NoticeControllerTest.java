@@ -1,5 +1,6 @@
 package com.pofo.backend.domain.notice.controller;
 
+import com.pofo.backend.common.exception.ServiceException;
 import com.pofo.backend.domain.notice.dto.NoticeRequestDto;
 import com.pofo.backend.domain.notice.dto.NoticeResponseDto;
 import com.pofo.backend.domain.notice.repository.NoticeRepository;
@@ -18,8 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -40,10 +41,10 @@ public class NoticeControllerTest {
 	@Autowired
 	private MockMvc mockMvc;
 
-    private Long noticeId;
+	private Long noticeId;
 
 	@BeforeEach
-    @Transactional
+	@Transactional
 	void initData() throws Exception {
 		NoticeRequestDto noticeRequestDto = new NoticeRequestDto();
 
@@ -100,5 +101,23 @@ public class NoticeControllerTest {
 			.andExpect(jsonPath("$.message").value("공지사항 수정이 완료되었습니다."))
 			.andExpect(jsonPath("$.data.subject").value(noticeResponseDto.getSubject()))
 			.andExpect(jsonPath("$.data.content").value(noticeResponseDto.getContent()));
+	}
+
+	@Test
+	@DisplayName("공지 삭제 테스트")
+	void t3() throws Exception {
+
+		ResultActions resultActions = mockMvc.perform(
+				delete("/api/v1/admin/notice/{id}", noticeId)
+					.contentType(new MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8)
+					)
+			)
+			.andDo(print());
+
+		resultActions.andExpect(handler().handlerType(NoticeController.class))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.message").value("공지사항 삭제가 완료되었습니다."));
+
+		assertThrows(ServiceException.class, () -> this.noticeService.findById(noticeId));
 	}
 }
