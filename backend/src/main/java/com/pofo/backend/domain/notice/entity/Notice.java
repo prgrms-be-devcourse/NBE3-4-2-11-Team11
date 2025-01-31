@@ -14,10 +14,6 @@ import java.time.LocalDateTime;
 @Table(name = "notices")
 public class Notice extends BaseTime {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // auto_increment
-    private Long id;
-
 //    @ManyToOne(fetch = FetchType.LAZY)
 //    @JoinColumn(name = "admin_id", nullable = false)
 //    private Admin adminId;
