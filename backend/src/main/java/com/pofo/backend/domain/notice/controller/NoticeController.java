@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("api/v1")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
+// TODO : 권한 설정
 public class NoticeController {
 
 	private final NoticeService noticeService;
