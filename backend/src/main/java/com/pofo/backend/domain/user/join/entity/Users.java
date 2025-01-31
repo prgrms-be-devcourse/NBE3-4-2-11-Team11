@@ -2,12 +2,11 @@ package com.pofo.backend.domain.user.join.entity;
 
 import com.pofo.backend.common.jpa.entity.BaseTime;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -15,31 +14,32 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@EntityListeners(AuditingEntityListener.class)
 @Table(name = "users")
-public class Users extends BaseTime {
+public class Users {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    public Long id;
 
-    private String email;
+    public String email;
 
-    private String name;
+    public String name;
 
     @Enumerated(EnumType.STRING)
-    private Sex sex;
+    public Sex sex;
 
-    private String nickname;
+    public String nickname;
 
-    private String age;
+    public LocalDate age;
 
     @CreatedDate
-    @Column(updatable = false)
+    @Setter(AccessLevel.PRIVATE)
     private LocalDateTime createdAt;
 
     @Getter
     @AllArgsConstructor
-    private enum Sex {
+    public enum Sex {
         MALE,
         FEMALE;
 

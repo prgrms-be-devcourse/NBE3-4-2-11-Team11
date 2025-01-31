@@ -2,11 +2,9 @@ package com.pofo.backend.domain.user.join.entity;
 
 import com.pofo.backend.common.jpa.entity.BaseTime;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
@@ -15,8 +13,9 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@EntityListeners(AuditingEntityListener.class)
 @Table(name = "oauths")
-public class Oauths extends BaseTime {
+public class Oauths {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,12 +31,12 @@ public class Oauths extends BaseTime {
     private String identify;
 
     @CreatedDate
-    @Column(updatable = false)
+    @Setter(AccessLevel.PRIVATE)
     private LocalDateTime createdAt;
 
     @Getter
     @AllArgsConstructor
-    private enum Provider {
+    public enum Provider {
         GOOGLE,
         KAKAO,
         NAVER
