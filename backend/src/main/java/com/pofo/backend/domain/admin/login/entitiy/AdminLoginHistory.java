@@ -34,7 +34,6 @@ public class AdminLoginHistory extends BaseTime {
     @Column(name = "login_status", nullable = false)
     private byte loginStatus; // TINYINT로 저장
 
-    // loginStatus 값으로 SUCCESS (1), FAILED (0) 등을 관리하려면
     public static final byte FAILED = 0;
     public static final byte SUCCESS = 1;
 
