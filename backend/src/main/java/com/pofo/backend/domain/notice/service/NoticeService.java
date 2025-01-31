@@ -69,6 +69,7 @@ public class NoticeService {
 			.collect(Collectors.toList());
 	}
 
+	@Transactional(readOnly = true)
 	public Long count() {
 		return this.noticeRepository.count();
 	}

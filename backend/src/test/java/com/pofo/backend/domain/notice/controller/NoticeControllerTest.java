@@ -71,7 +71,7 @@ public class NoticeControllerTest {
 			)
 			.andDo(print());
 
-		resultActions.andExpect(handler().handlerType(NoticeController.class))
+		resultActions.andExpect(handler().handlerType(NoticeAdminController.class))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.data.subject").value("테스트 공지 생성"))
 			.andExpect(jsonPath("$.data.content").value("공지사항 생성 테스트입니다."));
@@ -96,7 +96,7 @@ public class NoticeControllerTest {
 
 		NoticeResponseDto noticeResponseDto = this.noticeService.findById(this.noticeId);
 
-		resultActions.andExpect(handler().handlerType(NoticeController.class))
+		resultActions.andExpect(handler().handlerType(NoticeAdminController.class))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.message").value("공지사항 수정이 완료되었습니다."))
 			.andExpect(jsonPath("$.data.subject").value(noticeResponseDto.getSubject()))
@@ -114,7 +114,7 @@ public class NoticeControllerTest {
 			)
 			.andDo(print());
 
-		resultActions.andExpect(handler().handlerType(NoticeController.class))
+		resultActions.andExpect(handler().handlerType(NoticeAdminController.class))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.message").value("공지사항 삭제가 완료되었습니다."));
 
