@@ -4,8 +4,6 @@ import com.pofo.backend.common.jpa.entity.BaseTime;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
-
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

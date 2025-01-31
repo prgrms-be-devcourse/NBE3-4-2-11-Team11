@@ -1,11 +1,11 @@
 package com.pofo.backend.domain.notice.controller;
 
-import com.pofo.backend.common.exception.ServiceException;
 import com.pofo.backend.domain.notice.dto.NoticeRequestDto;
 import com.pofo.backend.domain.notice.dto.NoticeResponseDto;
 import com.pofo.backend.domain.notice.repository.NoticeRepository;
 import com.pofo.backend.domain.notice.service.NoticeService;
 
+import org.hibernate.service.spi.ServiceException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -23,6 +23,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import jakarta.persistence.EntityNotFoundException;
 
 @SpringBootTest
 @Transactional
@@ -118,7 +120,7 @@ public class NoticeControllerTest {
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.message").value("공지사항 삭제가 완료되었습니다."));
 
-		assertThrows(ServiceException.class, () -> this.noticeService.findById(noticeId));
+		assertThrows(EntityNotFoundException.class, () -> this.noticeService.findById(noticeId));
 	}
 
 	@Test
