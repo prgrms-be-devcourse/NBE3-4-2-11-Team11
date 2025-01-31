@@ -32,10 +32,12 @@ public class BaseInitData {
     @Transactional
     public void makeSampleMenus() throws IOException {
         if (noticeService.count() > 0) return;
-        NoticeRequestDto noticeRequestDto = new NoticeRequestDto();
-        noticeRequestDto.setId(1L);
-        noticeRequestDto.setSubject("공지사항 테스트");
-        noticeRequestDto.setContent("공지사항 테스트입니다.");
-        noticeService.create(noticeRequestDto);
+
+        for (int i = 1; i <= 5; i++) {
+            NoticeRequestDto noticeRequestDto = new NoticeRequestDto();
+            noticeRequestDto.setSubject("공지사항 테스트 " + i + "번");
+            noticeRequestDto.setContent("공지사항 테스트 " + i + "번 입니다.");
+            noticeService.create(noticeRequestDto);
+        }
     }
 }
