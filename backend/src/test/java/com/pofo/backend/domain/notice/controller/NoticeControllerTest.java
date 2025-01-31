@@ -82,7 +82,7 @@ public class NoticeControllerTest {
 	void t2() throws Exception {
 
 		ResultActions resultActions = mockMvc.perform(
-				patch("/api/v1/admin/notice/{id}", noticeId)
+				patch("/api/v1/admin/notices/{id}", noticeId)
 					.content("""
 						{
 						    "subject":"테스트 공지 수정",
@@ -108,7 +108,7 @@ public class NoticeControllerTest {
 	void t3() throws Exception {
 
 		ResultActions resultActions = mockMvc.perform(
-				delete("/api/v1/admin/notice/{id}", noticeId)
+				delete("/api/v1/admin/notices/{id}", noticeId)
 					.contentType(new MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8)
 					)
 			)
@@ -119,5 +119,22 @@ public class NoticeControllerTest {
 			.andExpect(jsonPath("$.message").value("공지사항 삭제가 완료되었습니다."));
 
 		assertThrows(ServiceException.class, () -> this.noticeService.findById(noticeId));
+	}
+
+	@Test
+	@DisplayName("공지 상세 조회 테스트")
+	void t4() throws Exception {
+
+		ResultActions resultActions = mockMvc.perform(
+				get("/api/v1/common/notices/{id}", noticeId)
+					.contentType(new MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8)
+					)
+			)
+			.andDo(print());
+
+		resultActions.andExpect(handler().handlerType(NoticeController.class))
+			.andExpect(jsonPath("$.message").value("공지사항 상세 조회가 완료되었습니다."))
+			.andExpect(jsonPath("$.data.subject").value("공지사항 테스트"))
+			.andExpect(jsonPath("$.data.content").value("공지사항 테스트입니다."));
 	}
 }

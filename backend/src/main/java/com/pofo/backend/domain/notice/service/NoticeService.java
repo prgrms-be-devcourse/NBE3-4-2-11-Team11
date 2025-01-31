@@ -48,8 +48,9 @@ public class NoticeService {
         this.noticeRepository.delete(notice);
 	}
 
-	@Transactional
+	@Transactional (readOnly = true)
 	public NoticeResponseDto findById(Long id) {
+
 		Notice notice = noticeRepository.findById(id)
 			.orElseThrow(() -> new ServiceException("404", "해당 공지사항을 찾을 수 없습니다."));
 
