@@ -137,4 +137,20 @@ public class NoticeControllerTest {
 			.andExpect(jsonPath("$.data.subject").value("공지사항 테스트"))
 			.andExpect(jsonPath("$.data.content").value("공지사항 테스트입니다."));
 	}
+
+	@Test
+	@DisplayName("공지 전체 조회 테스트")
+	void t5() throws Exception {
+
+		ResultActions resultActions = mockMvc.perform(
+				get("/api/v1/common/notices")
+					.contentType(new MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8)
+					)
+			)
+			.andDo(print());
+
+		resultActions.andExpect(handler().handlerType(NoticeController.class))
+			.andExpect(jsonPath("$.message").value("공지사항 조회가 완료되었습니다."))
+			.andExpect(jsonPath("$.data").isArray());
+	}
 }

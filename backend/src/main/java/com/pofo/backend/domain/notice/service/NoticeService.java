@@ -1,5 +1,8 @@
 package com.pofo.backend.domain.notice.service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import com.pofo.backend.common.exception.ServiceException;
 import com.pofo.backend.domain.notice.dto.NoticeRequestDto;
 import com.pofo.backend.domain.notice.dto.NoticeResponseDto;
@@ -45,16 +48,25 @@ public class NoticeService {
 		Notice notice = this.noticeRepository.findById(id)
 			.orElseThrow(() -> new ServiceException("404", "해당 공지사항을 찾을 수 없습니다."));
 
-        this.noticeRepository.delete(notice);
+		this.noticeRepository.delete(notice);
 	}
 
-	@Transactional (readOnly = true)
+	@Transactional(readOnly = true)
 	public NoticeResponseDto findById(Long id) {
 
 		Notice notice = noticeRepository.findById(id)
 			.orElseThrow(() -> new ServiceException("404", "해당 공지사항을 찾을 수 없습니다."));
 
 		return new NoticeResponseDto(notice);
+	}
+
+	@Transactional(readOnly = true)
+	public List<NoticeResponseDto> findAll() {
+
+		List<Notice> notices = this.noticeRepository.findAllByOrderByCreatedAtDesc();
+		return notices.stream()
+			.map(NoticeResponseDto::new)
+			.collect(Collectors.toList());
 	}
 
 	public Long count() {
