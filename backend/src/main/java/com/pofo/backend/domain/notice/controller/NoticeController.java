@@ -22,13 +22,13 @@ public class NoticeController {
 	@GetMapping("/{id}")
 	public ResponseMessage<NoticeResponseDto> getNoticeDetail(@PathVariable("id") Long id) {
 		NoticeResponseDto notice = this.noticeService.findById(id);
-		return new ResponseMessage<>("공지사항 상세 조회가 완료되었습니다.", String.valueOf(HttpStatus.OK), notice);
+		return new ResponseMessage<>("공지사항 상세 조회가 완료되었습니다.", String.valueOf(HttpStatus.OK.value()), notice);
 	}
 
 	@GetMapping("")
 	public ResponseMessage<List<NoticeResponseDto>> getAllNotices() {
         List<NoticeResponseDto> notices = this.noticeService.findAll();
-        return new ResponseMessage<>("공지사항 조회가 완료되었습니다.", String.valueOf(HttpStatus.OK), notices);
+        return new ResponseMessage<>("공지사항 조회가 완료되었습니다.", String.valueOf(HttpStatus.OK.value()), notices);
 	}
 }
 
