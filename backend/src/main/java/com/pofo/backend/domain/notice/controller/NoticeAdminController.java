@@ -41,6 +41,6 @@ public class NoticeAdminController {
 	@DeleteMapping("/notices/{id}")
 	public ResponseMessage<NoticeResponseDto> deleteNotice(@PathVariable("id") Long id) {
 		this.noticeService.delete(id);
-		return new ResponseMessage<>("공지사항 삭제가 완료되었습니다.", String.valueOf(HttpStatus.OK), null);
+		return new ResponseMessage<>("공지사항 삭제가 완료되었습니다.", String.valueOf(HttpStatus.OK.value()), null);
 	}
 }
