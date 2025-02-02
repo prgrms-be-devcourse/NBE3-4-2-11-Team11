@@ -1,7 +1,8 @@
 package com.pofo.backend.domain.resume.controller;
 
-import com.pofo.backend.domain.resume.dto.ResumeRequest;
-import com.pofo.backend.domain.resume.dto.ResumeResponse;
+import com.pofo.backend.common.rsData.RsData;
+import com.pofo.backend.domain.resume.dto.request.ResumeCreateRequest;
+import com.pofo.backend.domain.resume.dto.response.ResumeCreateResponse;
 import com.pofo.backend.domain.resume.service.ResumeService;
 import com.pofo.backend.domain.user.entity.User;
 import jakarta.validation.Valid;
@@ -20,7 +21,8 @@ public class ResumeController {
     private final ResumeService resumeService;
 
     @PostMapping()
-    public ResumeResponse createResume(@Valid @RequestBody ResumeRequest resumeRequest,@AuthenticationPrincipal User user) {
-        return resumeService.createResume(resumeRequest,user);
+    public RsData<Long> createResume(@Valid @RequestBody ResumeCreateRequest resumeCreateRequest, @AuthenticationPrincipal User user) {
+        ResumeCreateResponse resumeCreateResponse = resumeService.createResume(resumeCreateRequest, user);
+        return new RsData<>("200", resumeCreateResponse.getMessage(), resumeCreateResponse.getId());
     }
 }
