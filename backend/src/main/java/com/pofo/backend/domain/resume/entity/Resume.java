@@ -1,0 +1,42 @@
+package com.pofo.backend.domain.resume.entity;
+
+import com.pofo.backend.common.jpa.entity.BaseTime;
+import com.pofo.backend.domain.user.entity.User;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import java.util.Date;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@Builder
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
+@Table(name = "resumes")
+public class Resume extends BaseTime {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+    @Column(nullable = false)
+    private String name;
+    @Column(nullable = false)
+    private Date birth;
+    @Column(nullable = false)
+    private String number;
+    @Column(nullable = false)
+    private String email;
+    @Column(nullable = false)
+    private String address;
+    private String gitAddress;
+    private String blogAddress;
+
+
+}
