@@ -8,7 +8,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import java.util.Date;
+import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -28,7 +28,7 @@ public class Resume extends BaseTime {
     @Column(nullable = false)
     private String name;
     @Column(nullable = false)
-    private Date birth;
+    private LocalDate birth;
     @Column(nullable = false)
     private String number;
     @Column(nullable = false)
