@@ -1,4 +1,4 @@
-package com.pofo.backend.domain.resume.dto.response;
+package com.pofo.backend.domain.resume.resume.dto.response;
 
 
 import lombok.AllArgsConstructor;

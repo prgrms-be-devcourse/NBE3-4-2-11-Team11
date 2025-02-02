@@ -1,4 +1,4 @@
-package com.pofo.backend.domain.resume.entity;
+package com.pofo.backend.domain.resume.resume.entity;
 
 import com.pofo.backend.common.jpa.entity.BaseTime;
 import com.pofo.backend.domain.user.entity.User;

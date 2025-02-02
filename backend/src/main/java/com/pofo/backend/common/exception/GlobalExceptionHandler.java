@@ -1,7 +1,7 @@
 package com.pofo.backend.common.exception;
 
 import com.pofo.backend.common.rsData.RsData;
-import com.pofo.backend.domain.resume.exception.ResumeCreationException;
+import com.pofo.backend.domain.resume.resume.exception.ResumeCreationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;

@@ -1,17 +1,26 @@
-package com.pofo.backend.domain.resume.service;
+package com.pofo.backend.domain.resume.resume.service;
 
 
-import com.pofo.backend.domain.resume.dto.request.ResumeCreateRequest;
-import com.pofo.backend.domain.resume.dto.response.ResumeCreateResponse;
-import com.pofo.backend.domain.resume.entity.Resume;
-import com.pofo.backend.domain.resume.exception.ResumeCreationException;
+import com.pofo.backend.domain.resume.resume.dto.request.ResumeCreateRequest;
+import com.pofo.backend.domain.resume.resume.dto.response.ResumeCreateResponse;
+import com.pofo.backend.domain.resume.resume.dto.response.ResumeResponse;
+import com.pofo.backend.domain.resume.resume.entity.Resume;
+import com.pofo.backend.domain.resume.resume.exception.ResumeCreationException;
+import com.pofo.backend.domain.resume.resume.mapper.ResumeMapper;
+import com.pofo.backend.domain.resume.resume.repository.ResumeRepository;
 import com.pofo.backend.domain.user.entity.User;
 import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
 
 @Service
+@AllArgsConstructor
 public class ResumeService {
+
+    private final ResumeRepository resumeRepository;
+
+
 
     @Transactional
     public ResumeCreateResponse createResume(ResumeCreateRequest resumeCreateRequest, @AuthenticationPrincipal User user) {
@@ -35,5 +44,15 @@ public class ResumeService {
         } catch (Exception e) {
             throw new ResumeCreationException("이력서 생성 중 오류가 발생했습니다.");
         }
+    }
+    @Transactional
+    public ResumeResponse getResumeByUser(@AuthenticationPrincipal User user) {
+        if (user == null) {
+            throw new ResumeCreationException("사용자 정보가 존재하지 않습니다.");
+        }
+        Resume resume = resumeRepository.findByUser(user)
+            .orElseThrow(() -> new ResumeCreationException("이력서가 존재하지 않습니다."));
+        return ResumeMapper.INSTANCE.resumeToResumeResponse(resume);
+
     }
 }
