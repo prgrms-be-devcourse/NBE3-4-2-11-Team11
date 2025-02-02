@@ -2,6 +2,7 @@ package com.pofo.backend.domain.project.service;
 
 import com.pofo.backend.domain.project.dto.request.ProjectCreateRequest;
 import com.pofo.backend.domain.project.dto.response.ProjectCreateResponse;
+import com.pofo.backend.domain.project.exception.ProjectCreationException;
 import com.pofo.backend.domain.user.entity.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -13,6 +14,7 @@ import org.mockito.MockitoAnnotations;
 import java.sql.Date;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
 public class ProjectServiceTest {
@@ -51,6 +53,32 @@ public class ProjectServiceTest {
         ProjectCreateRequest request = projectCreateRequest();
         ProjectCreateResponse response = projectService.createProject(request, mockUser);
         assertEquals("프로젝트 등록이 완료되었습니다.", response.getMessage());
+    }
+
+    @Test
+    @DisplayName("프로젝트 등록 실패 - 사용자 정보 없음")
+    void t2(){
+        when(mockUser.getId()).thenReturn(null);
+        ProjectCreateRequest request = projectCreateRequest();
+        try{
+            projectService.createProject(request, mockUser);
+        }catch (ProjectCreationException ex){
+            assertEquals("404","사용자가 존재하지 않습니다.");
+        }
+    }
+
+    @Test
+    @DisplayName("프로젝트 등록 실패 - 예외 발생")
+    void t3(){
+        doThrow(new ProjectCreationException("400","프로젝트 등록 중 오류가 발생했습니다."))
+                .when(mockUser).getId();
+        ProjectCreateRequest request = projectCreateRequest();
+
+        try{
+            projectService.createProject(request, mockUser);
+        }catch (RuntimeException ex){
+            assertEquals("400","프로젝트 등록 중 오류가 발생했습니다.");
+        }
     }
 
 }
