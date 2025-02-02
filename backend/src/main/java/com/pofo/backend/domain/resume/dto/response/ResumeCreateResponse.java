@@ -1,4 +1,4 @@
-package com.pofo.backend.domain.resume.dto;
+package com.pofo.backend.domain.resume.dto.response;
 
 
 import lombok.AllArgsConstructor;
@@ -6,8 +6,7 @@ import lombok.Getter;
 
 @AllArgsConstructor
 @Getter
-public class ResumeResponse {
+public class ResumeCreateResponse {
     Long id;
     String message;
-
 }

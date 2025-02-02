@@ -1,4 +1,4 @@
-package com.pofo.backend.domain.resume.dto;
+package com.pofo.backend.domain.resume.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -8,7 +8,7 @@ import lombok.Setter;
 
 @Setter
 @Getter
-public class ResumeRequest {
+public class ResumeCreateRequest {
 
     @NotBlank
     private String name;
