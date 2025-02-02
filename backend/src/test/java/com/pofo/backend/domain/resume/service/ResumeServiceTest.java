@@ -66,4 +66,26 @@ class ResumeServiceTest {
             assertEquals("사용자 정보가 존재하지 않습니다.", e.getMessage());
         }
     }
+
+    @Test
+    @DisplayName("이력서 생성 실패 - 예외 발생")
+    void createResumeThrowsException() {
+        doThrow(new RuntimeException("이력서 생성 중 오류가 발생했습니다."))
+            .when(mockUser).getId();
+
+        ResumeCreateRequest resumeCreateRequest = new ResumeCreateRequest();
+        resumeCreateRequest.setName("김상진");
+        resumeCreateRequest.setBirth(LocalDate.of(2000, 11, 18));
+        resumeCreateRequest.setNumber("010-1234-5678");
+        resumeCreateRequest.setEmail("prgrms@naver.com");
+        resumeCreateRequest.setAddress("서울시 강남구");
+        resumeCreateRequest.setGitAddress("https://github.com/kim");
+        resumeCreateRequest.setBlogAddress("https://kim.blog");
+
+        try {
+            resumeService.createResume(resumeCreateRequest, mockUser);
+        } catch (RuntimeException e) {
+            assertEquals("이력서 생성 중 오류가 발생했습니다.", e.getMessage());
+        }
+    }
 }
