@@ -30,9 +30,7 @@ class ResumeServiceTest {
         when(mockUser.getId()).thenReturn(1L);
     }
 
-    @Test
-    @DisplayName("이력서 생성 성공")
-    void createResume() {
+    private ResumeCreateRequest createResumeRequest() {
         ResumeCreateRequest resumeCreateRequest = new ResumeCreateRequest();
         resumeCreateRequest.setName("김상진");
         resumeCreateRequest.setBirth(LocalDate.of(2000, 11, 18));
@@ -41,7 +39,14 @@ class ResumeServiceTest {
         resumeCreateRequest.setAddress("서울시 강남구");
         resumeCreateRequest.setGitAddress("https://github.com/kim");
         resumeCreateRequest.setBlogAddress("https://kim.blog");
+        return resumeCreateRequest;
+    }
 
+
+    @Test
+    @DisplayName("이력서 생성 성공")
+    void createResume() {
+        ResumeCreateRequest resumeCreateRequest = createResumeRequest();
         ResumeCreateResponse response = resumeService.createResume(resumeCreateRequest, mockUser);
         assertEquals("이력서 생성이 완료되었습니다.", response.getMessage());
     }
@@ -50,16 +55,7 @@ class ResumeServiceTest {
     @DisplayName("이력서 생성 실패 - 사용자 정보 없음")
     void createResumeWithNullUser() {
         when(mockUser.getId()).thenReturn(null);
-
-        ResumeCreateRequest resumeCreateRequest = new ResumeCreateRequest();
-        resumeCreateRequest.setName("김상진");
-        resumeCreateRequest.setBirth(LocalDate.of(2000, 11, 18));
-        resumeCreateRequest.setNumber("010-1234-5678");
-        resumeCreateRequest.setEmail("prgrms@naver.com");
-        resumeCreateRequest.setAddress("서울시 강남구");
-        resumeCreateRequest.setGitAddress("https://github.com/kim");
-        resumeCreateRequest.setBlogAddress("https://kim.blog");
-
+        ResumeCreateRequest resumeCreateRequest = createResumeRequest();
         try {
             resumeService.createResume(resumeCreateRequest, mockUser);
         } catch (ResumeCreationException e) {
@@ -72,16 +68,7 @@ class ResumeServiceTest {
     void createResumeThrowsException() {
         doThrow(new RuntimeException("이력서 생성 중 오류가 발생했습니다."))
             .when(mockUser).getId();
-
-        ResumeCreateRequest resumeCreateRequest = new ResumeCreateRequest();
-        resumeCreateRequest.setName("김상진");
-        resumeCreateRequest.setBirth(LocalDate.of(2000, 11, 18));
-        resumeCreateRequest.setNumber("010-1234-5678");
-        resumeCreateRequest.setEmail("prgrms@naver.com");
-        resumeCreateRequest.setAddress("서울시 강남구");
-        resumeCreateRequest.setGitAddress("https://github.com/kim");
-        resumeCreateRequest.setBlogAddress("https://kim.blog");
-
+        ResumeCreateRequest resumeCreateRequest = createResumeRequest();
         try {
             resumeService.createResume(resumeCreateRequest, mockUser);
         } catch (RuntimeException e) {
