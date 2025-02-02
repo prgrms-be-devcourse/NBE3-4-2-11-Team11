@@ -1,18 +1,16 @@
 package com.pofo.backend.domain.resume.service;
 
 
-import com.pofo.backend.domain.resume.exception.ResumeCreationException;
 import com.pofo.backend.domain.resume.dto.request.ResumeCreateRequest;
 import com.pofo.backend.domain.resume.dto.response.ResumeCreateResponse;
 import com.pofo.backend.domain.resume.entity.Resume;
+import com.pofo.backend.domain.resume.exception.ResumeCreationException;
 import com.pofo.backend.domain.user.entity.User;
 import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
 
 @Service
-@RequiredArgsConstructor
 public class ResumeService {
 
     @Transactional
