@@ -1,22 +1,19 @@
 package com.pofo.backend.common.exception;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import jakarta.persistence.EntityNotFoundException;
+import com.pofo.backend.common.rsData.RsData;
+import com.pofo.backend.domain.notice.exception.NoticeNotFoundException;
 
-@RestControllerAdvice
+@ControllerAdvice
 public class GlobalExceptionHandler {
 
-	@ExceptionHandler(EntityNotFoundException.class)
+	@ExceptionHandler(NoticeNotFoundException.class)
 	@ResponseStatus(HttpStatus.NOT_FOUND)
-	public ErrorResponse handle(EntityNotFoundException ex) {
-		return new ErrorResponse(ex.getMessage());
-	}
-
-	// 에러 응답 DTO
-		public record ErrorResponse(String message) {
+	public RsData<Object> handleNoticeNotFoundException(NoticeNotFoundException e) {
+		return new RsData<>("404", e.getMessage());
 	}
 }

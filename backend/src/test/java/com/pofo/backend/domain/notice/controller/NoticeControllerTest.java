@@ -4,6 +4,7 @@ import com.pofo.backend.common.TestSecurityConfig;
 import com.pofo.backend.domain.notice.dto.NoticeRequestDto;
 import com.pofo.backend.domain.notice.dto.NoticeResponseDto;
 import com.pofo.backend.domain.notice.entity.Notice;
+import com.pofo.backend.domain.notice.exception.NoticeNotFoundException;
 import com.pofo.backend.domain.notice.repository.NoticeRepository;
 import com.pofo.backend.domain.notice.service.NoticeService;
 
@@ -79,7 +80,7 @@ public class NoticeControllerTest {
 			.andExpect(jsonPath("$.data.responseId").isNumber());
 
 		Notice notice = this.noticeRepository.findById(noticeResponseDto.getResponseId())
-			.orElseThrow(() -> new EntityNotFoundException("해당 공지사항을 찾을 수 없습니다."));
+			.orElseThrow(() -> new NoticeNotFoundException("해당 공지사항을 찾을 수 없습니다."));
 
 		assertThat(notice.getSubject()).isEqualTo("공지사항 테스트");
 		assertThat(notice.getContent()).isEqualTo("공지사항 테스트입니다.");

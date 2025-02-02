@@ -26,6 +26,7 @@ import com.pofo.backend.common.TestSecurityConfig;
 import com.pofo.backend.domain.notice.dto.NoticeRequestDto;
 import com.pofo.backend.domain.notice.dto.NoticeResponseDto;
 import com.pofo.backend.domain.notice.entity.Notice;
+import com.pofo.backend.domain.notice.exception.NoticeNotFoundException;
 import com.pofo.backend.domain.notice.repository.NoticeRepository;
 import com.pofo.backend.domain.notice.service.NoticeService;
 
@@ -89,7 +90,7 @@ public class NoticeAdminControllerTest {
 		Long responseId = jsonNode.path("data").path("responseId").asLong();
 
 		Notice notice = this.noticeRepository.findById(responseId)
-			.orElseThrow(() -> new EntityNotFoundException("해당 공지사항을 찾을 수 없습니다."));
+			.orElseThrow(() -> new NoticeNotFoundException("해당 공지사항을 찾을 수 없습니다."));
 
 		assertThat(notice.getSubject()).isEqualTo("테스트 공지 생성");
 		assertThat(notice.getContent()).isEqualTo("공지사항 생성 테스트입니다.");
@@ -121,7 +122,7 @@ public class NoticeAdminControllerTest {
 			.andExpect(jsonPath("$.data.responseId").isNumber());
 
 		Notice notice = this.noticeRepository.findById(noticeResponseDto.getResponseId())
-			.orElseThrow(() -> new EntityNotFoundException("해당 공지사항을 찾을 수 없습니다."));
+			.orElseThrow(() -> new NoticeNotFoundException("해당 공지사항을 찾을 수 없습니다."));
 
 		assertThat(notice.getSubject()).isEqualTo("테스트 공지 수정");
 		assertThat(notice.getContent()).isEqualTo("공지사항 수정 테스트입니다.");
@@ -142,7 +143,7 @@ public class NoticeAdminControllerTest {
 			.andExpect(jsonPath("$.message").value("공지사항 삭제가 완료되었습니다."))
 			.andExpect(status().isOk());
 
-		assertThrows(EntityNotFoundException.class, () -> this.noticeService.findById(noticeId));
+		assertThrows(NoticeNotFoundException.class, () -> this.noticeService.findById(noticeId));
 	}
 
 }
