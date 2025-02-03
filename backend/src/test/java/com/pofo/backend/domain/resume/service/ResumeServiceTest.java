@@ -115,4 +115,19 @@ class ResumeServiceTest {
         verify(resumeRepository).findByUser(mockUser);
         verify(resumeMapper).resumeToResumeResponse(mockResume);
     }
+
+    @Test
+    @DisplayName("이력서 조회 실패 - 이력서 없음")
+    void getResumeByUser_notFound() {
+        // Given
+        when(resumeRepository.findByUser(mockUser)).thenReturn(Optional.empty());
+
+        // When & Then
+        ResumeCreationException exception = assertThrows(ResumeCreationException.class, () -> {
+            resumeService.getResumeByUser(mockUser);
+        });
+        assertEquals("이력서가 존재하지 않습니다.", exception.getMessage());
+        verify(resumeRepository).findByUser(mockUser);
+    }
+
 }
