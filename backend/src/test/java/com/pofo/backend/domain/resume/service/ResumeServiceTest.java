@@ -191,4 +191,15 @@ class ResumeServiceTest {
         verify(resumeRepository).findById(1L);
     }
 
+    @Test
+    @DisplayName("이력서 수정 실패 - 사용자 정보 없음")
+    void updateResume_nullUser() {
+        ResumeCreateRequest resumeCreateRequest = createResumeRequest();
+        User nullUser = null;
+
+        ResumeCreationException exception = assertThrows(ResumeCreationException.class, () -> {
+            resumeService.updateResume(1L, resumeCreateRequest, nullUser);
+        });
+        assertEquals("사용자 정보가 존재하지 않습니다.", exception.getMessage());
+    }
 }
