@@ -5,6 +5,6 @@ import com.pofo.backend.domain.user.entity.User;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface ResumeRepository extends JpaRepository<Resume, Integer> {
+public interface ResumeRepository extends JpaRepository<Resume, Long> {
     Optional<Resume> findByUser(User user);
 }

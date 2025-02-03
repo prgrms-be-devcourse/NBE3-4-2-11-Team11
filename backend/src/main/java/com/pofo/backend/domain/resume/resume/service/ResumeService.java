@@ -45,6 +45,37 @@ public class ResumeService {
             throw new ResumeCreationException("이력서 생성 중 오류가 발생했습니다.");
         }
     }
+
+    @Transactional
+    public ResumeCreateResponse updateResume(Long resumeId, ResumeCreateRequest resumeCreateRequest, @AuthenticationPrincipal User user) {
+        if (user == null) {
+            throw new ResumeCreationException("사용자 정보가 존재하지 않습니다.");
+        }
+
+        Resume resume = resumeRepository.findById(resumeId)
+            .orElseThrow(() -> new ResumeCreationException("이력서가 존재하지 않습니다."));
+
+        if (!resume.getUser().equals(user)) {
+            throw new ResumeCreationException("이력서를 수정할 권한이 없습니다.");
+        }
+
+        resume = resume.toBuilder()
+            .name(resumeCreateRequest.getName())
+            .birth(resumeCreateRequest.getBirth())
+            .number(resumeCreateRequest.getNumber())
+            .email(resumeCreateRequest.getEmail())
+            .address(resumeCreateRequest.getAddress())
+            .gitAddress(resumeCreateRequest.getGitAddress())
+            .blogAddress(resumeCreateRequest.getBlogAddress())
+            .build();
+
+        resumeRepository.save(resume);
+
+        return new ResumeCreateResponse(resume.getId(), "이력서 수정이 완료되었습니다.");
+    }
+
+
+
     @Transactional
     public ResumeResponse getResumeByUser(@AuthenticationPrincipal User user) {
         if (user == null) {
