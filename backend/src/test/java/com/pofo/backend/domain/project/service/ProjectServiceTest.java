@@ -3,6 +3,7 @@ package com.pofo.backend.domain.project.service;
 import com.pofo.backend.domain.project.dto.request.ProjectCreateRequest;
 import com.pofo.backend.domain.project.dto.response.ProjectCreateResponse;
 import com.pofo.backend.domain.project.exception.ProjectCreationException;
+import com.pofo.backend.domain.skill.entity.Skill;
 import com.pofo.backend.domain.user.entity.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -12,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.sql.Date;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.doThrow;
@@ -43,6 +45,13 @@ public class ProjectServiceTest {
         projectCreateRequest.setRepositoryLink("testRepositoryLink");
         projectCreateRequest.setDescription("개발자 직무를 희망하는 사람들의 포트폴리오 및 이력서를 아카이빙할 수 있습니다.");
         projectCreateRequest.setImageUrl("sample.img");
+
+        List<Skill> skills = List.of(
+                new Skill(1L, "Java"),
+                new Skill(2L, "Spring Boot"),
+                new Skill(3L, "MySQL")
+        );
+        projectCreateRequest.setSkills(skills);
 
         return projectCreateRequest;
     }
