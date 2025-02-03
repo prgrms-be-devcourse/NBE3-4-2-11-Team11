@@ -49,4 +49,5 @@ coverage/
 
 # ✅ 기타 로그 파일
 *.log
-backend/
+
+
