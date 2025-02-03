@@ -27,8 +27,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import jakarta.persistence.EntityNotFoundException;
-
 @SpringBootTest
 @Transactional
 @AutoConfigureMockMvc

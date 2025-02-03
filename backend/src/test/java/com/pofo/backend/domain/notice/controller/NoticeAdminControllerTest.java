@@ -30,8 +30,6 @@ import com.pofo.backend.domain.notice.exception.NoticeNotFoundException;
 import com.pofo.backend.domain.notice.repository.NoticeRepository;
 import com.pofo.backend.domain.notice.service.NoticeService;
 
-import jakarta.persistence.EntityNotFoundException;
-
 @SpringBootTest
 @Transactional
 @AutoConfigureMockMvc

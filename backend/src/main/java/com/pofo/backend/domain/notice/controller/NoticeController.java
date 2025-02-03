@@ -3,7 +3,6 @@ package com.pofo.backend.domain.notice.controller;
 import java.util.List;
 
 import com.pofo.backend.common.response.ResponseMessage;
-import com.pofo.backend.domain.notice.dto.NoticeRequestDto;
 import com.pofo.backend.domain.notice.dto.NoticeResponseDto;
 import com.pofo.backend.domain.notice.service.NoticeService;
 
@@ -27,8 +26,8 @@ public class NoticeController {
 
 	@GetMapping("")
 	public ResponseMessage<List<NoticeResponseDto>> getAllNotices() {
-        List<NoticeResponseDto> notices = this.noticeService.findAll();
-        return new ResponseMessage<>("공지사항 조회가 완료되었습니다.", String.valueOf(HttpStatus.OK.value()), notices);
+		List<NoticeResponseDto> notices = this.noticeService.findAll();
+		return new ResponseMessage<>("공지사항 조회가 완료되었습니다.", String.valueOf(HttpStatus.OK.value()), notices);
 	}
 }
 
