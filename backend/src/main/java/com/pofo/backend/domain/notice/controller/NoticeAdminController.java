@@ -11,8 +11,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.pofo.backend.common.response.ResponseMessage;
-import com.pofo.backend.domain.notice.dto.NoticeRequestDto;
-import com.pofo.backend.domain.notice.dto.NoticeResponseDto;
+import com.pofo.backend.domain.notice.dto.reponse.NoticeCreateResponse;
+import com.pofo.backend.domain.notice.dto.reponse.NoticeDeleteResponse;
+import com.pofo.backend.domain.notice.dto.reponse.NoticeUpdateResponse;
+import com.pofo.backend.domain.notice.dto.request.NoticeCreateRequest;
+import com.pofo.backend.domain.notice.dto.request.NoticeUpdateRequest;
 import com.pofo.backend.domain.notice.service.NoticeService;
 
 import lombok.RequiredArgsConstructor;
@@ -26,20 +29,20 @@ public class NoticeAdminController {
 	private final NoticeService noticeService;
 
 	@PostMapping("/notice")
-	public ResponseMessage<NoticeResponseDto> createNotice(@RequestBody NoticeRequestDto noticeRequestDto) {
-		NoticeResponseDto notice = this.noticeService.create(noticeRequestDto);
+	public ResponseMessage<NoticeCreateResponse> createNotice(@RequestBody NoticeCreateRequest noticeCreateRequest) {
+		NoticeCreateResponse notice = this.noticeService.create(noticeCreateRequest);
 		return new ResponseMessage<>("공지사항 생성이 완료되었습니다.", String.valueOf(HttpStatus.OK.value()), notice);
 	}
 
 	@PatchMapping("/notices/{id}")
-	public ResponseMessage<NoticeResponseDto> updateNotice(@PathVariable("id") Long id,
-		@RequestBody NoticeRequestDto noticeRequestDto) {
-		NoticeResponseDto notice = this.noticeService.update(id, noticeRequestDto);
+	public ResponseMessage<NoticeUpdateResponse> updateNotice(@PathVariable("id") Long id,
+		@RequestBody NoticeUpdateRequest noticeUpdateRequest) {
+		NoticeUpdateResponse notice = this.noticeService.update(id, noticeUpdateRequest);
 		return new ResponseMessage<>("공지사항 수정이 완료되었습니다.", String.valueOf(HttpStatus.OK.value()), notice);
 	}
 
 	@DeleteMapping("/notices/{id}")
-	public ResponseMessage<NoticeResponseDto> deleteNotice(@PathVariable("id") Long id) {
+	public ResponseMessage<NoticeDeleteResponse> deleteNotice(@PathVariable("id") Long id) {
 		this.noticeService.delete(id);
 		return new ResponseMessage<>("공지사항 삭제가 완료되었습니다.", String.valueOf(HttpStatus.OK.value()), null);
 	}

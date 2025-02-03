@@ -1,8 +1,9 @@
 package com.pofo.backend.domain.notice.controller;
 
 import com.pofo.backend.common.TestSecurityConfig;
-import com.pofo.backend.domain.notice.dto.NoticeRequestDto;
-import com.pofo.backend.domain.notice.dto.NoticeResponseDto;
+import com.pofo.backend.domain.notice.dto.reponse.NoticeCreateResponse;
+import com.pofo.backend.domain.notice.dto.reponse.NoticeDetailResponse;
+import com.pofo.backend.domain.notice.dto.request.NoticeCreateRequest;
 import com.pofo.backend.domain.notice.entity.Notice;
 import com.pofo.backend.domain.notice.exception.NoticeNotFoundException;
 import com.pofo.backend.domain.notice.repository.NoticeRepository;
@@ -37,9 +38,6 @@ public class NoticeControllerTest {
 	private NoticeService noticeService;
 
 	@Autowired
-	private NoticeController noticeController;
-
-	@Autowired
 	private NoticeRepository noticeRepository;
 
 	@Autowired
@@ -50,12 +48,12 @@ public class NoticeControllerTest {
 	@BeforeEach
 	@Transactional
 	void initData() throws Exception {
-		NoticeRequestDto noticeRequestDto = new NoticeRequestDto();
+		NoticeCreateRequest noticeCreateRequest = new NoticeCreateRequest();
 
-		noticeRequestDto.setSubject("공지사항 테스트");
-		noticeRequestDto.setContent("공지사항 테스트입니다.");
+		noticeCreateRequest.setSubject("공지사항 테스트");
+		noticeCreateRequest.setContent("공지사항 테스트입니다.");
 
-		this.noticeId = this.noticeService.create(noticeRequestDto).getResponseId();
+		this.noticeId = this.noticeService.create(noticeCreateRequest).getResponseId();
 	}
 
 	@Test
@@ -69,7 +67,7 @@ public class NoticeControllerTest {
 			)
 			.andDo(print());
 
-		NoticeResponseDto noticeResponseDto = this.noticeService.findById(this.noticeId);
+		NoticeDetailResponse noticeDetailResponse = this.noticeService.findById(this.noticeId);
 
 		resultActions.andExpect(handler().handlerType(NoticeController.class))
 			.andExpect(jsonPath("$.message").value("공지사항 상세 조회가 완료되었습니다."))
@@ -77,7 +75,7 @@ public class NoticeControllerTest {
 			.andExpect(jsonPath("$.data.responseId").exists())
 			.andExpect(jsonPath("$.data.responseId").isNumber());
 
-		Notice notice = this.noticeRepository.findById(noticeResponseDto.getResponseId())
+		Notice notice = this.noticeRepository.findById(noticeDetailResponse.getResponseId())
 			.orElseThrow(() -> new NoticeNotFoundException("해당 공지사항을 찾을 수 없습니다."));
 
 		assertThat(notice.getSubject()).isEqualTo("공지사항 테스트");

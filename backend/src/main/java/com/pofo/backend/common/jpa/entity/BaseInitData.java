@@ -1,6 +1,6 @@
 package com.pofo.backend.common.jpa.entity;
 
-import com.pofo.backend.domain.notice.dto.NoticeRequestDto;
+import com.pofo.backend.domain.notice.dto.request.NoticeCreateRequest;
 import com.pofo.backend.domain.notice.service.NoticeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,10 +34,10 @@ public class BaseInitData {
         if (noticeService.count() > 0) return;
 
         for (int i = 1; i <= 5; i++) {
-            NoticeRequestDto noticeRequestDto = new NoticeRequestDto();
-            noticeRequestDto.setSubject("공지사항 테스트 " + i + "번");
-            noticeRequestDto.setContent("공지사항 테스트 " + i + "번 입니다.");
-            noticeService.create(noticeRequestDto);
+            NoticeCreateRequest noticeCreateRequest = new NoticeCreateRequest();
+            noticeCreateRequest.setSubject("공지사항 테스트 " + i + "번");
+            noticeCreateRequest.setContent("공지사항 테스트 " + i + "번 입니다.");
+            noticeService.create(noticeCreateRequest);
         }
     }
 }
