@@ -3,8 +3,11 @@ package com.pofo.backend.domain.notice.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.pofo.backend.domain.notice.dto.NoticeRequestDto;
-import com.pofo.backend.domain.notice.dto.NoticeResponseDto;
+import com.pofo.backend.domain.notice.dto.reponse.NoticeCreateResponse;
+import com.pofo.backend.domain.notice.dto.reponse.NoticeDetailResponse;
+import com.pofo.backend.domain.notice.dto.reponse.NoticeUpdateResponse;
+import com.pofo.backend.domain.notice.dto.request.NoticeCreateRequest;
+import com.pofo.backend.domain.notice.dto.request.NoticeUpdateRequest;
 import com.pofo.backend.domain.notice.entity.Notice;
 import com.pofo.backend.domain.notice.exception.NoticeNotFoundException;
 import com.pofo.backend.domain.notice.repository.NoticeRepository;
@@ -21,25 +24,25 @@ public class NoticeService {
 	private final NoticeRepository noticeRepository;
 
 	@Transactional
-	public NoticeResponseDto create(NoticeRequestDto noticeRequestDto) {
+	public NoticeCreateResponse create(NoticeCreateRequest noticeCreateRequest) {
 
 		Notice notice = Notice.builder()
-			.subject(noticeRequestDto.getSubject())
-			.content(noticeRequestDto.getContent())
+			.subject(noticeCreateRequest.getSubject())
+			.content(noticeCreateRequest.getContent())
 			.build();
 
 		noticeRepository.save(notice);
-		return new NoticeResponseDto(notice);
+		return new NoticeCreateResponse(notice);
 	}
 
 	@Transactional
-	public NoticeResponseDto update(Long id, NoticeRequestDto noticeRequestDto) {
+	public NoticeUpdateResponse update(Long id, NoticeUpdateRequest noticeUpdateRequest) {
 
 		Notice notice = this.noticeRepository.findById(id)
 			.orElseThrow(() -> new NoticeNotFoundException("해당 공지사항을 찾을 수 없습니다."));
-		notice.update(noticeRequestDto.getSubject(), noticeRequestDto.getContent());
+		notice.update(noticeUpdateRequest.getSubject(), noticeUpdateRequest.getContent());
 
-		return new NoticeResponseDto(notice);
+		return new NoticeUpdateResponse(notice);
 	}
 
 	@Transactional
@@ -52,20 +55,20 @@ public class NoticeService {
 	}
 
 	@Transactional(readOnly = true)
-	public NoticeResponseDto findById(Long id) {
+	public NoticeDetailResponse findById(Long id) {
 
 		Notice notice = noticeRepository.findById(id)
 			.orElseThrow(() -> new NoticeNotFoundException("해당 공지사항을 찾을 수 없습니다."));
 
-		return new NoticeResponseDto(notice);
+		return new NoticeDetailResponse(notice);
 	}
 
 	@Transactional(readOnly = true)
-	public List<NoticeResponseDto> findAll() {
+	public List<NoticeDetailResponse> findAll() {
 
 		List<Notice> notices = this.noticeRepository.findAllByOrderByCreatedAtDesc();
 		return notices.stream()
-			.map(NoticeResponseDto::new)
+			.map(NoticeDetailResponse::new)
 			.collect(Collectors.toList());
 	}
 
