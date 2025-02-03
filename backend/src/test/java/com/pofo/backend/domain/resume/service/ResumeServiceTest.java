@@ -130,4 +130,16 @@ class ResumeServiceTest {
         verify(resumeRepository).findByUser(mockUser);
     }
 
+    @Test
+    @DisplayName("이력서 조회 실패 - 사용자 정보 없음")
+    void getResumeByUser_nullUser() {
+        // Given
+        User nullUser = null;
+
+        // When & Then
+        ResumeCreationException exception = assertThrows(ResumeCreationException.class, () -> {
+            resumeService.getResumeByUser(nullUser);
+        });
+        assertEquals("사용자 정보가 존재하지 않습니다.", exception.getMessage());
+    }
 }
