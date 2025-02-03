@@ -215,4 +215,17 @@ class ResumeServiceTest {
         verify(resumeRepository).delete(mockResume);
     }
 
+    @Test
+    @DisplayName("이력서 삭제 실패 - 사용자 정보 없음")
+    void deleteResume_nullUser() {
+        Long resumeId = 1L;
+        User nullUser = null;
+
+        ResumeCreationException exception = assertThrows(ResumeCreationException.class, () -> {
+            resumeService.deleteResume(resumeId, nullUser);
+        });
+        assertEquals("사용자 정보가 존재하지 않습니다.", exception.getMessage());
+    }
+
+
 }
