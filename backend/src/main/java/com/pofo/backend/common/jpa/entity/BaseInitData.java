@@ -16,6 +16,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class BaseInitData {
 
+    @Autowired
     private final NoticeService noticeService;
 
     @Autowired
@@ -25,18 +26,16 @@ public class BaseInitData {
     @Bean
     public ApplicationRunner baseInitDataApplicationRunner() {
         return args -> {
-            self.makeSampleMenus();
+            self.makeSampleNotices();
         };
     }
 
     @Transactional
-    public void makeSampleMenus() throws IOException {
+    public void makeSampleNotices() throws IOException {
         if (noticeService.count() > 0) return;
 
         for (int i = 1; i <= 5; i++) {
-            NoticeCreateRequest noticeCreateRequest = new NoticeCreateRequest();
-            noticeCreateRequest.setSubject("공지사항 테스트 " + i + "번");
-            noticeCreateRequest.setContent("공지사항 테스트 " + i + "번 입니다.");
+            NoticeCreateRequest noticeCreateRequest = new NoticeCreateRequest("공지사항 테스트 " + i + "번", "공지사항 테스트 " + i + "번 입니다.");
             noticeService.create(noticeCreateRequest);
         }
     }
