@@ -161,4 +161,18 @@ class ResumeServiceTest {
         verify(resumeRepository).save(any(Resume.class));
     }
 
+    @Test
+    @DisplayName("이력서 수정 실패 - 이력서가 존재하지 않음")
+    void updateResume_notFound() {
+        ResumeCreateRequest resumeCreateRequest = createResumeRequest();
+
+        when(resumeRepository.findById(1L)).thenReturn(Optional.empty());
+
+        ResumeCreationException exception = assertThrows(ResumeCreationException.class, () -> {
+            resumeService.updateResume(1L, resumeCreateRequest, mockUser);
+        });
+        assertEquals("이력서가 존재하지 않습니다.", exception.getMessage());
+        verify(resumeRepository).findById(1L);
+    }
+
 }
