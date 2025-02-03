@@ -77,17 +77,6 @@ class ResumeServiceTest {
     }
 
     @Test
-    @DisplayName("이력서 생성 실패 - 사용자 정보 없음")
-    void createResumeWithNullUser() {
-        User nullUser = null;
-        ResumeCreateRequest resumeCreateRequest = createResumeRequest();
-        ResumeCreationException exception = assertThrows(ResumeCreationException.class, () -> {
-            resumeService.createResume(resumeCreateRequest, nullUser);
-        });
-        assertEquals("사용자 정보가 존재하지 않습니다.", exception.getMessage());
-    }
-
-    @Test
     @DisplayName("이력서 생성 실패 - 예외 발생")
     void createResumeThrowsException() {
         doThrow(new RuntimeException("이력서 생성 중 오류가 발생했습니다."))
@@ -129,17 +118,6 @@ class ResumeServiceTest {
         });
         assertEquals("이력서가 존재하지 않습니다.", exception.getMessage());
         verify(resumeRepository).findByUser(mockUser);
-    }
-
-    @Test
-    @DisplayName("이력서 조회 실패 - 사용자 정보 없음")
-    void getResumeByUser_nullUser() {
-        User nullUser = null;
-
-        ResumeCreationException exception = assertThrows(ResumeCreationException.class, () -> {
-            resumeService.getResumeByUser(nullUser);
-        });
-        assertEquals("사용자 정보가 존재하지 않습니다.", exception.getMessage());
     }
 
     @Test
@@ -192,18 +170,6 @@ class ResumeServiceTest {
     }
 
     @Test
-    @DisplayName("이력서 수정 실패 - 사용자 정보 없음")
-    void updateResume_nullUser() {
-        ResumeCreateRequest resumeCreateRequest = createResumeRequest();
-        User nullUser = null;
-
-        ResumeCreationException exception = assertThrows(ResumeCreationException.class, () -> {
-            resumeService.updateResume(1L, resumeCreateRequest, nullUser);
-        });
-        assertEquals("사용자 정보가 존재하지 않습니다.", exception.getMessage());
-    }
-
-    @Test
     @DisplayName("이력서 삭제 성공")
     void deleteResume_success() {
         Long resumeId = 1L;
@@ -213,18 +179,6 @@ class ResumeServiceTest {
         resumeService.deleteResume(resumeId, mockUser);
 
         verify(resumeRepository).delete(mockResume);
-    }
-
-    @Test
-    @DisplayName("이력서 삭제 실패 - 사용자 정보 없음")
-    void deleteResume_nullUser() {
-        Long resumeId = 1L;
-        User nullUser = null;
-
-        ResumeCreationException exception = assertThrows(ResumeCreationException.class, () -> {
-            resumeService.deleteResume(resumeId, nullUser);
-        });
-        assertEquals("사용자 정보가 존재하지 않습니다.", exception.getMessage());
     }
 
     @Test

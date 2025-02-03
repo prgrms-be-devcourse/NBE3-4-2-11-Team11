@@ -29,7 +29,7 @@ public class ResumeController {
 
     private final ResumeService resumeService;
 
-    @PostMapping()
+    @PostMapping("")
     public ResponseEntity<RsData<ResumeIdResponse>> createResume(@Valid @RequestBody ResumeCreateRequest resumeCreateRequest, @AuthenticationPrincipal User user) {
         ResumeCreateResponse resumeCreateResponse = resumeService.createResume(resumeCreateRequest, user);
         ResumeIdResponse resumeIdResponse = new ResumeIdResponse(resumeCreateResponse.getId());
@@ -66,7 +66,7 @@ public class ResumeController {
     }
 
 
-    @GetMapping("/resume")
+    @GetMapping("")
     public ResumeResponse getResume(@AuthenticationPrincipal User user) {
         return resumeService.getResumeByUser(user);
     }

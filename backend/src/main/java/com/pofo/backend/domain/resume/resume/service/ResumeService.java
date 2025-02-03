@@ -24,10 +24,6 @@ public class ResumeService {
 
     @Transactional
     public ResumeCreateResponse createResume(ResumeCreateRequest resumeCreateRequest, @AuthenticationPrincipal User user) {
-
-        if (user == null) {
-            throw new ResumeCreationException("사용자 정보가 존재하지 않습니다.");
-        }
         try {
             Resume resume = Resume.builder()
                 .user(user)
@@ -48,10 +44,6 @@ public class ResumeService {
 
     @Transactional
     public ResumeCreateResponse updateResume(Long resumeId, ResumeCreateRequest resumeCreateRequest, @AuthenticationPrincipal User user) {
-        if (user == null) {
-            throw new ResumeCreationException("사용자 정보가 존재하지 않습니다.");
-        }
-
         Resume resume = resumeRepository.findById(resumeId)
             .orElseThrow(() -> new ResumeCreationException("이력서가 존재하지 않습니다."));
 
@@ -76,10 +68,6 @@ public class ResumeService {
 
     @Transactional
     public void deleteResume(Long resumeId, @AuthenticationPrincipal User user) {
-        if (user == null) {
-            throw new ResumeCreationException("사용자 정보가 존재하지 않습니다.");
-        }
-
         Resume resume = resumeRepository.findById(resumeId)
             .orElseThrow(() -> new ResumeCreationException("이력서가 존재하지 않습니다."));
 
@@ -94,9 +82,6 @@ public class ResumeService {
 
     @Transactional
     public ResumeResponse getResumeByUser(@AuthenticationPrincipal User user) {
-        if (user == null) {
-            throw new ResumeCreationException("사용자 정보가 존재하지 않습니다.");
-        }
         Resume resume = resumeRepository.findByUser(user)
             .orElseThrow(() -> new ResumeCreationException("이력서가 존재하지 않습니다."));
         return resumeMapper.resumeToResumeResponse(resume);
