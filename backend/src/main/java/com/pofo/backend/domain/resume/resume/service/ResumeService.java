@@ -74,6 +74,22 @@ public class ResumeService {
         return new ResumeCreateResponse(resume.getId(), "이력서 수정이 완료되었습니다.");
     }
 
+    @Transactional
+    public void deleteResume(Long resumeId, @AuthenticationPrincipal User user) {
+        if (user == null) {
+            throw new ResumeCreationException("사용자 정보가 존재하지 않습니다.");
+        }
+
+        Resume resume = resumeRepository.findById(resumeId)
+            .orElseThrow(() -> new ResumeCreationException("이력서가 존재하지 않습니다."));
+
+        if (!resume.getUser().equals(user)) {
+            throw new ResumeCreationException("이력서를 삭제할 권한이 없습니다.");
+        }
+
+        resumeRepository.delete(resume);
+    }
+
 
 
     @Transactional

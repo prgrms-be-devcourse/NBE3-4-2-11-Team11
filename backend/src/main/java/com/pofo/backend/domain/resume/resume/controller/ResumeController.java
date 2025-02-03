@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -44,6 +45,20 @@ public class ResumeController {
             ResumeCreateResponse response = resumeService.updateResume(resumeId, resumeCreateRequest, user);
             ResumeIdResponse resumeIdResponse = new ResumeIdResponse(response.getId());
             return ResponseEntity.ok(new RsData<>("200", response.getMessage(),resumeIdResponse));
+        } catch (ResumeCreationException e) {
+            RsData<Object> rsData = new RsData<>("500", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(rsData);
+        }
+    }
+
+    @DeleteMapping("/resume/{resumeId}")
+    public ResponseEntity<RsData<Object>> deleteResume(
+        @PathVariable Long resumeId,
+        @AuthenticationPrincipal User user) {
+        try {
+            resumeService.deleteResume(resumeId, user);
+            RsData<Object> rsData = new RsData<>("200", "이력서 삭제가 완료되었습니다.");
+            return ResponseEntity.ok(rsData);
         } catch (ResumeCreationException e) {
             RsData<Object> rsData = new RsData<>("500", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(rsData);
