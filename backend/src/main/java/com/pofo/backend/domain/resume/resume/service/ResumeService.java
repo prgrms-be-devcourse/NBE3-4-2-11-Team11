@@ -19,7 +19,7 @@ import org.springframework.stereotype.Service;
 public class ResumeService {
 
     private final ResumeRepository resumeRepository;
-
+    private final ResumeMapper resumeMapper;
 
 
     @Transactional
@@ -52,7 +52,6 @@ public class ResumeService {
         }
         Resume resume = resumeRepository.findByUser(user)
             .orElseThrow(() -> new ResumeCreationException("이력서가 존재하지 않습니다."));
-        return ResumeMapper.INSTANCE.resumeToResumeResponse(resume);
-
+        return resumeMapper.resumeToResumeResponse(resume);
     }
 }
