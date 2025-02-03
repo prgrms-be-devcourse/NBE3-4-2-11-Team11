@@ -202,4 +202,17 @@ class ResumeServiceTest {
         });
         assertEquals("사용자 정보가 존재하지 않습니다.", exception.getMessage());
     }
+
+    @Test
+    @DisplayName("이력서 삭제 성공")
+    void deleteResume_success() {
+        Long resumeId = 1L;
+        when(resumeRepository.findById(resumeId)).thenReturn(Optional.of(mockResume));
+        when(mockResume.getUser()).thenReturn(mockUser);
+
+        resumeService.deleteResume(resumeId, mockUser);
+
+        verify(resumeRepository).delete(mockResume);
+    }
+
 }
