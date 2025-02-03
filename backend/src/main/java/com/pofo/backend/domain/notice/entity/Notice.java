@@ -12,9 +12,9 @@ import lombok.*;
 @Table(name = "notices")
 public class Notice extends BaseTime {
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "admin_id", nullable = false)
-//    private Admin adminId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "admin_id", nullable = false)
+    private Admin admin;
 
     @Column(length = 100, nullable = false)
     private String subject;
