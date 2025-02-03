@@ -1,6 +1,6 @@
 package com.pofo.backend.domain.inquiry.dto.reponse;
 
-import com.pofo.backend.domain.notice.entity.Notice;
+import com.pofo.backend.domain.inquiry.entity.Inquiry;
 import lombok.Getter;
 
 @Getter
@@ -8,7 +8,7 @@ public class InquiryCreateResponse {
 
     private Long responseId;
 
-    public InquiryCreateResponse(Notice notice) {
-        this.responseId = notice.getId();
+    public InquiryCreateResponse(Inquiry inquiry) {
+        this.responseId = inquiry.getId();
     }
 }
