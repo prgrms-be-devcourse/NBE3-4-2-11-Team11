@@ -175,4 +175,20 @@ class ResumeServiceTest {
         verify(resumeRepository).findById(1L);
     }
 
+    @Test
+    @DisplayName("이력서 수정 실패 - 권한 없음")
+    void updateResume_noPermission() {
+        ResumeCreateRequest resumeCreateRequest = createResumeRequest();
+        User differentUser = Mockito.mock(User.class);
+
+        when(resumeRepository.findById(1L)).thenReturn(Optional.of(mockResume));
+        when(mockResume.getUser()).thenReturn(differentUser);
+
+        ResumeCreationException exception = assertThrows(ResumeCreationException.class, () -> {
+            resumeService.updateResume(1L, resumeCreateRequest, mockUser);
+        });
+        assertEquals("이력서를 수정할 권한이 없습니다.", exception.getMessage());
+        verify(resumeRepository).findById(1L);
+    }
+
 }
