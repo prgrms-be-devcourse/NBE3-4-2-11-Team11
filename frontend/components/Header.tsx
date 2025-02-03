@@ -21,6 +21,9 @@ const Header = () => {
               <li className="px-4 py-2 hover:bg-gray-700">
                 <Link href="/mypage/projects">프로젝트</Link>
               </li>
+              <li className="px-4 py-2 hover:bg-gray-700">
+                <Link href="/mypage/board">게시판</Link>
+              </li>
             </ul>
           </li>
           <li>
