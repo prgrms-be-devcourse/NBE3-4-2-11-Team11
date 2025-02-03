@@ -32,7 +32,7 @@ public class SecurityConfig {
                 .and()
 
                 .authorizeRequests()
-                .requestMatchers("/api/v1/admin/**").permitAll()
+                .requestMatchers("/api/v1/admin/login").permitAll()
                 .anyRequest().authenticated()
                 .and()
 
