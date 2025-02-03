@@ -33,10 +33,6 @@ public class Admin extends BaseTime {
     @Column(name = "failure_count", nullable = false, columnDefinition = "int default 0")
     private int failureCount = 0;
 
-//
-//    @OneToMany(mappedBy = "admin", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-//    private List<AdminLoginHistory> loginHistories;  // 로그인 기록 목록
-
     public enum Status {
         ACTIVE,
         INACTIVE
