@@ -26,13 +26,6 @@ public class UserJoinController {
         //  회원 가입 서비스 호출
         UserJoinResponseDto response = this.userJoinService.registerUser(userJoinRequestDto);
 
-        //  회원가입 성공 시 200 : 회원가입 성공 메시지 반환
-        //  2025-01-31 : 코드리뷰 반영 전 소스
-        //  return ResponseEntity.ok(response);
-
-        //  2025-01-31 : 코드리뷰 반영 후 소스
-        return ResponseEntity.ok(new RsData<>("200","회원가입 성공", response));
-//        return ResponseEntity.ok(new RsData<>("200","회원가입 성공"));
-//        return ResponseEntity.ok(new RsData<>("200","회원가입 성공",new Object()));
+        return ResponseEntity.ok(new RsData<>("200",response.getMessage(),response));
     }
 }

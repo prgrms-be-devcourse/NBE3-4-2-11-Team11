@@ -41,7 +41,7 @@ public class UserJoinControllerTest {
         );
 
         String response = resultActions.andReturn().getResponse().getContentAsString();
-        assertThat(response).contains("회원가입 성공");
+        assertThat(response).contains("회원 가입 성공");
     }
 
     @Test
