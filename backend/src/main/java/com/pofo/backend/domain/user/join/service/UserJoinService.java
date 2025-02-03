@@ -93,6 +93,7 @@ public class UserJoinService {
             oauthsRepository.save(oauths);
 
             return UserJoinResponseDto.builder()
+                    .message("회원 가입 성공")
                     .build();
         }
     }
