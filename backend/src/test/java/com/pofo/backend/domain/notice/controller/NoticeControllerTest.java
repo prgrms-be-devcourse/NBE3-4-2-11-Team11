@@ -1,14 +1,9 @@
 package com.pofo.backend.domain.notice.controller;
 
 import com.pofo.backend.common.TestSecurityConfig;
-import com.pofo.backend.domain.notice.dto.reponse.NoticeCreateResponse;
 import com.pofo.backend.domain.notice.dto.reponse.NoticeDetailResponse;
 import com.pofo.backend.domain.notice.dto.request.NoticeCreateRequest;
-import com.pofo.backend.domain.notice.entity.Notice;
-import com.pofo.backend.domain.notice.exception.NoticeNotFoundException;
-import com.pofo.backend.domain.notice.repository.NoticeRepository;
 import com.pofo.backend.domain.notice.service.NoticeService;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -23,8 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -34,67 +28,57 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import(TestSecurityConfig.class)
 public class NoticeControllerTest {
 
-	@Autowired
-	private NoticeService noticeService;
+    @Autowired
+    private NoticeService noticeService;
 
-	@Autowired
-	private NoticeRepository noticeRepository;
+    @Autowired
+    private MockMvc mockMvc;
 
-	@Autowired
-	private MockMvc mockMvc;
+    private Long noticeId;
 
-	private Long noticeId;
+    @BeforeEach
+    @Transactional
+    void initData() throws Exception {
+        NoticeCreateRequest noticeCreateRequest = new NoticeCreateRequest("공지사항 테스트", "공지사항 테스트입니다.");
 
-	@BeforeEach
-	@Transactional
-	void initData() throws Exception {
-		NoticeCreateRequest noticeCreateRequest = new NoticeCreateRequest();
+        this.noticeId = this.noticeService.create(noticeCreateRequest).getId();
+    }
 
-		noticeCreateRequest.setSubject("공지사항 테스트");
-		noticeCreateRequest.setContent("공지사항 테스트입니다.");
+    @Test
+    @DisplayName("공지 상세 조회 테스트")
+    void t1() throws Exception {
 
-		this.noticeId = this.noticeService.create(noticeCreateRequest).getResponseId();
-	}
+        ResultActions resultActions = mockMvc.perform(
+                        get("/api/v1/common/notices/{id}", noticeId)
+                                .contentType(new MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8)
+                                )
+                )
+                .andDo(print());
 
-	@Test
-	@DisplayName("공지 상세 조회 테스트")
-	void t1() throws Exception {
+        NoticeDetailResponse noticeDetailResponse = this.noticeService.findById(this.noticeId);
+        resultActions.andExpect(handler().handlerType(NoticeController.class))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("공지사항 상세 조회가 완료되었습니다."))
+                .andExpect(jsonPath("$.data.id").exists())
+                .andExpect(jsonPath("$.data.id").isNumber())
+                .andExpect(jsonPath("$.data.subject").value("공지사항 테스트"))
+                .andExpect(jsonPath("$.data.content").value("공지사항 테스트입니다."));
+    }
 
-		ResultActions resultActions = mockMvc.perform(
-				get("/api/v1/common/notices/{id}", noticeId)
-					.contentType(new MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8)
-					)
-			)
-			.andDo(print());
+    @Test
+    @DisplayName("공지 전체 조회 테스트")
+    void t2() throws Exception {
 
-		NoticeDetailResponse noticeDetailResponse = this.noticeService.findById(this.noticeId);
+        ResultActions resultActions = mockMvc.perform(
+                        get("/api/v1/common/notices")
+                                .contentType(new MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8)
+                                )
+                )
+                .andDo(print());
 
-		resultActions.andExpect(handler().handlerType(NoticeController.class))
-			.andExpect(jsonPath("$.message").value("공지사항 상세 조회가 완료되었습니다."))
-			.andExpect(status().isOk())
-			.andExpect(jsonPath("$.data.responseId").exists())
-			.andExpect(jsonPath("$.data.responseId").isNumber());
-
-		Notice notice = this.noticeRepository.findById(noticeDetailResponse.getResponseId())
-			.orElseThrow(() -> new NoticeNotFoundException("해당 공지사항을 찾을 수 없습니다."));
-
-		assertThat(notice.getSubject()).isEqualTo("공지사항 테스트");
-		assertThat(notice.getContent()).isEqualTo("공지사항 테스트입니다.");
-	}
-
-	@Test
-	@DisplayName("공지 전체 조회 테스트")
-	void t2() throws Exception {
-
-		ResultActions resultActions = mockMvc.perform(
-				get("/api/v1/common/notices")
-					.contentType(new MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8)
-					)
-			)
-			.andDo(print());
-
-		resultActions.andExpect(handler().handlerType(NoticeController.class))
-			.andExpect(jsonPath("$.message").value("공지사항 조회가 완료되었습니다."))
-			.andExpect(jsonPath("$.data").isArray());
-	}
+        resultActions.andExpect(handler().handlerType(NoticeController.class))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("공지사항 조회가 완료되었습니다."))
+                .andExpect(jsonPath("$.data").isArray());
+    }
 }
