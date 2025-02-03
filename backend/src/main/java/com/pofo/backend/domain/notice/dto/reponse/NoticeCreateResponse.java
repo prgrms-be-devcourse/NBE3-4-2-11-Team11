@@ -1,13 +1,14 @@
-package com.pofo.backend.domain.notice.dto;
+package com.pofo.backend.domain.notice.dto.reponse;
 
 import com.pofo.backend.domain.notice.entity.Notice;
 import lombok.*;
 
 @Getter
-public class NoticeResponseDto {
+public class NoticeCreateResponse {
+
     private Long responseId;
 
-    public NoticeResponseDto(Notice notice) {
+    public NoticeCreateResponse(Notice notice) {
         this.responseId = notice.getId();
     }
 }
