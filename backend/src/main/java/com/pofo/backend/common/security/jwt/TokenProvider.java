@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 @Component
 @Slf4j
 public class TokenProvider {
-    private static final String AUTHORIZATION_KEY = "auth";
+    private final String AUTHORIZATION_KEY;
     private final Long validationTime;
     private final Long refreshTokenValidationTime;
     private final SecretKey key;
@@ -29,7 +29,7 @@ public class TokenProvider {
         String secret = dotenv.get("JWT_SECRET");
         this.validationTime = Long.parseLong(dotenv.get("JWT_VALIDATION_TIME")) * 1000;  // 1시간
         this.refreshTokenValidationTime = Long.parseLong(dotenv.get("JWT_REFRESH_VALIDATION_TIME")) * 1000;  // 2시간
-
+        this.AUTHORIZATION_KEY = dotenv.get("AUTHORIZATION_KEY");
         // 비밀 키 설정
         this.key = new SecretKeySpec(Base64.getDecoder().decode(secret), SignatureAlgorithm.HS512.getJcaName());
     }
