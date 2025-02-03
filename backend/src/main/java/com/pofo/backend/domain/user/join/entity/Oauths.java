@@ -1,7 +1,9 @@
 package com.pofo.backend.domain.user.join.entity;
 
+import com.pofo.backend.common.jpa.entity.BaseEntity;
 import com.pofo.backend.common.jpa.entity.BaseTime;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -15,19 +17,17 @@ import java.time.LocalDateTime;
 @Builder
 @EntityListeners(AuditingEntityListener.class)
 @Table(name = "oauths")
-public class Oauths {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
+public class Oauths extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @NonNull
     private Users user;
 
     @Enumerated(EnumType.STRING)
+    @NotNull(message = "provider 값이 없습니다. ")
     private Provider provider;
 
+    @NotNull(message = "identify 값이 필요합니다.")
     private String identify;
 
     @CreatedDate

@@ -20,6 +20,7 @@ public class UserJoinRequestDto {
     @NotNull(message = "identify 값이 필요합니다.")
     private String identify;
 
+    @NotNull(message = "email 값이 필요합니다.")
     private String email;
 
     @NotBlank(message = "이름을 입력 해 주세요.")
