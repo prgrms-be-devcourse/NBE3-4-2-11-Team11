@@ -240,4 +240,19 @@ class ResumeServiceTest {
         verify(resumeRepository).findById(resumeId);
     }
 
+    @Test
+    @DisplayName("이력서 삭제 실패 - 권한 없음")
+    void deleteResume_noPermission() {
+        Long resumeId = 1L;
+        User differentUser = Mockito.mock(User.class);
+
+        when(resumeRepository.findById(resumeId)).thenReturn(Optional.of(mockResume));
+        when(mockResume.getUser()).thenReturn(differentUser);
+
+        ResumeCreationException exception = assertThrows(ResumeCreationException.class, () -> {
+            resumeService.deleteResume(resumeId, mockUser);
+        });
+        assertEquals("이력서를 삭제할 권한이 없습니다.", exception.getMessage());
+        verify(resumeRepository).findById(resumeId);
+    }
 }
