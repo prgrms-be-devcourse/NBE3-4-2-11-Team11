@@ -29,7 +29,7 @@ public class ProjectService {
                     .imageUrl(projectRequest.getImageUrl())
                     .build();
 
-            return new ProjectCreateResponse(project.getId(), "프로젝트 등록이 완료되었습니다.");
+            return new ProjectCreateResponse(project.getId(),"201", "프로젝트 등록이 완료되었습니다.");
         }catch (Exception ex){
             throw new ProjectCreationException("400","프로젝트 등록 중 오류가 발생했습니다.");
         }

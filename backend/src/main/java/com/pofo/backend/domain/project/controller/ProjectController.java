@@ -6,6 +6,8 @@ import com.pofo.backend.domain.project.service.ProjectService;
 import com.pofo.backend.domain.user.entity.User;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,8 +23,10 @@ public class ProjectController {
 
     //프로젝트 등록
     @PostMapping("/project")
-    public ProjectCreateResponse createProject(@Valid @RequestBody ProjectCreateRequest projectRequest, @AuthenticationPrincipal User user){
-        return projectService.createProject(projectRequest, user);
+    public ResponseEntity<ProjectCreateResponse> createProject(@Valid @RequestBody ProjectCreateRequest projectRequest, @AuthenticationPrincipal User user){
+        ProjectCreateResponse response = projectService.createProject(projectRequest, user);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
 }

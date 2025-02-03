@@ -1,6 +1,7 @@
 package com.pofo.backend.domain.project.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -12,11 +13,11 @@ public class ProjectCreateRequest {
 
     @NotBlank
     private String name;
-    @NotBlank
+    @NotNull
     private Date startDate;
-    @NotBlank
+    @NotNull
     private Date endDate;
-    @NotBlank
+    @NotNull
     private int memberCount;
     @NotBlank
     private String position;

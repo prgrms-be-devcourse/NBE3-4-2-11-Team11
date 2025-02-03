@@ -7,5 +7,6 @@ import lombok.Getter;
 @Getter
 public class ProjectCreateResponse {
     Long id;
+    String resultCode;
     String message;
 }

@@ -2,17 +2,26 @@ package com.pofo.backend.domain.project.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pofo.backend.domain.project.dto.request.ProjectCreateRequest;
+import com.pofo.backend.domain.user.entity.User;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.sql.Date;
 
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -28,9 +37,26 @@ public class ProjectControllerTest {
     @Autowired
     private MockMvc mvc;
 
+    @Mock
+    private User mockUser;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+
+        // mockUser 설정
+        when(mockUser.getId()).thenReturn(1L);
+
+        // SecurityContext 설정
+        SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+        Authentication authentication = new UsernamePasswordAuthenticationToken(mockUser, null, AuthorityUtils.createAuthorityList("ROLE_USER"));
+        securityContext.setAuthentication(authentication);
+
+        // SecurityContextHolder에 설정
+        SecurityContextHolder.setContext(securityContext);
+    }
 
     @Test
-    @WithMockUser
     @DisplayName("프로젝트 등록 테스트")
     void t1() throws Exception{
 
@@ -49,14 +75,14 @@ public class ProjectControllerTest {
         String body = mapper.writeValueAsString(projectCreateRequest);
 
         // when & then
-        mvc.perform(post("/project")
+        mvc.perform(post("/api/v1/user/project")
                 .content(body)
                 .contentType(MediaType.APPLICATION_JSON)
         )
                 .andDo(print())
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.resultCode").value("201"))
-                .andExpect(jsonPath("$.msg").value("프로젝트 등록이 완료되었습니다."));
+                .andExpect(jsonPath("$.message").value("프로젝트 등록이 완료되었습니다."));
 
     }
 
