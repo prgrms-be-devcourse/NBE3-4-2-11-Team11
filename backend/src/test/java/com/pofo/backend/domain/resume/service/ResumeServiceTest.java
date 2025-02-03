@@ -2,6 +2,7 @@ package com.pofo.backend.domain.resume.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -22,6 +23,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 class ResumeServiceTest {
@@ -51,6 +53,7 @@ class ResumeServiceTest {
         when(mockResume.getId()).thenReturn(1L);
         when(mockResume.getName()).thenReturn("김상진");
         when(mockResume.getEmail()).thenReturn("prgrms@naver.com");
+        when(mockResume.getUser()).thenReturn(mockUser);
     }
 
     private ResumeCreateRequest createResumeRequest() {
@@ -119,10 +122,8 @@ class ResumeServiceTest {
     @Test
     @DisplayName("이력서 조회 실패 - 이력서 없음")
     void getResumeByUser_notFound() {
-        // Given
         when(resumeRepository.findByUser(mockUser)).thenReturn(Optional.empty());
 
-        // When & Then
         ResumeCreationException exception = assertThrows(ResumeCreationException.class, () -> {
             resumeService.getResumeByUser(mockUser);
         });
@@ -133,13 +134,31 @@ class ResumeServiceTest {
     @Test
     @DisplayName("이력서 조회 실패 - 사용자 정보 없음")
     void getResumeByUser_nullUser() {
-        // Given
         User nullUser = null;
 
-        // When & Then
         ResumeCreationException exception = assertThrows(ResumeCreationException.class, () -> {
             resumeService.getResumeByUser(nullUser);
         });
         assertEquals("사용자 정보가 존재하지 않습니다.", exception.getMessage());
     }
+
+    @Test
+    @DisplayName("이력서 수정 성공")
+    void updateResume_success() {
+        ResumeCreateRequest resumeCreateRequest = createResumeRequest();
+        Resume realResume = Resume.builder()
+            .name("김상진")
+            .email("prgrmsNo@naver.com")
+            .user(mockUser)
+            .build();
+
+        when(resumeRepository.findById(1L)).thenReturn(Optional.of(realResume));
+
+        ResumeCreateResponse response = resumeService.updateResume(1L, resumeCreateRequest, mockUser);
+
+        assertEquals("이력서 수정이 완료되었습니다.", response.getMessage());
+        verify(resumeRepository).findById(1L);
+        verify(resumeRepository).save(any(Resume.class));
+    }
+
 }
