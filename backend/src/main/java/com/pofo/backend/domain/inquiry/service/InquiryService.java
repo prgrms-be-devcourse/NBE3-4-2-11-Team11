@@ -1,7 +1,10 @@
 package com.pofo.backend.domain.inquiry.service;
 
 import com.pofo.backend.domain.inquiry.dto.reponse.InquiryCreateResponse;
+import com.pofo.backend.domain.inquiry.dto.reponse.InquiryDetailResponse;
+import com.pofo.backend.domain.inquiry.dto.reponse.InquiryUpdateResponse;
 import com.pofo.backend.domain.inquiry.dto.request.InquiryCreateRequest;
+import com.pofo.backend.domain.inquiry.dto.request.InquiryUpdateRequest;
 import com.pofo.backend.domain.inquiry.entity.Inquiry;
 import com.pofo.backend.domain.inquiry.exception.InquiryException;
 import com.pofo.backend.domain.inquiry.repository.InquiryRepository;
@@ -33,5 +36,28 @@ public class InquiryService {
         } catch (Exception e) {
             throw new InquiryException("문의사항 생성 중 오류가 발생했습니다. 원인: " + e.getMessage());
         }
+    }
+
+    @Transactional
+    public InquiryUpdateResponse update(Long id, InquiryUpdateRequest updateRequest) {
+
+        Inquiry inquiry = this.inquiryRepository.findById(id)
+                .orElseThrow(() -> new InquiryException("해당 문의사항을 찾을 수 없습니다."));
+
+        try {
+            inquiry.update(updateRequest.getSubject(), updateRequest.getContent());
+            return new InquiryUpdateResponse(inquiry.getId());
+        } catch (Exception e) {
+            throw new InquiryException("문의사항 수정 중 오류가 발생했습니다. 원인: " + e.getMessage());
+        }
+    }
+
+    @Transactional
+    public InquiryDetailResponse findById(Long id) {
+
+        Inquiry inquiry = this.inquiryRepository.findById(id)
+                .orElseThrow(() -> new InquiryException("해당 문의사항을 찾을 수 없습니다."));
+
+        return new InquiryDetailResponse(inquiry.getId(), inquiry.getSubject(), inquiry.getContent(), inquiry.getResponse(), inquiry.getCreatedAt());
     }
 }
