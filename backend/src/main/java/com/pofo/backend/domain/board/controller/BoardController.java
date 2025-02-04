@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.pofo.backend.domain.user.join.entity.Users;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/user/boards")
@@ -38,8 +39,8 @@ public class BoardController {
 
     // 게시글 삭제 (DELETE /api/v1/user/boards/{id})
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletePost(@PathVariable Long id) {
-        boardService.deletePost(id);
-        return ResponseEntity.noContent().build(); // 204 No Content 반환
+    public ResponseEntity<RsData<String>> deletePost(@PathVariable Long id) {
+        RsData<BoardDeleteResponseDto> response = boardService.deletePost(id);
+        return ResponseEntity.ok(new RsData<>("200", "삭제 성공", response.getData().getMessage()));
     }
 }

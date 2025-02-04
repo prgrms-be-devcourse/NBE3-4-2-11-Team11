@@ -4,9 +4,9 @@ import com.pofo.backend.common.rsData.RsData;
 import com.pofo.backend.domain.board.dto.*;
 import com.pofo.backend.domain.board.entity.Board;
 import com.pofo.backend.domain.board.repository.BoardRepository;
-import com.pofo.backend.domain.user.entity.Users;
-import com.pofo.backend.domain.user.repository.UsersRepository;
-import jakarta.persistence.EntityNotFoundException;
+import com.pofo.backend.domain.user.join.entity.Users;
+import com.pofo.backend.domain.user.join.repository.UsersRepository;
+//import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
@@ -48,7 +48,7 @@ public class BoardService {
         if (user == null) {
             return new RsData<>("400", "사용자를 찾을 수 없습니다.");
         }
-
+        // Board 엔티티 생성 및 저장
         Board board = Board.builder()
                 .user(user)
                 .title(requestDto.getTitle())
@@ -71,6 +71,8 @@ public class BoardService {
 
         board.setTitle(requestDto.getTitle());
         board.setContent(requestDto.getContent());
+
+        boardRepository.save(board); // 수정 후 저장
 
         return new RsData<>("200", "게시글 수정 성공", new BoardResponseDto(board));
     }

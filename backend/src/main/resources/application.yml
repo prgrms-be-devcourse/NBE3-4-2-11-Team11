@@ -4,3 +4,16 @@ spring:
   config:
     import: optional:file:.env[.properties]
 
+  datasource:
+    url: jdbc:mysql://localhost:3306/your_database_name?serverTimezone=UTC&characterEncoding=UTF-8
+    username: your_username
+    password: your_password
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+    show-sql: true
