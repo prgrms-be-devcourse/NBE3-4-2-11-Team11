@@ -7,8 +7,8 @@ import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 @TestConfiguration
 public class AdditionalTestConfig {
 
-    @Bean
-    public HandlerMappingIntrospector mvcHandlerMappingIntrospector() {
-        return new HandlerMappingIntrospector();
-    }
+//    @Bean
+//    public HandlerMappingIntrospector mvcHandlerMappingIntrospector() {
+//        return new HandlerMappingIntrospector();
+//    }
 }
