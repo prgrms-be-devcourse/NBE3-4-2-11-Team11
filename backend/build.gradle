@@ -32,7 +32,7 @@ dependencies {
 	testImplementation 'org.springframework.security:spring-security-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-// Spring security
+	// Spring security
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	testImplementation 'org.springframework.security:spring-security-test'
 
@@ -43,7 +43,11 @@ dependencies {
 
 	implementation 'io.github.cdimascio:dotenv-java:3.0.0'
 
-	implementation 'org.springframework.data:spring-data-redis:2.7.5'
+	//implementation 'org.springframework.data:spring-data-redis:2.7.5'
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+	// https://mvnrepository.com/artifact/io.lettuce/lettuce-core
+	implementation 'io.lettuce:lettuce-core:6.3.1.RELEASE'
 	compileOnly 'jakarta.servlet:jakarta.servlet-api:5.0.0'
 
 
@@ -53,4 +57,8 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+tasks.withType(Test).configureEach {
+	systemProperty 'file.encoding', 'UTF-8'
 }
