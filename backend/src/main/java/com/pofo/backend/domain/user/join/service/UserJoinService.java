@@ -3,8 +3,8 @@ package com.pofo.backend.domain.user.join.service;
 import com.pofo.backend.common.exception.MultipleAccountsFoundException;
 import com.pofo.backend.domain.user.join.dto.UserJoinRequestDto;
 import com.pofo.backend.domain.user.join.dto.UserJoinResponseDto;
-import com.pofo.backend.domain.user.join.entity.Oauths;
-import com.pofo.backend.domain.user.join.entity.Users;
+import com.pofo.backend.domain.user.join.entity.Oauth;
+import com.pofo.backend.domain.user.join.entity.User;
 import com.pofo.backend.domain.user.join.repository.OauthsRepository;
 import com.pofo.backend.domain.user.join.repository.UsersRepository;
 import lombok.AllArgsConstructor;
@@ -26,16 +26,16 @@ public class UserJoinService {
     public UserJoinResponseDto registerUser(UserJoinRequestDto userJoinRequestDto) {
 
         //  1.  oauth테이블의 provider, identify 항목 취득 : 2025-01-31 반영
-        Optional<Oauths> existingOauths = oauthsRepository.findByProviderAndIdentify(
+        Optional<Oauth> existingOauths = oauthsRepository.findByProviderAndIdentify(
                 userJoinRequestDto.getProvider(),
                 userJoinRequestDto.getIdentify()
         );
 
         //  2.  users 테이블에 이메일이 존재 하는지 확인.
-        Optional<Users> existingUser = usersRepository.findByEmail(userJoinRequestDto.getEmail());
+        Optional<User> existingUser = usersRepository.findByEmail(userJoinRequestDto.getEmail());
 
         //  3.  Users 테이블에서 같은 이름 + 생년월일 + 성별 + 닉네임이 있는지 확인
-        List<Users> possibleExistingUser = usersRepository.findByNameAndSexAndAgeAndNickname(
+        List<User> possibleExistingUser = usersRepository.findByNameAndSexAndAgeAndNickname(
                 userJoinRequestDto.getName(),
                 userJoinRequestDto.getSex(),
                 userJoinRequestDto.getAge(),
@@ -59,12 +59,12 @@ public class UserJoinService {
                     .message("로그인이 완료 되었습니다.")
                     .build();
         } else if (existingOauths.isEmpty() && existingUser.isPresent()) {
-            Oauths newOauths = Oauths.builder()
+            Oauth newOauth = Oauth.builder()
                     .user(existingUser.get())  // 기존 사용자와 매핑
                     .provider(userJoinRequestDto.getProvider())
                     .identify(userJoinRequestDto.getIdentify())
                     .build();
-            oauthsRepository.save(newOauths);
+            oauthsRepository.save(newOauth);
 
             return UserJoinResponseDto.builder()
                     .message("기존 유저에 새로운 소셜 로그인 연동 성공")
@@ -75,7 +75,7 @@ public class UserJoinService {
                     .build();
         } else {
             //  소셜 로그인을 최초로 진행 하는 경우 : Users 테이블에 이메일, 이름, 닉네임, 성별, 나이대 입력
-            Users newUser = Users.builder()
+            User newUser = User.builder()
                     .email(userJoinRequestDto.getEmail())
                     .name(userJoinRequestDto.getName())
                     .nickname(userJoinRequestDto.getNickname())
@@ -85,12 +85,12 @@ public class UserJoinService {
             usersRepository.save(newUser);
 
             //  소셜 로그인을 최초로 진행 하는 경우 : Users 테이블에 이메일, 이름, 닉네임, 성별, 나이대 입력
-            Oauths oauths = Oauths.builder()
+            Oauth oauth = Oauth.builder()
                     .user(newUser)
                     .provider(userJoinRequestDto.getProvider())
                     .identify(userJoinRequestDto.getIdentify())
                     .build();
-            oauthsRepository.save(oauths);
+            oauthsRepository.save(oauth);
 
             return UserJoinResponseDto.builder()
                     .message("회원 가입 성공")

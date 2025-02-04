@@ -1,7 +1,7 @@
 package com.pofo.backend.domain.user.join.dto;
 
-import com.pofo.backend.domain.user.join.entity.Oauths;
-import com.pofo.backend.domain.user.join.entity.Users;
+import com.pofo.backend.domain.user.join.entity.Oauth;
+import com.pofo.backend.domain.user.join.entity.User;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -15,7 +15,7 @@ import java.time.LocalDate;
 public class UserJoinRequestDto {
 
     @NotNull(message = "provider 값이 없습니다. ")
-    private Oauths.Provider provider;
+    private Oauth.Provider provider;
 
     @NotNull(message = "identify 값이 필요합니다.")
     private String identify;
@@ -31,7 +31,7 @@ public class UserJoinRequestDto {
 
     @NotNull(message = "성별을 선택 해 주세요.")
     //private Sex sex;
-    private Users.Sex sex;
+    private User.Sex sex;
 
     private LocalDate age;
 }

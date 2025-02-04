@@ -1,7 +1,6 @@
 package com.pofo.backend.domain.user.join.entity;
 
 import com.pofo.backend.common.jpa.entity.BaseEntity;
-import com.pofo.backend.common.jpa.entity.BaseTime;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -17,11 +16,11 @@ import java.time.LocalDateTime;
 @Builder
 @EntityListeners(AuditingEntityListener.class)
 @Table(name = "oauths")
-public class Oauths extends BaseEntity {
+public class Oauth extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     @NonNull
-    private Users user;
+    private User user;
 
     @Enumerated(EnumType.STRING)
     @NotNull(message = "provider 값이 없습니다. ")

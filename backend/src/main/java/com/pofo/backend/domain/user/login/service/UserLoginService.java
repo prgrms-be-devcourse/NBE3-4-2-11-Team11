@@ -1,8 +1,8 @@
 package com.pofo.backend.domain.user.login.service;
 
 import com.pofo.backend.common.exception.SocialLoginException;
-import com.pofo.backend.domain.user.join.entity.Oauths;
-import com.pofo.backend.domain.user.join.entity.Users;
+import com.pofo.backend.domain.user.join.entity.Oauth;
+import com.pofo.backend.domain.user.join.entity.User;
 import com.pofo.backend.domain.user.join.repository.OauthsRepository;
 import com.pofo.backend.domain.user.join.repository.UsersRepository;
 import com.pofo.backend.domain.user.login.dto.NaverTokenResponse;
@@ -112,13 +112,13 @@ public class UserLoginService {
         String naverId = userInfo.getIdentify();
         String email = userInfo.getEmail();
 
-        Optional<Users> existingUser = usersRepository.findByEmail(email);
-        Users naverUser;
+        Optional<User> existingUser = usersRepository.findByEmail(email);
+        User naverUser;
 
         if (existingUser.isPresent()) {
             naverUser = existingUser.get();
         } else {
-            naverUser = Users.builder()
+            naverUser = User.builder()
                     .email(email)
                     .build();
 
@@ -126,16 +126,16 @@ public class UserLoginService {
         }
 
         //Oauths 저장 전 중복 체크
-        Optional<Oauths> existingOauths = oauthsRepository.findByProviderAndIdentify(Oauths.Provider.NAVER, naverId);
+        Optional<Oauth> existingOauths = oauthsRepository.findByProviderAndIdentify(Oauth.Provider.NAVER, naverId);
 
         if (existingOauths.isEmpty()) {
-            Oauths naverOauths = Oauths.builder()
+            Oauth naverOauth = Oauth.builder()
                     .user(naverUser)
-                    .provider(Oauths.Provider.NAVER)
+                    .provider(Oauth.Provider.NAVER)
                     .identify(naverId)
                     .build();
 
-            oauthsRepository.save(naverOauths);
+            oauthsRepository.save(naverOauth);
         }
 
         return UserLoginResponseDto.builder()

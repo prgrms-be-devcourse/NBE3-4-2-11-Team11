@@ -6,7 +6,8 @@ import com.pofo.backend.domain.resume.resume.dto.response.ResumeCreateResponse;
 import com.pofo.backend.domain.resume.resume.dto.response.ResumeIdResponse;
 import com.pofo.backend.domain.resume.resume.dto.response.ResumeResponse;
 import com.pofo.backend.domain.resume.resume.service.ResumeService;
-import com.pofo.backend.domain.user.entity.User;
+
+import com.pofo.backend.domain.user.join.entity.User;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

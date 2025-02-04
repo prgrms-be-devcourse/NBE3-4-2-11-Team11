@@ -1,6 +1,8 @@
 package com.pofo.backend.domain.resume.resume.entity;
 
 import com.pofo.backend.common.jpa.entity.BaseTime;
+
+import com.pofo.backend.domain.user.join.entity.User;
 import com.pofo.backend.domain.resume.course.entity.Course;
 import com.pofo.backend.domain.resume.experience.entity.Experience;
 import com.pofo.backend.domain.resume.education.entity.Education;
