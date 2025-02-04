@@ -16,7 +16,6 @@ import com.pofo.backend.domain.resume.resume.repository.ResumeRepository;
 
 import com.pofo.backend.domain.user.join.entity.User;
 import com.pofo.backend.domain.resume.language.service.LanguageService; 
-import com.pofo.backend.domain.user.entity.User;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.dao.DataAccessException;

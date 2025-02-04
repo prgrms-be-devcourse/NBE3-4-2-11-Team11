@@ -8,7 +8,6 @@ import com.pofo.backend.domain.resume.experience.entity.Experience;
 import com.pofo.backend.domain.resume.education.entity.Education;
 import com.pofo.backend.domain.resume.license.entity.License;
 import com.pofo.backend.domain.resume.language.entity.Language;
-import com.pofo.backend.domain.user.entity.User;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
