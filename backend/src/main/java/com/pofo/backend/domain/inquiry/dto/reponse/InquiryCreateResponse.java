@@ -1,14 +1,11 @@
 package com.pofo.backend.domain.inquiry.dto.reponse;
 
-import com.pofo.backend.domain.inquiry.entity.Inquiry;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
+@AllArgsConstructor
 public class InquiryCreateResponse {
 
-    private Long responseId;
-
-    public InquiryCreateResponse(Inquiry inquiry) {
-        this.responseId = inquiry.getId();
-    }
+    private Long id;
 }

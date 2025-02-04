@@ -1,11 +1,12 @@
 package com.pofo.backend.domain.inquiry.dto.reponse;
 
-import com.pofo.backend.domain.inquiry.entity.Inquiry;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
 
 @Getter
+@AllArgsConstructor
 public class InquiryDetailResponse {
 
     private Long responseId;
@@ -14,11 +15,4 @@ public class InquiryDetailResponse {
 //    private Long userId;
     private LocalDateTime createdAt;
 
-    public InquiryDetailResponse(Inquiry inquiry) {
-        this.responseId = inquiry.getId();
-        this.subject = inquiry.getSubject();
-        this.content = inquiry.getContent();
-//        this.userId = inquiry.getUser().getId();
-        this.createdAt = inquiry.getCreatedAt();
-    }
 }
