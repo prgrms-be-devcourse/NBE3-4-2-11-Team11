@@ -1,5 +1,6 @@
 package com.pofo.backend.domain.resume.resume.dto.request;
 
+import com.pofo.backend.domain.resume.activity.activity.dto.ActivityRequest;
 import com.pofo.backend.domain.resume.course.dto.CourseRequest;
 import com.pofo.backend.domain.resume.experience.dto.ExperienceRequest;
 import com.pofo.backend.domain.resume.education.dto.EducationRequest;
@@ -28,6 +29,7 @@ public class ResumeCreateRequest {
     private String address;
     private String gitAddress;
     private String blogAddress;
+    private List<ActivityRequest> activities;
     private List<CourseRequest> courses;
     private List<ExperienceRequest> experiences;
     private List<EducationRequest> educations;

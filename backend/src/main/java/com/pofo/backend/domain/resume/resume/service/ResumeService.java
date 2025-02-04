@@ -1,6 +1,7 @@
 package com.pofo.backend.domain.resume.resume.service;
 
 
+import com.pofo.backend.domain.resume.activity.activity.service.ActivityService;
 import com.pofo.backend.domain.resume.course.service.CourseService;
 import com.pofo.backend.domain.resume.experience.service.ExperienceService;
 import com.pofo.backend.domain.resume.education.service.EducationService;
@@ -27,6 +28,7 @@ public class ResumeService {
 
     private final ResumeRepository resumeRepository;
     private final ResumeMapper resumeMapper;
+    private final ActivityService activityService;
     private final CourseService courseService;
     private final ExperienceService experienceService;
     private final EducationService educationService;
@@ -46,7 +48,11 @@ public class ResumeService {
                 .gitAddress(resumeCreateRequest.getGitAddress())
                 .blogAddress(resumeCreateRequest.getBlogAddress())
                 .build();
+
             resume = resumeRepository.save(resume);
+            if (resumeCreateRequest.getActivities() != null) {
+                activityService.addActivities(resume.getId(), resumeCreateRequest.getActivities());
+            }
             if (resumeCreateRequest.getCourses() != null) {
                 courseService.addCourses(resume.getId(), resumeCreateRequest.getCourses());
             }
@@ -89,6 +95,9 @@ public class ResumeService {
                 .gitAddress(resumeCreateRequest.getGitAddress())
                 .blogAddress(resumeCreateRequest.getBlogAddress())
                 .build();
+            if (resumeCreateRequest.getActivities() != null) {
+                activityService.updateActivities(resumeId, resumeCreateRequest.getActivities());
+            }
             if (resumeCreateRequest.getCourses() != null) {
                 courseService.updateCourses(resume.getId(), resumeCreateRequest.getCourses());
             }
@@ -132,11 +141,12 @@ public class ResumeService {
         Resume resume = resumeRepository.findByUser(user)
             .orElseThrow(() -> new ResumeCreationException("이력서가 존재하지 않습니다."));
         ResumeResponse resumeResponse = resumeMapper.resumeToResumeResponse(resume);
+        resumeResponse.setActivities(activityService.getActivitiesByResumeId(resume.getId()));
         resumeResponse.setCourses(courseService.getCoursesByResumeId(resume.getId()));
         resumeResponse.setExperiences(experienceService.getExperiencesByResumeId(resume.getId()));
         resumeResponse.setEducations(educationService.getEducationsByResumeId(resume.getId()));
         resumeResponse.setLicenses(licenseService.getLicensesByResumeId(resume.getId()));
         resumeResponse.setLanguages(languageService.getLanguagesByResumeId(resume.getId()));
-        return resumeResponse;
+        return resumeMapper.resumeToResumeResponse(resume);
     }
 }
