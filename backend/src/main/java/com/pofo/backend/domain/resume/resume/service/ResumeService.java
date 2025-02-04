@@ -1,6 +1,7 @@
 package com.pofo.backend.domain.resume.resume.service;
 
 
+import com.pofo.backend.domain.resume.education.service.EducationService;
 import com.pofo.backend.domain.resume.license.service.LicenseService;
 import com.pofo.backend.domain.resume.resume.dto.request.ResumeCreateRequest;
 import com.pofo.backend.domain.resume.resume.dto.response.ResumeCreateResponse;
@@ -23,6 +24,7 @@ public class ResumeService {
 
     private final ResumeRepository resumeRepository;
     private final ResumeMapper resumeMapper;
+    private final EducationService educationService;
     private final LicenseService licenseService;
     private final LanguageService languageService;
 
@@ -39,7 +41,10 @@ public class ResumeService {
                 .gitAddress(resumeCreateRequest.getGitAddress())
                 .blogAddress(resumeCreateRequest.getBlogAddress())
                 .build();
+
             resume = resumeRepository.save(resume);
+            if (resumeCreateRequest.getEducations() != null) {
+                educationService.addEducations(resume.getId(), resumeCreateRequest.getEducations());
             if (resumeCreateRequest.getLicenses() != null) {
                 licenseService.addLicenses(resume.getId(), resumeCreateRequest.getLicenses());
             if (resumeCreateRequest.getLanguages() != null) {
@@ -72,7 +77,8 @@ public class ResumeService {
                 .gitAddress(resumeCreateRequest.getGitAddress())
                 .blogAddress(resumeCreateRequest.getBlogAddress())
                 .build();
-
+            if (resumeCreateRequest.getEducations() != null) {
+                educationService.updateEducations(resume.getId(), resumeCreateRequest.getEducations());
             if (resumeCreateRequest.getLicenses() != null) {
                 licenseService.updateLicenses(resume.getId(), resumeCreateRequest.getLicenses());
             if (resumeCreateRequest.getLanguages() != null) {
@@ -106,6 +112,7 @@ public class ResumeService {
         Resume resume = resumeRepository.findByUser(user)
             .orElseThrow(() -> new ResumeCreationException("이력서가 존재하지 않습니다."));
         ResumeResponse resumeResponse = resumeMapper.resumeToResumeResponse(resume);
+        resumeResponse.setEducations(educationService.getEducationsByResumeId(resume.getId()));
         resumeResponse.setLicenses(licenseService.getLicensesByResumeId(resume.getId()));
         resumeResponse.setLanguages(languageService.getLanguagesByResumeId(resume.getId()));
         return resumeResponse;
