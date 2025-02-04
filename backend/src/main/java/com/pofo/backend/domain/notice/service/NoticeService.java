@@ -66,7 +66,7 @@ public class NoticeService {
 
         try {
             this.noticeRepository.delete(notice);
-            return new NoticeDeleteResponse(null);
+            return new NoticeDeleteResponse();
         } catch (Exception e) {
             throw new NoticeException("공지사항 삭제 중 오류가 발생했습니다. 원인: " + e.getMessage());
         }
