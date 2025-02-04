@@ -9,10 +9,11 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class InquiryDetailResponse {
 
-    private Long responseId;
+    //    private Long userId;
+    private Long id;
     private String subject;
     private String content;
-//    private Long userId;
+    private int response;
     private LocalDateTime createdAt;
 
 }
