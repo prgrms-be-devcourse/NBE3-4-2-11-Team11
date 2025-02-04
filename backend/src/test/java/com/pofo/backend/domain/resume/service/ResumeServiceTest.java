@@ -16,9 +16,11 @@ import com.pofo.backend.domain.resume.resume.exception.UnauthorizedActionExcepti
 import com.pofo.backend.domain.resume.resume.mapper.ResumeMapper;
 import com.pofo.backend.domain.resume.resume.repository.ResumeRepository;
 import com.pofo.backend.domain.resume.resume.service.ResumeService;
-import com.pofo.backend.domain.user.entity.User;
+
 import java.time.LocalDate;
 import java.util.Optional;
+
+import com.pofo.backend.domain.user.join.entity.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

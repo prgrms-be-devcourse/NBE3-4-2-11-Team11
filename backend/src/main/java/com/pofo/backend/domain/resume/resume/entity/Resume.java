@@ -1,7 +1,8 @@
 package com.pofo.backend.domain.resume.resume.entity;
 
 import com.pofo.backend.common.jpa.entity.BaseTime;
-import com.pofo.backend.domain.user.entity.User;
+
+import com.pofo.backend.domain.user.join.entity.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
