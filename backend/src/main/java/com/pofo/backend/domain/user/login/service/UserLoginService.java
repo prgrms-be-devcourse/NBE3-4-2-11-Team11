@@ -87,25 +87,29 @@ public class UserLoginService {
         HttpEntity<?> entity = new HttpEntity<>(headers);
         RestTemplate restTemplate = new RestTemplate();
 
-        ResponseEntity<Map<String, Object>> userInfoResponse = restTemplate.exchange(
-                userInfoUrl, HttpMethod.GET, entity, new ParameterizedTypeReference<>() {}
-        );
+        try {
+            ResponseEntity<Map<String, Object>> userInfoResponse = restTemplate.exchange(
+                    userInfoUrl, HttpMethod.GET, entity, new ParameterizedTypeReference<>() {}
+            );
 
-        if (userInfoResponse.getStatusCode() != HttpStatus.OK || userInfoResponse.getBody() == null) {
-            throw new SocialLoginException("소셜 네이버 실패 : 네이버, 사유 : 사용자 정보 요청 실패 , 응답코드 : " + userInfoResponse.getStatusCode());
+            if (userInfoResponse.getStatusCode() != HttpStatus.OK || userInfoResponse.getBody() == null) {
+                throw new SocialLoginException("소셜 네이버 실패 : 네이버, 사유 : 사용자 정보 요청 실패 , 응답코드 : " + userInfoResponse.getStatusCode());
+            }
+
+            Map<String, Object> responseMap = (Map<String, Object>) userInfoResponse.getBody().get("response");
+
+            if (responseMap == null || !responseMap.containsKey("email")) {
+                throw new SocialLoginException("소셜 네이버 실패 : email 정보가 없습니다.");
+            }
+
+            String email = (String) responseMap.get("email");
+
+            return UserLoginResponseDto.builder()
+                    .email(email)
+                    .build();
+        } catch (Exception e) {
+            throw new SocialLoginException("소셜 네이버 실패: 사용자 정보 요청 중 예외 발생 - " + e.getMessage());
         }
-
-        Map<String, Object> responseMap = (Map<String, Object>) userInfoResponse.getBody().get("response");
-
-        if (responseMap == null || !responseMap.containsKey("email")) {
-            throw new SocialLoginException("소셜 네이버 실패 : email 정보가 없습니다.");
-        }
-
-        String email = (String) responseMap.get("email");
-
-        return UserLoginResponseDto.builder()
-                .email(email)
-                .build();
     }
 
     private UserLoginResponseDto saveOrUpdateNaverUser(UserLoginResponseDto userInfo) {
