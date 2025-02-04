@@ -109,4 +109,8 @@ public class TokenProvider {
         Long now = System.currentTimeMillis();
         return (expiration.getTime() - now);
     }
+
+    public String generateAccessToken(Authentication authentication) {
+        return createToken(authentication).getAccessToken();
+    }
 }
