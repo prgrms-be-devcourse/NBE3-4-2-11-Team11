@@ -1,45 +1,36 @@
 package com.pofo.backend.common.security.jwt;
 
 import com.pofo.backend.common.security.dto.TokenDto;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.MalformedJwtException;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.UnsupportedJwtException;
-import jakarta.annotation.PostConstruct;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import io.github.cdimascio.dotenv.Dotenv;
+import io.jsonwebtoken.*;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Component;
+import lombok.extern.slf4j.Slf4j;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
 public class TokenProvider {
-    @Value("${JWT_SECRET_KEY}")
-    private String secret;
-    @Value("${JWT_VALIDATION_TIME}")
-    private Long validationTime;
-    @Value("${AUTHORIZATION_KEY}")
-    private  String AUTHORIZATION_KEY;
-    @Value("${JWT_REFRESH_VALIDATION_TIME}")
-    private  Long refreshTokenValidationTime;
-    private SecretKey key;
+    private final String AUTHORIZATION_KEY;
+    private final Long validationTime;
+    private final Long refreshTokenValidationTime;
+    private final SecretKey key;
 
-
-    @PostConstruct
-    public void init() {
+    public TokenProvider() {
+        // .env 파일에서 환경 변수 읽기
+        Dotenv dotenv = Dotenv.load();
+        String secret = dotenv.get("JWT_SECRET");
+        this.validationTime = Long.parseLong(dotenv.get("JWT_VALIDATION_TIME")) * 1000;  // 1시간
+        this.refreshTokenValidationTime = Long.parseLong(dotenv.get("JWT_REFRESH_VALIDATION_TIME")) * 1000;  // 2시간
+        this.AUTHORIZATION_KEY = dotenv.get("AUTHORIZATION_KEY");
+        // 비밀 키 설정
         this.key = new SecretKeySpec(Base64.getDecoder().decode(secret), SignatureAlgorithm.HS512.getJcaName());
     }
 
