@@ -9,7 +9,6 @@ import com.pofo.backend.domain.project.exception.ProjectCreationException;
 import com.pofo.backend.domain.project.repository.ProjectRepository;
 import com.pofo.backend.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -45,19 +44,17 @@ public class ProjectService {
     }
 
     public List<ProjectDetailResponse> detailAllProject(User user){
-        try{
 
             List<Project> projects = projectRepository.findAllByOrderByIdDesc();
+
+            // 프로젝트가 없으면 예외 처리
+            if (projects.isEmpty()) {
+                throw ProjectCreationException.notFound("프로젝트가 존재하지 않습니다.");
+            }
+
             return projects.stream()
                     .map(projectMapper::projectToProjectDetailResponse)
                     .collect(Collectors.toList());
 
-        }catch  (DataAccessException ex) {
-            // 데이터베이스 관련 예외를 구체적으로 처리
-            throw new ProjectCreationException("500", "프로젝트 조회 중 데이터베이스 오류가 발생했습니다.");
-        } catch (Exception ex) {
-            // 예기치 않은 예외 처리
-            throw new ProjectCreationException("400", "프로젝트 전체 조회 중 오류가 발생했습니다.");
-        }
     }
 }
