@@ -43,6 +43,7 @@ dependencies {
 
 	implementation 'io.github.cdimascio:dotenv-java:3.0.0'
 
+
 	//implementation 'org.springframework.data:spring-data-redis:2.7.5'
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
@@ -51,7 +52,6 @@ dependencies {
 
 	// Tomcat이 이미 필요한 서블릿 API를 제공하기 때문에 불필요.
 	//  compileOnly 'jakarta.servlet:jakarta.servlet-api:5.0.0'
-
 
 	implementation 'org.mapstruct:mapstruct:1.5.2.Final'
 	annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.2.Final'
