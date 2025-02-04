@@ -1,6 +1,7 @@
 package com.pofo.backend.domain.resume.resume.entity;
 
 import com.pofo.backend.common.jpa.entity.BaseTime;
+import com.pofo.backend.domain.resume.license.entity.License;
 import com.pofo.backend.domain.resume.language.entity.Language;
 import com.pofo.backend.domain.user.entity.User;
 import jakarta.persistence.CascadeType;
@@ -44,6 +45,8 @@ public class Resume extends BaseTime {
     private String gitAddress;
     private String blogAddress;
 
+    @OneToMany(mappedBy = "resume", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<License> licenses = new ArrayList<>();
     @OneToMany(mappedBy = "resume", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Language> languages = new ArrayList<>();
 
