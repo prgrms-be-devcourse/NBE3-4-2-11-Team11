@@ -9,9 +9,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import com.pofo.backend.domain.notice.exception.NoticeException;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ControllerAdvice
-@RequiredArgsConstructor
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResumeCreationException.class)
@@ -38,4 +40,9 @@ public class GlobalExceptionHandler {
             .body(new RsData<>("500", "서버 내부 오류가 발생했습니다."));
     }
 
+	@ExceptionHandler(NoticeException.class)
+	@ResponseStatus(HttpStatus.NOT_FOUND)
+	public RsData<Object> handleNoticeException(NoticeException e) {
+		return new RsData<>("404", e.getMessage());
+	}
 }
