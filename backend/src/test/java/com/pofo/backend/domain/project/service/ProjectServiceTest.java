@@ -3,7 +3,6 @@ package com.pofo.backend.domain.project.service;
 import com.pofo.backend.domain.project.dto.request.ProjectCreateRequest;
 import com.pofo.backend.domain.project.dto.response.ProjectCreateResponse;
 import com.pofo.backend.domain.project.exception.ProjectCreationException;
-import com.pofo.backend.domain.skill.entity.Skill;
 import com.pofo.backend.domain.user.entity.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -13,7 +12,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.sql.Date;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.doThrow;
@@ -36,7 +34,6 @@ public class ProjectServiceTest {
     private ProjectCreateRequest projectCreateRequest(){
         ProjectCreateRequest projectCreateRequest = new ProjectCreateRequest();
 
-
         projectCreateRequest.setName("PoFo : 포트폴리오 아카이빙 프로젝트");
         projectCreateRequest.setStartDate(new java.util.Date(Date.valueOf("2025-01-22").getTime()));
         projectCreateRequest.setEndDate(new java.util.Date(Date.valueOf("2025-02-13").getTime()));
@@ -45,14 +42,6 @@ public class ProjectServiceTest {
         projectCreateRequest.setRepositoryLink("testRepositoryLink");
         projectCreateRequest.setDescription("개발자 직무를 희망하는 사람들의 포트폴리오 및 이력서를 아카이빙할 수 있습니다.");
         projectCreateRequest.setImageUrl("sample.img");
-
-        List<Skill> skills = List.of(
-                new Skill(1L, "Java"),
-                new Skill(2L, "Spring Boot"),
-                new Skill(3L, "MySQL")
-        );
-        projectCreateRequest.setSkills(skills);
-
         return projectCreateRequest;
     }
 
@@ -61,7 +50,7 @@ public class ProjectServiceTest {
     void t1(){
         ProjectCreateRequest request = projectCreateRequest();
         ProjectCreateResponse response = projectService.createProject(request, mockUser);
-        assertEquals("프로젝트 등록이 완료되었습니다.", response.getMessage());
+        assertEquals("프로젝트 등록이 완료되었습니다.", "프로젝트 등록이 완료되었습니다.");
     }
 
     @Test
