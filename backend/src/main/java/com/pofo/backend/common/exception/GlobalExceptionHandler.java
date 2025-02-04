@@ -1,8 +1,6 @@
 package com.pofo.backend.common.exception;
 
 import com.pofo.backend.common.rsData.RsData;
-import com.pofo.backend.domain.resume.resume.exception.ResumeCreationException;
-import com.pofo.backend.domain.resume.resume.exception.UnauthorizedActionException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
@@ -14,17 +12,17 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 @RequiredArgsConstructor
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(ResumeCreationException.class)
-    public ResponseEntity<RsData<Object>> handleResumeCreationException(ResumeCreationException e) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-            .body(new RsData<>("400", e.getMessage()));
-    }
-
-    @ExceptionHandler(UnauthorizedActionException.class)
-    public ResponseEntity<RsData<Object>> handleUnauthorizedException(UnauthorizedActionException e) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN)
-            .body(new RsData<>("403", e.getMessage()));
-    }
+//    @ExceptionHandler(ResumeCreationException.class)
+//    public ResponseEntity<RsData<Object>> handleResumeCreationException(ResumeCreationException e) {
+//        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+//            .body(new RsData<>("400", e.getMessage()));
+//    }
+//
+//    @ExceptionHandler(UnauthorizedActionException.class)
+//    public ResponseEntity<RsData<Object>> handleUnauthorizedException(UnauthorizedActionException e) {
+//        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+//            .body(new RsData<>("403", e.getMessage()));
+//    }
 
     @ExceptionHandler(DataAccessException.class)
     public ResponseEntity<RsData<Object>> handleDatabaseException(DataAccessException e) {

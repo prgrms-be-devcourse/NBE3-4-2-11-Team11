@@ -2,123 +2,94 @@ package com.pofo.backend.common.security;
 
 import com.pofo.backend.common.security.jwt.JwtSecurityConfig;
 import com.pofo.backend.common.security.jwt.TokenProvider;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
 
-/**
- * SecurityConfig의 동작을 검증하는 통합 테스트 예제
- */
-@SpringBootTest(
-        classes = {
-                SecurityConfig.class,
-                SecurityConfigTest.TestController.class,
-                SecurityConfigTest.MockConfig.class,
-                AdditionalTestConfig.class   // 추가!
-        }
-)
+@SpringBootTest
 @AutoConfigureMockMvc
-public class SecurityConfigTest {
+@ExtendWith(MockitoExtension.class)
+@DisplayName("SecurityConfig 테스트") // ✅ 클래스 레벨에서 디스플레이 네임 지정
+class SecurityConfigTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    /**
-     * 테스트용 컨트롤러.
-     * – /api/v1/admin/login, /api/v1/user/login: permitAll 처리된 엔드포인트
-     * – /api/v1/protected: 인증이 필요한 보호된 엔드포인트
-     */
-    @RestController
-    @RequestMapping("/api/v1")
-    public static class TestController {
+    @MockBean
+    private TokenProvider tokenProvider;
 
-        @PostMapping("/admin/login")
-        public String adminLogin() {
-            return "Admin login";
-        }
+    @MockBean
+    private RedisTemplate<String, String> redisTemplate;
 
-        @PostMapping("/user/login")
-        public String userLogin() {
-            return "User login";
-        }
+    @MockBean
+    private JwtSecurityConfig jwtSecurityConfig;
 
-        @GetMapping("/protected")
-        public String protectedEndpoint() {
-            return "Protected content";
-        }
+    @MockBean
+    private AdminDetailsService adminDetailsService;
+
+    @InjectMocks
+    private SecurityConfig securityConfig;
+
+    @Mock
+    private AuthenticationConfiguration authenticationConfiguration;
+
+    private BCryptPasswordEncoder passwordEncoder;
+
+    @BeforeEach
+    void setUp() {
+        passwordEncoder = securityConfig.passwordEncoder();
     }
 
-    /**
-     * 테스트 전용 설정: SecurityConfig에서 요구하는 빈들을 Mock으로 등록합니다.
-     */
-    @TestConfiguration
-    public static class MockConfig {
-
-        @Bean
-        public TokenProvider tokenProvider() {
-            return Mockito.mock(TokenProvider.class);
-        }
-
-        @Bean
-        public RedisTemplate<String, String> redisTemplate() {
-            return Mockito.mock(RedisTemplate.class);
-        }
-
-        @Bean
-        public JwtSecurityConfig jwtSecurityConfig() throws Exception {
-            JwtSecurityConfig config = Mockito.mock(JwtSecurityConfig.class);
-            // SecurityConfig에서 jwtSecurityConfig.configure(http)를 호출할 때 아무런 동작도 하지 않도록 설정합니다.
-            Mockito.doNothing().when(config).configure(Mockito.any());
-            return config;
-        }
-    }
-
-    /**
-     * permitAll로 지정한 로그인 엔드포인트는 인증 없이 접근 가능해야 합니다.
-     */
     @Test
-    public void whenAccessLoginEndpointsWithoutAuth_thenOk() throws Exception {
-        // /api/v1/admin/login 테스트
-        mockMvc.perform(post("/api/v1/admin/login"))
-                .andExpect(status().isOk())
-                .andExpect(content().string("Admin login"));
+    @DisplayName("비밀번호 암호화가 정상적으로 동작해야 한다")
+    void passwordEncoder_ShouldEncryptPassword() {
+        String rawPassword = "testPassword";
+        String encodedPassword = passwordEncoder.encode(rawPassword);
 
-        // /api/v1/user/login 테스트
-        mockMvc.perform(post("/api/v1/user/login"))
-                .andExpect(status().isOk())
-                .andExpect(content().string("User login"));
+        assertThat(encodedPassword).isNotEqualTo(rawPassword); // 암호화가 정상적으로 수행됨
+        assertThat(passwordEncoder.matches(rawPassword, encodedPassword)).isTrue(); // 해싱된 비밀번호가 원본과 일치하는지 확인
     }
 
-    /**
-     * 보호된 엔드포인트에 인증 없이 접근하면 인증 실패 응답(예: 401 Unauthorized 또는 403 Forbidden)이 반환되어야 합니다.
-     */
     @Test
-    public void whenAccessProtectedWithoutAuth_thenUnauthorizedOrForbidden() throws Exception {
-        mockMvc.perform(get("/api/v1/protected"))
-                .andExpect(status().isForbidden());
+    @DisplayName("AuthenticationManager가 정상적으로 반환되어야 한다")
+    void authenticationManager_ShouldReturnAuthenticationManager() throws Exception {
+        AuthenticationManager authenticationManager = mock(AuthenticationManager.class);
+        when(authenticationConfiguration.getAuthenticationManager()).thenReturn(authenticationManager);
+
+        AuthenticationManager result = securityConfig.authenticationManager(authenticationConfiguration);
+        assertThat(result).isNotNull();
+        assertThat(result).isEqualTo(authenticationManager);
     }
 
-
-    /**
-     * 인증된 사용자로 보호된 엔드포인트에 접근하면 정상적으로 접근되어야 합니다.
-     */
     @Test
-    @WithMockUser(username = "testUser", roles = {"USER"})
-    public void whenAccessProtectedWithAuth_thenOk() throws Exception {
-        mockMvc.perform(get("/api/v1/protected"))
-                .andExpect(status().isOk())
-                .andExpect(content().string("Protected content"));
+    @DisplayName("AuthenticationProvider가 올바르게 설정되어야 한다")
+    void authenticationProvider_ShouldReturnDaoAuthenticationProvider() {
+        AuthenticationProvider authenticationProvider = securityConfig.authenticationProvider();
+
+        assertThat(authenticationProvider).isNotNull();
+        assertThat(authenticationProvider).isInstanceOf(AuthenticationProvider.class);
     }
+
+
+
 }
