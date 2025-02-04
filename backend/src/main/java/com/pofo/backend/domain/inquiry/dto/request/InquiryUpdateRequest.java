@@ -1,11 +1,11 @@
 package com.pofo.backend.domain.inquiry.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
 
 @Getter
-@Setter
+@AllArgsConstructor
 public class InquiryUpdateRequest {
 	
 	@NotBlank(message = "제목은 필수 항목입니다.")
