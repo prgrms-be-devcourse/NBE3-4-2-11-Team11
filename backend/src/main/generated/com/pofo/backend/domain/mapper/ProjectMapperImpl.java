@@ -2,13 +2,13 @@ package com.pofo.backend.domain.mapper;
 
 import com.pofo.backend.domain.project.dto.response.ProjectDetailResponse;
 import com.pofo.backend.domain.project.entity.Project;
-import java.util.Date;
+import java.time.LocalDate;
 import javax.annotation.processing.Generated;
 import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-02-04T23:09:44+0900",
+    date = "2025-02-05T00:32:45+0900",
     comments = "version: 1.5.2.Final, compiler: javac, environment: Java 21.0.2 (GraalVM Community)"
 )
 @Component
@@ -21,8 +21,8 @@ public class ProjectMapperImpl implements ProjectMapper {
         }
 
         String name = null;
-        Date startDate = null;
-        Date endDate = null;
+        LocalDate startDate = null;
+        LocalDate endDate = null;
         int memberCount = 0;
         String position = null;
         String repositoryLink = null;
