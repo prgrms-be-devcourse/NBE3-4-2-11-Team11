@@ -32,7 +32,6 @@ dependencies {
 	testImplementation 'org.springframework.security:spring-security-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-
 // Spring security
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	testImplementation 'org.springframework.security:spring-security-test'
@@ -48,6 +47,8 @@ dependencies {
 	compileOnly 'jakarta.servlet:jakarta.servlet-api:5.0.0'
 
 
+	implementation 'org.mapstruct:mapstruct:1.5.2.Final'
+	annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.2.Final'
 }
 
 tasks.named('test') {
