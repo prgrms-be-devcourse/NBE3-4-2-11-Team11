@@ -12,6 +12,7 @@ import com.pofo.backend.domain.resume.resume.dto.response.ResumeCreateResponse;
 import com.pofo.backend.domain.resume.resume.dto.response.ResumeResponse;
 import com.pofo.backend.domain.resume.resume.entity.Resume;
 import com.pofo.backend.domain.resume.resume.exception.ResumeCreationException;
+import com.pofo.backend.domain.resume.resume.exception.UnauthorizedActionException;
 import com.pofo.backend.domain.resume.resume.mapper.ResumeMapper;
 import com.pofo.backend.domain.resume.resume.repository.ResumeRepository;
 import com.pofo.backend.domain.resume.resume.service.ResumeService;
@@ -79,13 +80,13 @@ class ResumeServiceTest {
     @Test
     @DisplayName("이력서 생성 실패 - 예외 발생")
     void createResumeThrowsException() {
-        doThrow(new RuntimeException("이력서 생성 중 오류가 발생했습니다."))
+        doThrow(new RuntimeException("서버 오류로 인해 이력서 생성에 실패했습니다."))
             .when(mockUser).getId();
         ResumeCreateRequest resumeCreateRequest = createResumeRequest();
         try {
             resumeService.createResume(resumeCreateRequest, mockUser);
         } catch (RuntimeException e) {
-            assertEquals("이력서 생성 중 오류가 발생했습니다.", e.getMessage());
+            assertEquals("서버 오류로 인해 이력서 생성에 실패했습니다.", e.getMessage());
         }
     }
 
@@ -162,7 +163,7 @@ class ResumeServiceTest {
         when(resumeRepository.findById(1L)).thenReturn(Optional.of(mockResume));
         when(mockResume.getUser()).thenReturn(differentUser);
 
-        ResumeCreationException exception = assertThrows(ResumeCreationException.class, () -> {
+        UnauthorizedActionException exception = assertThrows(UnauthorizedActionException.class, () -> {
             resumeService.updateResume(1L, resumeCreateRequest, mockUser);
         });
         assertEquals("이력서를 수정할 권한이 없습니다.", exception.getMessage());
@@ -203,7 +204,7 @@ class ResumeServiceTest {
         when(resumeRepository.findById(resumeId)).thenReturn(Optional.of(mockResume));
         when(mockResume.getUser()).thenReturn(differentUser);
 
-        ResumeCreationException exception = assertThrows(ResumeCreationException.class, () -> {
+        UnauthorizedActionException exception = assertThrows(UnauthorizedActionException.class, () -> {
             resumeService.deleteResume(resumeId, mockUser);
         });
         assertEquals("이력서를 삭제할 권한이 없습니다.", exception.getMessage());
