@@ -1,6 +1,7 @@
 package com.pofo.backend.domain.skill.entity;
 
 import com.pofo.backend.common.jpa.entity.BaseEntity;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import lombok.*;
@@ -14,6 +15,7 @@ import lombok.*;
 @Setter
 public class Skill extends BaseEntity {
 
+    @Column(nullable = false)
     private String skill;
 
 
