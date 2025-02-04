@@ -48,12 +48,16 @@ public class ResumeService {
             resume = resumeRepository.save(resume);
             if (resumeCreateRequest.getCourses() != null) {
                 courseService.addCourses(resume.getId(), resumeCreateRequest.getCourses());
+            }
             if (resumeCreateRequest.getExperiences() != null) {
                 experienceService.addExperiences(resume.getId(), resumeCreateRequest.getExperiences());
+            }
             if (resumeCreateRequest.getEducations() != null) {
                 educationService.addEducations(resume.getId(), resumeCreateRequest.getEducations());
+            }
             if (resumeCreateRequest.getLicenses() != null) {
                 licenseService.addLicenses(resume.getId(), resumeCreateRequest.getLicenses());
+            }
             if (resumeCreateRequest.getLanguages() != null) {
                 languageService.addLanguages(resume.getId(), resumeCreateRequest.getLanguages());
             }
@@ -86,12 +90,16 @@ public class ResumeService {
                 .build();
             if (resumeCreateRequest.getCourses() != null) {
                 courseService.updateCourses(resume.getId(), resumeCreateRequest.getCourses());
+            }
             if (resumeCreateRequest.getExperiences() != null) {
                 experienceService.updateExperiences(resume.getId(), resumeCreateRequest.getExperiences());
+            }
             if (resumeCreateRequest.getEducations() != null) {
                 educationService.updateEducations(resume.getId(), resumeCreateRequest.getEducations());
+            }
             if (resumeCreateRequest.getLicenses() != null) {
                 licenseService.updateLicenses(resume.getId(), resumeCreateRequest.getLicenses());
+            }
             if (resumeCreateRequest.getLanguages() != null) {
                 languageService.updateLanguages(resume.getId(), resumeCreateRequest.getLanguages());
             }
