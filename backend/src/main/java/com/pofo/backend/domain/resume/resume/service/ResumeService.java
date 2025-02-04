@@ -2,6 +2,9 @@ package com.pofo.backend.domain.resume.resume.service;
 
 
 import com.pofo.backend.domain.resume.course.service.CourseService;
+import com.pofo.backend.domain.resume.experience.service.ExperienceService;
+import com.pofo.backend.domain.resume.education.service.EducationService;
+import com.pofo.backend.domain.resume.license.service.LicenseService;
 import com.pofo.backend.domain.resume.resume.dto.request.ResumeCreateRequest;
 import com.pofo.backend.domain.resume.resume.dto.response.ResumeCreateResponse;
 import com.pofo.backend.domain.resume.resume.dto.response.ResumeResponse;
@@ -10,6 +13,7 @@ import com.pofo.backend.domain.resume.resume.exception.ResumeCreationException;
 import com.pofo.backend.domain.resume.resume.exception.UnauthorizedActionException;
 import com.pofo.backend.domain.resume.resume.mapper.ResumeMapper;
 import com.pofo.backend.domain.resume.resume.repository.ResumeRepository;
+import com.pofo.backend.domain.resume.language.service.LanguageService; 
 import com.pofo.backend.domain.user.entity.User;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -23,6 +27,10 @@ public class ResumeService {
     private final ResumeRepository resumeRepository;
     private final ResumeMapper resumeMapper;
     private final CourseService courseService;
+    private final ExperienceService experienceService;
+    private final EducationService educationService;
+    private final LicenseService licenseService;
+    private final LanguageService languageService;
 
     @Transactional
     public ResumeCreateResponse createResume(ResumeCreateRequest resumeCreateRequest, User user) {
@@ -40,6 +48,14 @@ public class ResumeService {
             resume = resumeRepository.save(resume);
             if (resumeCreateRequest.getCourses() != null) {
                 courseService.addCourses(resume.getId(), resumeCreateRequest.getCourses());
+            if (resumeCreateRequest.getExperiences() != null) {
+                experienceService.addExperiences(resume.getId(), resumeCreateRequest.getExperiences());
+            if (resumeCreateRequest.getEducations() != null) {
+                educationService.addEducations(resume.getId(), resumeCreateRequest.getEducations());
+            if (resumeCreateRequest.getLicenses() != null) {
+                licenseService.addLicenses(resume.getId(), resumeCreateRequest.getLicenses());
+            if (resumeCreateRequest.getLanguages() != null) {
+                languageService.addLanguages(resume.getId(), resumeCreateRequest.getLanguages());
             }
             return new ResumeCreateResponse(resume.getId(), "이력서 생성이 완료되었습니다.");
         } catch (DataAccessException e) {
@@ -70,6 +86,14 @@ public class ResumeService {
                 .build();
             if (resumeCreateRequest.getCourses() != null) {
                 courseService.updateCourses(resume.getId(), resumeCreateRequest.getCourses());
+            if (resumeCreateRequest.getExperiences() != null) {
+                experienceService.updateExperiences(resume.getId(), resumeCreateRequest.getExperiences());
+            if (resumeCreateRequest.getEducations() != null) {
+                educationService.updateEducations(resume.getId(), resumeCreateRequest.getEducations());
+            if (resumeCreateRequest.getLicenses() != null) {
+                licenseService.updateLicenses(resume.getId(), resumeCreateRequest.getLicenses());
+            if (resumeCreateRequest.getLanguages() != null) {
+                languageService.updateLanguages(resume.getId(), resumeCreateRequest.getLanguages());
             }
             resumeRepository.save(resume);
             return new ResumeCreateResponse(resume.getId(), "이력서 수정이 완료되었습니다.");
@@ -100,6 +124,10 @@ public class ResumeService {
             .orElseThrow(() -> new ResumeCreationException("이력서가 존재하지 않습니다."));
         ResumeResponse resumeResponse = resumeMapper.resumeToResumeResponse(resume);
         resumeResponse.setCourses(courseService.getCoursesByResumeId(resume.getId()));
+        resumeResponse.setExperiences(experienceService.getExperiencesByResumeId(resume.getId()));
+        resumeResponse.setEducations(educationService.getEducationsByResumeId(resume.getId()));
+        resumeResponse.setLicenses(licenseService.getLicensesByResumeId(resume.getId()));
+        resumeResponse.setLanguages(languageService.getLanguagesByResumeId(resume.getId()));
         return resumeResponse;
     }
 }
