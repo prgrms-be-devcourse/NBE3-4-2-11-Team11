@@ -184,4 +184,21 @@ public class ProjectServiceTest {
         assertEquals("400", rsData.getResultCode());
         assertEquals("프로젝트 전체 조회 중 오류가 발생했습니다.", rsData.getMsg());
     }
+
+    @Test
+    @DisplayName("프로젝트 전체 조회 실패 - 사용자 정보 없음")
+    void t7(){
+        // given
+        User nullUser = null;
+
+        // when & then
+        ProjectCreationException exception = assertThrows(ProjectCreationException.class, () -> {
+            projectService.detailAllProject(nullUser);
+        });
+
+        // 예외 메시지 확인
+        RsData<Void> rsData = exception.getRsData();
+        assertEquals("400", rsData.getResultCode());
+        assertEquals("유효하지 않은 사용자입니다.", rsData.getMsg());
+    }
 }

@@ -40,11 +40,15 @@ public class ProjectService {
             return new ProjectCreateResponse(project.getId());
 
         }catch (Exception ex){
-            throw new ProjectCreationException("400","프로젝트 등록 중 오류가 발생했습니다.");
+            throw ProjectCreationException.invalidUser("유효하지 않은 사용자입니다.");
         }
     }
 
     public List<ProjectDetailResponse> detailAllProject(User user){
+
+        if(user==null){
+            throw ProjectCreationException.invalidUser("유효하지 않은 사용자입니다.");
+        }
 
         try{
             List<Project> projects = projectRepository.findAllByOrderByIdDesc();
