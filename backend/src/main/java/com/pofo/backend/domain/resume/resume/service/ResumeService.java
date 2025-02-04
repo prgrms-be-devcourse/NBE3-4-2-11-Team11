@@ -1,6 +1,7 @@
 package com.pofo.backend.domain.resume.resume.service;
 
 
+import com.pofo.backend.domain.resume.education.service.EducationService;
 import com.pofo.backend.domain.resume.resume.dto.request.ResumeCreateRequest;
 import com.pofo.backend.domain.resume.resume.dto.response.ResumeCreateResponse;
 import com.pofo.backend.domain.resume.resume.dto.response.ResumeResponse;
@@ -21,6 +22,7 @@ public class ResumeService {
 
     private final ResumeRepository resumeRepository;
     private final ResumeMapper resumeMapper;
+    private final EducationService educationService;
 
     @Transactional
     public ResumeCreateResponse createResume(ResumeCreateRequest resumeCreateRequest, User user) {
@@ -35,6 +37,11 @@ public class ResumeService {
                 .gitAddress(resumeCreateRequest.getGitAddress())
                 .blogAddress(resumeCreateRequest.getBlogAddress())
                 .build();
+
+            resume = resumeRepository.save(resume);
+            if (resumeCreateRequest.getEducations() != null) {
+                educationService.addEducations(resume.getId(), resumeCreateRequest.getEducations());
+            }
             return new ResumeCreateResponse(resume.getId(), "이력서 생성이 완료되었습니다.");
         } catch (DataAccessException e) {
             throw new ResumeCreationException("이력서 생성 중 데이터베이스 오류가 발생했습니다.");
@@ -62,7 +69,9 @@ public class ResumeService {
                 .gitAddress(resumeCreateRequest.getGitAddress())
                 .blogAddress(resumeCreateRequest.getBlogAddress())
                 .build();
-
+            if (resumeCreateRequest.getEducations() != null) {
+                educationService.updateEducations(resume.getId(), resumeCreateRequest.getEducations());
+            }
             resumeRepository.save(resume);
             return new ResumeCreateResponse(resume.getId(), "이력서 수정이 완료되었습니다.");
         } catch (DataAccessException e) {
@@ -90,6 +99,8 @@ public class ResumeService {
     public ResumeResponse getResumeByUser(User user) {
         Resume resume = resumeRepository.findByUser(user)
             .orElseThrow(() -> new ResumeCreationException("이력서가 존재하지 않습니다."));
-        return resumeMapper.resumeToResumeResponse(resume);
+        ResumeResponse resumeResponse = resumeMapper.resumeToResumeResponse(resume);
+        resumeResponse.setEducations(educationService.getEducationsByResumeId(resume.getId()));
+        return resumeResponse;
     }
 }

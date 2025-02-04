@@ -1,6 +1,8 @@
 package com.pofo.backend.domain.resume.resume.dto.response;
 
+import com.pofo.backend.domain.resume.education.entity.Education;
 import java.time.LocalDate;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,4 +18,5 @@ public class ResumeResponse {
     private String address;
     private String gitAddress;
     private String blogAddress;
+    private List<Education> educations;
 }
