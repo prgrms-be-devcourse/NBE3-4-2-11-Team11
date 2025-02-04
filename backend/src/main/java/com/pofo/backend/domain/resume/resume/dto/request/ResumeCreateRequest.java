@@ -1,8 +1,10 @@
 package com.pofo.backend.domain.resume.resume.dto.request;
 
+import com.pofo.backend.domain.resume.experience.dto.ExperienceRequest;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
+import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -22,5 +24,7 @@ public class ResumeCreateRequest {
     private String address;
     private String gitAddress;
     private String blogAddress;
+
+    private List<ExperienceRequest> experiences;
 
 }

@@ -1,14 +1,19 @@
 package com.pofo.backend.domain.resume.resume.entity;
 
 import com.pofo.backend.common.jpa.entity.BaseTime;
+import com.pofo.backend.domain.resume.experience.entity.Experience;
 import com.pofo.backend.domain.user.entity.User;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -38,6 +43,9 @@ public class Resume extends BaseTime {
     private String address;
     private String gitAddress;
     private String blogAddress;
+
+    @OneToMany(mappedBy = "resume", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Experience> experiences = new ArrayList<>();
 
 
 }
