@@ -1,5 +1,7 @@
 package com.pofo.backend.common.jpa.entity;
 
+import com.pofo.backend.domain.inquiry.dto.request.InquiryCreateRequest;
+import com.pofo.backend.domain.inquiry.service.InquiryService;
 import com.pofo.backend.domain.notice.dto.request.NoticeCreateRequest;
 import com.pofo.backend.domain.notice.service.NoticeService;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +22,9 @@ public class BaseInitData {
     private final NoticeService noticeService;
 
     @Autowired
+    private final InquiryService inquiryService;
+
+    @Autowired
     @Lazy
     private BaseInitData self;
 
@@ -27,6 +32,7 @@ public class BaseInitData {
     public ApplicationRunner baseInitDataApplicationRunner() {
         return args -> {
             self.makeSampleNotices();
+            self.makeSampleInquiry();
         };
     }
 
@@ -36,7 +42,17 @@ public class BaseInitData {
 
         for (int i = 1; i <= 5; i++) {
             NoticeCreateRequest noticeCreateRequest = new NoticeCreateRequest("공지사항 테스트 " + i + "번", "공지사항 테스트 " + i + "번 입니다.");
-            noticeService.create(noticeCreateRequest);
+            this.noticeService.create(noticeCreateRequest);
+        }
+    }
+
+    @Transactional
+    public void makeSampleInquiry() throws IOException {
+        if (inquiryService.count() > 0) return;
+
+        for (int i = 1; i <= 5; i++) {
+            InquiryCreateRequest inquiryCreateRequest = new InquiryCreateRequest("문의사항 테스트 " + i + "번", "문의사항 테스트 " + i + "번 입니다.");
+            this.inquiryService.create(inquiryCreateRequest);
         }
     }
 }

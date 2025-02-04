@@ -2,7 +2,6 @@ package com.pofo.backend.domain.inquiry.service;
 
 import com.pofo.backend.domain.inquiry.dto.reponse.InquiryCreateResponse;
 import com.pofo.backend.domain.inquiry.dto.reponse.InquiryDeleteResponse;
-import com.pofo.backend.domain.inquiry.dto.reponse.InquiryDetailResponse;
 import com.pofo.backend.domain.inquiry.dto.reponse.InquiryUpdateResponse;
 import com.pofo.backend.domain.inquiry.dto.request.InquiryCreateRequest;
 import com.pofo.backend.domain.inquiry.dto.request.InquiryUpdateRequest;
@@ -67,13 +66,9 @@ public class InquiryService {
         }
     }
 
-
-    @Transactional
-    public InquiryDetailResponse findById(Long id) {
-
-        Inquiry inquiry = this.inquiryRepository.findById(id)
-                .orElseThrow(() -> new InquiryException("해당 문의사항을 찾을 수 없습니다."));
-
-        return new InquiryDetailResponse(inquiry.getId(), inquiry.getSubject(), inquiry.getContent(), inquiry.getResponse(), inquiry.getCreatedAt());
+    @Transactional(readOnly = true)
+    public Long count() {
+        return this.inquiryRepository.count();
     }
+
 }
