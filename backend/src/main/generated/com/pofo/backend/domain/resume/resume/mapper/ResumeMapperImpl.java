@@ -1,5 +1,6 @@
 package com.pofo.backend.domain.resume.resume.mapper;
 
+import com.pofo.backend.domain.resume.activity.activity.entity.Activity;
 import com.pofo.backend.domain.resume.course.entity.Course;
 import com.pofo.backend.domain.resume.education.entity.Education;
 import com.pofo.backend.domain.resume.experience.entity.Experience;
@@ -15,8 +16,8 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-02-04T19:19:18+0900",
-    comments = "version: 1.5.2.Final, compiler: javac, environment: Java 21.0.2 (GraalVM Community)"
+    date = "2025-02-04T22:08:42+0900",
+    comments = "version: 1.5.2.Final, compiler: javac, environment: Java 21.0.5 (Oracle Corporation)"
 )
 @Component
 public class ResumeMapperImpl implements ResumeMapper {
@@ -34,6 +35,7 @@ public class ResumeMapperImpl implements ResumeMapper {
         String address = null;
         String gitAddress = null;
         String blogAddress = null;
+        List<Activity> activities = null;
         List<Course> courses = null;
         List<Experience> experiences = null;
         List<Education> educations = null;
@@ -47,28 +49,32 @@ public class ResumeMapperImpl implements ResumeMapper {
         address = resume.getAddress();
         gitAddress = resume.getGitAddress();
         blogAddress = resume.getBlogAddress();
-        List<Course> list = resume.getCourses();
+        List<Activity> list = resume.getActivities();
         if ( list != null ) {
-            courses = new ArrayList<Course>( list );
+            activities = new ArrayList<Activity>( list );
         }
-        List<Experience> list1 = resume.getExperiences();
+        List<Course> list1 = resume.getCourses();
         if ( list1 != null ) {
-            experiences = new ArrayList<Experience>( list1 );
+            courses = new ArrayList<Course>( list1 );
         }
-        List<Education> list2 = resume.getEducations();
+        List<Experience> list2 = resume.getExperiences();
         if ( list2 != null ) {
-            educations = new ArrayList<Education>( list2 );
+            experiences = new ArrayList<Experience>( list2 );
         }
-        List<License> list3 = resume.getLicenses();
+        List<Education> list3 = resume.getEducations();
         if ( list3 != null ) {
-            licenses = new ArrayList<License>( list3 );
+            educations = new ArrayList<Education>( list3 );
         }
-        List<Language> list4 = resume.getLanguages();
+        List<License> list4 = resume.getLicenses();
         if ( list4 != null ) {
-            languages = new ArrayList<Language>( list4 );
+            licenses = new ArrayList<License>( list4 );
+        }
+        List<Language> list5 = resume.getLanguages();
+        if ( list5 != null ) {
+            languages = new ArrayList<Language>( list5 );
         }
 
-        ResumeResponse resumeResponse = new ResumeResponse( name, birth, number, email, address, gitAddress, blogAddress, courses, experiences, educations, licenses, languages );
+        ResumeResponse resumeResponse = new ResumeResponse( name, birth, number, email, address, gitAddress, blogAddress, activities, courses, experiences, educations, licenses, languages );
 
         return resumeResponse;
     }
