@@ -1,0 +1,64 @@
+.loginContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #1e1e1e;
+}
+
+.loginBox {
+    background: #222;
+    padding: 40px;
+    border-radius: 10px;
+    text-align: center;
+    width: 350px;
+}
+
+.title {
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.loginButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    border: none;
+}
+
+.google {
+    background-color: #ea4335;
+    color: white;
+}
+
+.naver {
+    background-color: #2db400;
+    color: white;
+}
+
+.kakao {
+    background-color: #fee500;
+    color: #3c1e1e;
+}
+
+.icon {
+    font-size: 18px;
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+.adminLogin {
+    color: white;
+    font-size: 14px;
+    margin-top: 20px;
+    cursor: pointer;
+}
