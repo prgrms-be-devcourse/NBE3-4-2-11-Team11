@@ -36,7 +36,7 @@ public class ResumeController {
         return ResponseEntity.ok(new RsData<>("200", resumeCreateResponse.getMessage(),resumeIdResponse));
     }
 
-    @PutMapping("/resume/{resumeId}")
+    @PutMapping("/{resumeId}")
     public ResponseEntity<RsData<Object>> updateResume(
         @PathVariable Long resumeId,
         @RequestBody ResumeCreateRequest resumeCreateRequest,
@@ -51,7 +51,7 @@ public class ResumeController {
         }
     }
 
-    @DeleteMapping("/resume/{resumeId}")
+    @DeleteMapping("/{resumeId}")
     public ResponseEntity<RsData<Object>> deleteResume(
         @PathVariable Long resumeId,
         @AuthenticationPrincipal User user) {
