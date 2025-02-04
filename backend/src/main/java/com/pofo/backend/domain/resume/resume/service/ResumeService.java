@@ -1,6 +1,7 @@
 package com.pofo.backend.domain.resume.resume.service;
 
 
+import com.pofo.backend.domain.resume.course.service.CourseService;
 import com.pofo.backend.domain.resume.experience.service.ExperienceService;
 import com.pofo.backend.domain.resume.education.service.EducationService;
 import com.pofo.backend.domain.resume.license.service.LicenseService;
@@ -25,6 +26,7 @@ public class ResumeService {
 
     private final ResumeRepository resumeRepository;
     private final ResumeMapper resumeMapper;
+    private final CourseService courseService;
     private final ExperienceService experienceService;
     private final EducationService educationService;
     private final LicenseService licenseService;
@@ -44,6 +46,8 @@ public class ResumeService {
                 .blogAddress(resumeCreateRequest.getBlogAddress())
                 .build();
             resume = resumeRepository.save(resume);
+            if (resumeCreateRequest.getCourses() != null) {
+                courseService.addCourses(resume.getId(), resumeCreateRequest.getCourses());
             if (resumeCreateRequest.getExperiences() != null) {
                 experienceService.addExperiences(resume.getId(), resumeCreateRequest.getExperiences());
             if (resumeCreateRequest.getEducations() != null) {
@@ -80,7 +84,8 @@ public class ResumeService {
                 .gitAddress(resumeCreateRequest.getGitAddress())
                 .blogAddress(resumeCreateRequest.getBlogAddress())
                 .build();
-
+            if (resumeCreateRequest.getCourses() != null) {
+                courseService.updateCourses(resume.getId(), resumeCreateRequest.getCourses());
             if (resumeCreateRequest.getExperiences() != null) {
                 experienceService.updateExperiences(resume.getId(), resumeCreateRequest.getExperiences());
             if (resumeCreateRequest.getEducations() != null) {
@@ -118,6 +123,7 @@ public class ResumeService {
         Resume resume = resumeRepository.findByUser(user)
             .orElseThrow(() -> new ResumeCreationException("이력서가 존재하지 않습니다."));
         ResumeResponse resumeResponse = resumeMapper.resumeToResumeResponse(resume);
+        resumeResponse.setCourses(courseService.getCoursesByResumeId(resume.getId()));
         resumeResponse.setExperiences(experienceService.getExperiencesByResumeId(resume.getId()));
         resumeResponse.setEducations(educationService.getEducationsByResumeId(resume.getId()));
         resumeResponse.setLicenses(licenseService.getLicensesByResumeId(resume.getId()));

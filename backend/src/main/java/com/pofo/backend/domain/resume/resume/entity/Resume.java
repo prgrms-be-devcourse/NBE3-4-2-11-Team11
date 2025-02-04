@@ -1,6 +1,7 @@
 package com.pofo.backend.domain.resume.resume.entity;
 
 import com.pofo.backend.common.jpa.entity.BaseTime;
+import com.pofo.backend.domain.resume.course.entity.Course;
 import com.pofo.backend.domain.resume.experience.entity.Experience;
 import com.pofo.backend.domain.resume.education.entity.Education;
 import com.pofo.backend.domain.resume.license.entity.License;
@@ -47,6 +48,8 @@ public class Resume extends BaseTime {
     private String gitAddress;
     private String blogAddress;
 
+    @OneToMany(mappedBy = "resume", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Course> courses = new ArrayList<>();
     @OneToMany(mappedBy = "resume", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Experience> experiences = new ArrayList<>();
     @OneToMany(mappedBy = "resume", cascade = CascadeType.ALL, orphanRemoval = true)

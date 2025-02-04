@@ -1,5 +1,6 @@
 package com.pofo.backend.domain.resume.resume.dto.response;
 
+import com.pofo.backend.domain.resume.course.entity.Course;
 import com.pofo.backend.domain.resume.experience.entity.Experience;
 import com.pofo.backend.domain.resume.education.entity.Education;
 import com.pofo.backend.domain.resume.license.entity.License;
@@ -21,6 +22,7 @@ public class ResumeResponse {
     private String address;
     private String gitAddress;
     private String blogAddress;
+    private List<Course> courses;
     private List<Experience> experiences;
     private List<Education> educations;
     private List<License> licenses;
