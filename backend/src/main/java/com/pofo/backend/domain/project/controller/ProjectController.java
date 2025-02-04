@@ -2,7 +2,6 @@ package com.pofo.backend.domain.project.controller;
 
 import com.pofo.backend.common.rsData.RsData;
 import com.pofo.backend.domain.project.dto.request.ProjectCreateRequest;
-import com.pofo.backend.domain.project.dto.request.ProjectDetailRequest;
 import com.pofo.backend.domain.project.dto.response.ProjectCreateResponse;
 import com.pofo.backend.domain.project.dto.response.ProjectDetailResponse;
 import com.pofo.backend.domain.project.exception.ProjectCreationException;
@@ -15,6 +14,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -36,12 +37,14 @@ public class ProjectController {
 
     //프로젝트 전체 조회
     @GetMapping("/projects")
-    public ResponseEntity<RsData<ProjectDetailResponse>> detailAllProject(@Valid @RequestBody ProjectDetailRequest projectDetailRequest, @AuthenticationPrincipal User user){
+    public ResponseEntity<RsData<List<ProjectDetailResponse>>> detailAllProject(@AuthenticationPrincipal User user){
         //인증로직이 없어서 임시조치
         User u = userRepository.findById(null).orElseThrow(()->new ProjectCreationException("404",""));
-        ProjectDetailResponse response = projectService.detailAllProject(projectDetailRequest, u);
 
-        return ResponseEntity.status(HttpStatus.OK).body(new RsData<>("200", "프로젝트 조회가 완료되었습니다.", response));
+        List<ProjectDetailResponse> response = projectService.detailAllProject(u);
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new RsData<>("200", "프로젝트 조회가 완료되었습니다.", response));
     }
 
 
