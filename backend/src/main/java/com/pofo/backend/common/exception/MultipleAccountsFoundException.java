@@ -25,13 +25,3 @@ class MultipleAccountsFoundExceptionAdvice {
                 .body(new RsData<>("400",e.getMessage(),null));
     }
 }
-
-@ResponseStatus(HttpStatus.BAD_REQUEST)
-class AccountMatchingException  extends RuntimeException {
-    public AccountMatchingException(String message) { super(message); }
-}
-
-@ResponseStatus(HttpStatus.BAD_REQUEST)
-class AccountVerificationRequiredException   extends RuntimeException {
-    public AccountVerificationRequiredException(String message) { super(message); }
-}
