@@ -26,7 +26,6 @@ public class EducationService {
             .map(educationRequest -> Education.builder()
                 .name(educationRequest.getName())
                 .major(educationRequest.getMajor())
-                .result(educationRequest.getResult())
                 .startDate(educationRequest.getStartDate())
                 .endDate(educationRequest.getEndDate())
                 .status(educationRequest.getStatusEnum())

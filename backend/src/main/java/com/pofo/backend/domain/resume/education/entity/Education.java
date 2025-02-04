@@ -30,8 +30,6 @@ public class Education extends BaseTime {
     @Column(nullable = false)
     private String major;
     @Column(nullable = false)
-    private String result;
-    @Column(nullable = false)
     private LocalDate startDate;
     @Column(nullable = false)
     private LocalDate endDate;

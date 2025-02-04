@@ -15,8 +15,6 @@ public class EducationRequest {
     private String name;
     @NotBlank
     private String major;
-    @NotBlank
-    private String result;
     @NotNull
     private LocalDate startDate;
     @NotNull
