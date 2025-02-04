@@ -168,5 +168,20 @@ public class ProjectServiceTest {
         assertEquals("프로젝트가 존재하지 않습니다.", rsData.getMsg());
     }
 
+    @Test
+    @DisplayName("프로젝트 전체 조회 실패 - 예기치 않은 오류 발생")
+    void t6(){
+        //given
+        when(projectRepository.findAllByOrderByIdDesc()).thenThrow(new RuntimeException("Unexpected error"));
 
+        //when & then
+        ProjectCreationException exception = assertThrows(ProjectCreationException.class, () -> {
+            projectService.detailAllProject(mockUser);
+        });
+
+        // 예외 메시지 확인
+        RsData<Void> rsData = exception.getRsData();
+        assertEquals("400", rsData.getResultCode());
+        assertEquals("프로젝트 전체 조회 중 오류가 발생했습니다.", rsData.getMsg());
+    }
 }
