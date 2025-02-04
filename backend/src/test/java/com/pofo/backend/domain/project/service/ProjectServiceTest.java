@@ -1,5 +1,6 @@
 package com.pofo.backend.domain.project.service;
 
+import com.pofo.backend.common.rsData.RsData;
 import com.pofo.backend.domain.mapper.ProjectMapper;
 import com.pofo.backend.domain.project.dto.request.ProjectCreateRequest;
 import com.pofo.backend.domain.project.dto.response.ProjectCreateResponse;
@@ -16,9 +17,11 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 public class ProjectServiceTest {
@@ -147,5 +150,23 @@ public class ProjectServiceTest {
         verify(projectRepository).findAllByOrderByIdDesc();
         verify(projectMapper).projectToProjectDetailResponse(mockProject);
     }
+
+    @Test
+    @DisplayName("프로젝트 전체 조회 실패 - 프로젝트 없는 경우")
+    void t5(){
+        // given
+        when(projectRepository.findAllByOrderByIdDesc()).thenReturn(Collections.emptyList());
+
+        // when & then
+        ProjectCreationException exception = assertThrows(ProjectCreationException.class, () -> {
+            projectService.detailAllProject(mockUser);
+        });
+
+        // 예외 메시지 확인
+        RsData<Void> rsData = exception.getRsData();
+        assertEquals("404", rsData.getResultCode());
+        assertEquals("프로젝트가 존재하지 않습니다.", rsData.getMsg());
+    }
+
 
 }
