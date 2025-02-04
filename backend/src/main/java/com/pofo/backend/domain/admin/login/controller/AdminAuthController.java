@@ -22,13 +22,12 @@ public class AdminAuthController {
     @PostMapping("/login")
     public ResponseEntity<RsData<AdminLoginResponse>> login(@RequestBody AdminLoginRequest request) {
         Authentication authentication = authenticationManager.authenticate(request.getAuthenticationToken());
-
-        // 로그인 성공 시 JWT 토큰 생성
         TokenDto token = tokenProvider.createToken(authentication);
 
-        return ResponseEntity.ok(new RsData<>(
-                "200", "로그인 성공",
-                new AdminLoginResponse(token.getAccessToken(), token.getRefreshToken())
-        ));
+        return ResponseEntity.ok()
+                .header("Authorization", "Bearer " + token.getAccessToken())
+                .header("Refresh-Token", token.getRefreshToken())
+                .body(new RsData<>("200", "로그인 성공", new AdminLoginResponse()));
     }
+
 }
