@@ -2,6 +2,7 @@ package com.pofo.backend.domain.inquiry.service;
 
 import com.pofo.backend.domain.inquiry.dto.reponse.InquiryCreateResponse;
 import com.pofo.backend.domain.inquiry.dto.reponse.InquiryDeleteResponse;
+import com.pofo.backend.domain.inquiry.dto.reponse.InquiryDetailResponse;
 import com.pofo.backend.domain.inquiry.dto.reponse.InquiryUpdateResponse;
 import com.pofo.backend.domain.inquiry.dto.request.InquiryCreateRequest;
 import com.pofo.backend.domain.inquiry.dto.request.InquiryUpdateRequest;
@@ -11,6 +12,9 @@ import com.pofo.backend.domain.inquiry.repository.InquiryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -64,6 +68,24 @@ public class InquiryService {
         } catch (Exception e) {
             throw new InquiryException("문의사항 삭제 중 오류가 발생했습니다. 원인: " + e.getMessage());
         }
+    }
+
+    @Transactional(readOnly = true)
+    public InquiryDetailResponse findById(Long id) {
+
+        Inquiry inquiry = this.inquiryRepository.findById(id)
+                .orElseThrow(() -> new InquiryException("해당 문의사항을 찾을 수 없습니다."));
+
+        return new InquiryDetailResponse(inquiry.getId(), inquiry.getSubject(), inquiry.getContent(), inquiry.getResponse(), inquiry.getCreatedAt());
+    }
+
+    @Transactional(readOnly = true)
+    public List<InquiryDetailResponse> findAll() {
+
+        List<Inquiry> inquiries = this.inquiryRepository.findAllByOrderByCreatedAtDesc();
+        return inquiries.stream()
+                .map(inquiry -> new InquiryDetailResponse(inquiry.getId(), inquiry.getSubject(), inquiry.getContent(), inquiry.getResponse(), inquiry.getCreatedAt()))
+                .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)

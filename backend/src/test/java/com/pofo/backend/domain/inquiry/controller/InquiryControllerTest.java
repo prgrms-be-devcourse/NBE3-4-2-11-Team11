@@ -139,4 +139,42 @@ public class InquiryControllerTest {
 
         assertThrows(InquiryException.class, () -> this.inquiryService.findById(inquiryId));
     }
+
+    @Test
+    @DisplayName("문의 상세 조회 테스트")
+    void t4() throws Exception {
+
+        ResultActions resultActions = mockMvc.perform(
+                        get("/api/v1/common/inquiries/{id}", inquiryId)
+                                .contentType(new MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8)
+                                )
+                )
+                .andDo(print());
+
+        InquiryDetailResponse inquiryDetailResponse = this.inquiryService.findById(this.inquiryId);
+        resultActions.andExpect(handler().handlerType(InquiryController.class))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("문의사항 상세 조회가 완료되었습니다."))
+                .andExpect(jsonPath("$.data.id").exists())
+                .andExpect(jsonPath("$.data.id").isNumber())
+                .andExpect(jsonPath("$.data.subject").value("문의사항 테스트"))
+                .andExpect(jsonPath("$.data.content").value("문의사항 테스트입니다."));
+    }
+
+    @Test
+    @DisplayName("문의 전체 조회 테스트")
+    void t5() throws Exception {
+
+        ResultActions resultActions = mockMvc.perform(
+                        get("/api/v1/common/inquiries")
+                                .contentType(new MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8)
+                                )
+                )
+                .andDo(print());
+
+        resultActions.andExpect(handler().handlerType(InquiryController.class))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("문의사항 조회가 완료되었습니다."))
+                .andExpect(jsonPath("$.data").isArray());
+    }
 }
