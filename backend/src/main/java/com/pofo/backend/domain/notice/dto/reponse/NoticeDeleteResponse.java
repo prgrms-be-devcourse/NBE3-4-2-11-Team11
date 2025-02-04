@@ -1,11 +1,10 @@
 package com.pofo.backend.domain.notice.dto.reponse;
 
-import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
 
 @Getter
-@AllArgsConstructor
-public class NoticeDeleteResponse {
+@JsonInclude(JsonInclude.Include.NON_EMPTY)  // 빈 객체라도 JSON으로 변환
 
-    private Long id;
+public class NoticeDeleteResponse {
 }
