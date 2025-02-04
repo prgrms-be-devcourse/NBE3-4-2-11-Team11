@@ -1,9 +1,10 @@
 package com.pofo.backend.domain.notice.entity;
 
 import com.pofo.backend.common.jpa.entity.BaseTime;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import lombok.*;
-import org.springframework.transaction.annotation.Transactional;
 
 @Entity
 @Getter
@@ -23,7 +24,6 @@ public class Notice extends BaseTime {
     @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
 
-    @Transactional
     public void update(String subject, String content) {
         this.subject = subject;
         this.content = content;

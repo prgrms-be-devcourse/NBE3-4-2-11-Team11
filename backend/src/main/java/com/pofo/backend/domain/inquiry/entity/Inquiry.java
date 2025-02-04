@@ -1,8 +1,9 @@
 package com.pofo.backend.domain.inquiry.entity;
 
 import com.pofo.backend.common.jpa.entity.BaseTime;
-
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import lombok.*;
 
 @Entity
@@ -25,4 +26,9 @@ public class Inquiry extends BaseTime {
 
 	@Column(nullable = false, columnDefinition = "TINYINT DEFAULT 0") // 문의사항 답변 상태
 	private int response;
+
+	public void update(String subject, String content) {
+		this.subject = subject;
+		this.content = content;
+	}
 }
