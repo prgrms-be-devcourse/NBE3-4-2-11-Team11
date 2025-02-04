@@ -8,7 +8,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
@@ -16,21 +15,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * 테스트에 필요한 빈들(테스트용 컨트롤러, SecurityConfig, 목(mock) 빈들)만 로드하여
- * SecurityConfig의 동작을 검증하는 테스트 예제입니다.
+ * SecurityConfig의 동작을 검증하는 통합 테스트 예제
  */
 @SpringBootTest(
         classes = {
-                SecurityConfigTest.TestController.class,
                 SecurityConfig.class,
+                SecurityConfigTest.TestController.class,
                 SecurityConfigTest.MockConfig.class,
-                AdditionalTestConfig.class  // 추가한 설정 클래스
+                AdditionalTestConfig.class   // 추가!
         }
 )
-
 @AutoConfigureMockMvc
 public class SecurityConfigTest {
 
@@ -39,28 +37,35 @@ public class SecurityConfigTest {
 
     /**
      * 테스트용 컨트롤러.
-     * – 클래스 레벨에 @RequestMapping("/api/v1")를 지정하여
-     *   내부 매핑이 /api/v1/admin/login, /api/v1/test가 되도록 합니다.
+     * – /api/v1/admin/login, /api/v1/user/login: permitAll 처리된 엔드포인트
+     * – /api/v1/protected: 인증이 필요한 보호된 엔드포인트
      */
     @RestController
     @RequestMapping("/api/v1")
     public static class TestController {
-        @GetMapping("/admin/login")
+
+        @PostMapping("/admin/login")
         public String adminLogin() {
-            return "Login page";
+            return "Admin login";
         }
 
-        @GetMapping("/test")
-        public String test() {
-            return "Test endpoint";
+        @PostMapping("/user/login")
+        public String userLogin() {
+            return "User login";
+        }
+
+        @GetMapping("/protected")
+        public String protectedEndpoint() {
+            return "Protected content";
         }
     }
 
     /**
-     * 테스트 전용 설정: 테스트 컨텍스트에 필요한 목(mock) 빈들을 등록합니다.
+     * 테스트 전용 설정: SecurityConfig에서 요구하는 빈들을 Mock으로 등록합니다.
      */
     @TestConfiguration
     public static class MockConfig {
+
         @Bean
         public TokenProvider tokenProvider() {
             return Mockito.mock(TokenProvider.class);
@@ -74,40 +79,46 @@ public class SecurityConfigTest {
         @Bean
         public JwtSecurityConfig jwtSecurityConfig() throws Exception {
             JwtSecurityConfig config = Mockito.mock(JwtSecurityConfig.class);
-            // SecurityConfig에서 jwtSecurityConfig.configure(http)를 호출할 때 아무런 동작도 하지 않도록 합니다.
+            // SecurityConfig에서 jwtSecurityConfig.configure(http)를 호출할 때 아무런 동작도 하지 않도록 설정합니다.
             Mockito.doNothing().when(config).configure(Mockito.any());
             return config;
         }
     }
 
     /**
-     * permitAll로 지정한 로그인 엔드포인트는 인증 없이도 접근되어 200 OK와 "Login page"를 반환해야 합니다.
+     * permitAll로 지정한 로그인 엔드포인트는 인증 없이 접근 가능해야 합니다.
      */
     @Test
-    public void givenPermitAllEndpoint_whenAccessed_thenOk() throws Exception {
-        mockMvc.perform(get("/api/v1/admin/login"))
+    public void whenAccessLoginEndpointsWithoutAuth_thenOk() throws Exception {
+        // /api/v1/admin/login 테스트
+        mockMvc.perform(post("/api/v1/admin/login"))
                 .andExpect(status().isOk())
-                .andExpect(content().string("Login page"));
+                .andExpect(content().string("Admin login"));
+
+        // /api/v1/user/login 테스트
+        mockMvc.perform(post("/api/v1/user/login"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("User login"));
     }
 
     /**
-     * 인증 없이 보호된 엔드포인트에 접근 시(기본 설정에 따라) 403 Forbidden이 반환되는지 테스트합니다.
-     * (AuthenticationEntryPoint를 별도로 설정하지 않으면 미인증 요청은 403 Forbidden이 될 수 있습니다.)
+     * 보호된 엔드포인트에 인증 없이 접근하면 인증 실패 응답(예: 401 Unauthorized 또는 403 Forbidden)이 반환되어야 합니다.
      */
     @Test
-    public void givenProtectedEndpoint_whenNotAuthenticated_thenForbidden() throws Exception {
-        mockMvc.perform(get("/api/v1/test"))
+    public void whenAccessProtectedWithoutAuth_thenUnauthorizedOrForbidden() throws Exception {
+        mockMvc.perform(get("/api/v1/protected"))
                 .andExpect(status().isForbidden());
     }
 
+
     /**
-     * 인증된 사용자로 보호된 엔드포인트에 접근하면 200 OK와 "Test endpoint"가 반환되어야 합니다.
+     * 인증된 사용자로 보호된 엔드포인트에 접근하면 정상적으로 접근되어야 합니다.
      */
     @Test
-    @WithMockUser(username = "user", roles = {"USER"})
-    public void givenProtectedEndpoint_whenAuthenticated_thenOk() throws Exception {
-        mockMvc.perform(get("/api/v1/test"))
+    @WithMockUser(username = "testUser", roles = {"USER"})
+    public void whenAccessProtectedWithAuth_thenOk() throws Exception {
+        mockMvc.perform(get("/api/v1/protected"))
                 .andExpect(status().isOk())
-                .andExpect(content().string("Test endpoint"));
+                .andExpect(content().string("Protected content"));
     }
 }

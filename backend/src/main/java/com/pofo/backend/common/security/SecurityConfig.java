@@ -1,6 +1,5 @@
 package com.pofo.backend.common.security;
 
-
 import com.pofo.backend.common.security.jwt.JwtSecurityConfig;
 import com.pofo.backend.common.security.jwt.TokenProvider;
 import lombok.RequiredArgsConstructor;
@@ -27,8 +26,7 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain configure(HttpSecurity http) throws Exception {
-        // JwtSecurityConfig에서 JwtFilter를 추가하는 설정을 적용
-        jwtSecurityConfig.configure(http); // 필터 설정 적용
+        jwtSecurityConfig.configure(http); // 기존 방식 유지
 
         return http.formLogin().disable()
                 .csrf().disable()
@@ -36,7 +34,7 @@ public class SecurityConfig {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeRequests()
-                .requestMatchers("/api/v1/admin/login").permitAll() // 로그인 API에 대한 예외 처리
+                .requestMatchers("/api/v1/admin/login", "/api/v1/user/login").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .build();
