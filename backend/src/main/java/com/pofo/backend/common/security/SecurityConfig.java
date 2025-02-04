@@ -5,6 +5,7 @@ import com.pofo.backend.common.security.jwt.JwtSecurityConfig;
 import com.pofo.backend.common.security.jwt.TokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -12,6 +13,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
+@Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
@@ -36,7 +38,7 @@ public class SecurityConfig {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeRequests()
-                .requestMatchers("/api/v1/admin/login").permitAll() // 로그인 API에 대한 예외 처리
+                .requestMatchers("/api/v1/admin/login","/api/v1/user/login", "/api/v1/user/naver/login").permitAll() // 로그인 API에 대한 예외 처리
                 .anyRequest().authenticated()
                 .and()
                 .build();
