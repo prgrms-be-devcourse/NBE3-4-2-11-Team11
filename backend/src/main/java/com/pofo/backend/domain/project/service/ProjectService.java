@@ -13,9 +13,6 @@ public class ProjectService {
 
     public ProjectCreateResponse createProject(ProjectCreateRequest projectRequest, User user) {
 
-        if(user==null){
-            throw new ProjectCreationException("404","사용자가 존재하지 않습니다.");
-        }
         try{
             Project project = Project.builder()
                     .user(user)
