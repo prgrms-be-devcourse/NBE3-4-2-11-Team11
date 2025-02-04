@@ -2,34 +2,32 @@ spring:
   application:
     name: backend
   config:
-    import: optional:file:.env[.properties]
-  profiles:
-    active: dev
-  web:
-    resources:
-      add-mappings: true
+    import: optional:file:.env[.properties]  # .env 파일을 .properties 형식으로 로드
+
+  datasource:
+    url: ${DB_URL}  # .env에서 로드한 DB_URL 사용
+    username: ${DB_USERNAME}  # .env에서 로드한 DB_USERNAME 사용
+    password: ${DB_PASSWORD}  # .env에서 로드한 DB_PASSWORD 사용
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
   output:
     ansi:
-      enabled: always
-  datasource:
-    url: jdbc:mysql://localhost:3306/mydb
-    username: myuser
-    password: mypassword
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    hikari:
-      auto-commit: false
+      enabled: always  # 콘솔에서 색깔 출력 활성화
+
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: update  # 데이터베이스 스키마 자동 업데이트
     properties:
       hibernate:
-        default_batch_fetch_size: 100
-        format_sql: true
-        highlight_sql: true
-        use_sql_comments: true
+        format_sql: true  # SQL 포맷팅
+        default_batch_fetch_size: 100  # 배치 페치 크기
+        highlight-sql: true  # SQL 강조
+
+springdoc:
+  default-produces-media-type: application/json;charset=UTF-8  # 기본 JSON 미디어 타입
+
 logging:
   level:
-    org.hibernate.SQL: DEBUG
-    org.hibernate.orm.jdbc.bind: TRACE
-    org.hibernate.orm.jdbc.extract: TRACE
-    org.springframework.transaction.interceptor: TRACE
+    org.hibernate.SQL: DEBUG  # Hibernate SQL 로그 레벨 설정
+    org.hibernate.orm.jdbc.bind: TRACE  # Hibernate 바인딩 로그 레벨 설정
+    org.hibernate.orm.jdbc.extract: TRACE  # Hibernate JDBC 추출 로그 레벨 설정
