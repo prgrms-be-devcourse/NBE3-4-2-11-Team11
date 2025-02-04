@@ -8,7 +8,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 @Builder
 @Entity
@@ -25,9 +25,9 @@ public class Project extends BaseTime {
     @Column(nullable = false)
     private String name;
     @Column(nullable = false)
-    private Date startDate;
+    private LocalDate startDate;
     @Column(nullable = false)
-    private Date endDate;
+    private LocalDate endDate;
     @Column(nullable = false)
     private int memberCount;
     @Column(nullable = false)

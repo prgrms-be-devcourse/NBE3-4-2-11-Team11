@@ -1,8 +1,12 @@
 package com.pofo.backend.domain.project.service;
 
+import com.pofo.backend.domain.mapper.ProjectMapper;
 import com.pofo.backend.domain.project.dto.request.ProjectCreateRequest;
 import com.pofo.backend.domain.project.dto.response.ProjectCreateResponse;
+import com.pofo.backend.domain.project.dto.response.ProjectDetailResponse;
+import com.pofo.backend.domain.project.entity.Project;
 import com.pofo.backend.domain.project.exception.ProjectCreationException;
+import com.pofo.backend.domain.project.repository.ProjectRepository;
 import com.pofo.backend.domain.user.entity.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -11,11 +15,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.sql.Date;
+import java.time.LocalDate;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class ProjectServiceTest {
 
@@ -25,18 +29,46 @@ public class ProjectServiceTest {
     @Mock
     private User mockUser;
 
+    @Mock
+    private ProjectRepository projectRepository;
+
+    @Mock
+    private ProjectMapper projectMapper;
+
+    @Mock
+    private Project mockProject;
+
+    @Mock
+    private ProjectDetailResponse mockProjectResponse;
+
+    LocalDate startDate = LocalDate.of(2025, 1, 22);
+    LocalDate endDate = LocalDate.of(2025, 2, 14);
+
+
     @BeforeEach
     void setUp(){
         MockitoAnnotations.openMocks(this);
+
+
         when(mockUser.getId()).thenReturn(1L);
+        when(mockProject.getId()).thenReturn(1L);
+        when(mockProject.getName()).thenReturn("원두 주문 웹페이지");
+        when(mockProject.getStartDate()).thenReturn(startDate);
+        when(mockProject.getEndDate()).thenReturn(endDate);
+        when(mockProject.getMemberCount()).thenReturn(6);
+        when(mockProject.getPosition()).thenReturn("백엔드");
+        when(mockProject.getRepositoryLink()).thenReturn("programmers@github.com");
+        when(mockProject.getDescription()).thenReturn("커피 원두를 주문할 수 있는 웹페이지");
+        when(mockProject.getImageUrl()).thenReturn("test.img");
+
     }
 
     private ProjectCreateRequest projectCreateRequest(){
         ProjectCreateRequest projectCreateRequest = new ProjectCreateRequest();
 
         projectCreateRequest.setName("PoFo : 포트폴리오 아카이빙 프로젝트");
-        projectCreateRequest.setStartDate(new java.util.Date(Date.valueOf("2025-01-22").getTime()));
-        projectCreateRequest.setEndDate(new java.util.Date(Date.valueOf("2025-02-13").getTime()));
+        projectCreateRequest.setStartDate(startDate);
+        projectCreateRequest.setEndDate(endDate);
         projectCreateRequest.setMemberCount(5);
         projectCreateRequest.setPosition(" 백엔드");
         projectCreateRequest.setRepositoryLink("testRepositoryLink");
@@ -77,6 +109,43 @@ public class ProjectServiceTest {
         }catch (RuntimeException ex){
             assertEquals("400","프로젝트 등록 중 오류가 발생했습니다.");
         }
+    }
+
+    @Test
+    @DisplayName("프로젝트 전체 조회 성공")
+    void t4(){
+        //Given
+        when(mockProjectResponse.getName()).thenReturn("원두 주문 웹페이지");
+        when(mockProjectResponse.getStartDate()).thenReturn(startDate);
+        when(mockProjectResponse.getEndDate()).thenReturn(endDate);
+        when(mockProjectResponse.getMemberCount()).thenReturn(6);
+        when(mockProjectResponse.getPosition()).thenReturn("백엔드");
+        when(mockProjectResponse.getRepositoryLink()).thenReturn("programmers@github.com");
+        when(mockProjectResponse.getDescription()).thenReturn("커피 원두를 주문할 수 있는 웹페이지");
+        when(mockProjectResponse.getImageUrl()).thenReturn("test.img");
+
+        when(projectMapper.projectToProjectDetailResponse(mockProject)).thenReturn(mockProjectResponse);
+
+        List<Project> mockProjectList = List.of(mockProject);
+        when(projectRepository.findAllByOrderByIdDesc()).thenReturn(mockProjectList);
+
+        // When
+        List<ProjectDetailResponse> response = projectService.detailAllProject(mockUser);
+
+        // Then
+        assertEquals(1, response.size());
+        assertEquals("원두 주문 웹페이지", response.get(0).getName());
+        assertEquals(startDate, response.get(0).getStartDate());
+        assertEquals(endDate, response.get(0).getEndDate());
+        assertEquals(6, response.get(0).getMemberCount());
+        assertEquals("백엔드", response.get(0).getPosition());
+        assertEquals("programmers@github.com", response.get(0).getRepositoryLink());
+        assertEquals("커피 원두를 주문할 수 있는 웹페이지", response.get(0).getDescription());
+        assertEquals("test.img", response.get(0).getImageUrl());
+
+        // Verify
+        verify(projectRepository).findAllByOrderByIdDesc();
+        verify(projectMapper).projectToProjectDetailResponse(mockProject);
     }
 
 }

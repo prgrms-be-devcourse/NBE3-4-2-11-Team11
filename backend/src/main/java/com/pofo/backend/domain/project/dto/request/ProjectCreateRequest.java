@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -14,9 +14,9 @@ public class ProjectCreateRequest {
     @NotBlank
     private String name;
     @NotNull
-    private Date startDate;
+    private LocalDate startDate;
     @NotNull
-    private Date endDate;
+    private LocalDate endDate;
     @NotNull
     private int memberCount;
     @NotBlank

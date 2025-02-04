@@ -36,6 +36,9 @@ dependencies {
 	annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.2.Final'
 
     testImplementation("org.assertj:assertj-core:3.26.3")
+
+	// Jackson module for Java 8 date/time types
+	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.0'
 }
 
 tasks.named('test') {

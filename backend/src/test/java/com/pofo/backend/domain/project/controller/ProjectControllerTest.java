@@ -19,7 +19,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.Date;
+import java.time.LocalDate;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -46,6 +46,10 @@ public class ProjectControllerTest {
 
     private User testUser;  // 전역 변수로 선언
 
+    LocalDate startDate = LocalDate.of(2025, 1, 22);
+    LocalDate endDate = LocalDate.of(2025, 2, 14);
+
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
@@ -69,8 +73,8 @@ public class ProjectControllerTest {
         // given
         ProjectCreateRequest projectCreateRequest = new ProjectCreateRequest();
         projectCreateRequest.setName("PoFo : 포트폴리오 아카이빙 프로젝트");
-        projectCreateRequest.setStartDate(new java.util.Date(Date.valueOf("2025-01-22").getTime()));
-        projectCreateRequest.setEndDate(new java.util.Date(Date.valueOf("2025-02-13").getTime()));
+        projectCreateRequest.setStartDate(startDate);
+        projectCreateRequest.setEndDate(endDate);
         projectCreateRequest.setMemberCount(5);
         projectCreateRequest.setPosition("백엔드");
         projectCreateRequest.setRepositoryLink("testRepositoryLink");
