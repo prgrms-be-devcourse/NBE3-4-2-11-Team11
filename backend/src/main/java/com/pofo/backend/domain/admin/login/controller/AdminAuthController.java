@@ -43,7 +43,7 @@ public class AdminAuthController {
             // 인증 실패 시 실패 이력 증가
             adminService.recordLoginFailure(request.getUsername());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new RsData<>("401", "로그인 실패: 아이디 또는 비밀번호가 올바르지 않습니다.", null));
+                    .body(new RsData<>("401", "로그인 실패: 아이디 또는 비밀번호가 올바르지 않습니다.",new AdminLoginResponse("로그인 실패")));
         }
     }
 }
