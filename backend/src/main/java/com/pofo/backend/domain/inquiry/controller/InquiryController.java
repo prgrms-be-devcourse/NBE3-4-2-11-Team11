@@ -2,6 +2,7 @@ package com.pofo.backend.domain.inquiry.controller;
 
 import com.pofo.backend.common.rsData.RsData;
 import com.pofo.backend.domain.inquiry.dto.reponse.InquiryCreateResponse;
+import com.pofo.backend.domain.inquiry.dto.reponse.InquiryDeleteResponse;
 import com.pofo.backend.domain.inquiry.dto.reponse.InquiryUpdateResponse;
 import com.pofo.backend.domain.inquiry.dto.request.InquiryCreateRequest;
 import com.pofo.backend.domain.inquiry.dto.request.InquiryUpdateRequest;
@@ -28,5 +29,11 @@ public class InquiryController {
     public ResponseEntity<RsData<InquiryUpdateResponse>> updateInquiry(@PathVariable Long id, @Valid @RequestBody InquiryUpdateRequest inquiryUpdateRequest) {
         InquiryUpdateResponse inquiryUpdateResponse = this.inquiryService.update(id, inquiryUpdateRequest);
         return ResponseEntity.ok(new RsData<>("200", "문의사항 수정이 완료되었습니다.", inquiryUpdateResponse));
+    }
+
+    @DeleteMapping("/common/inquiries/{id}")
+    public ResponseEntity<RsData<InquiryDeleteResponse>> deleteInquiry(@PathVariable Long id) {
+        InquiryDeleteResponse inquiryDeleteResponse = this.inquiryService.delete(id);
+        return ResponseEntity.ok(new RsData<>("200", "문의사항 삭제가 완료되었습니다.", inquiryDeleteResponse));
     }
 }

@@ -26,8 +26,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.nio.charset.StandardCharsets;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -120,5 +120,23 @@ public class InquiryControllerTest {
 
         Assertions.assertThat(inquiry.getSubject()).isEqualTo("테스트 문의 수정");
         Assertions.assertThat(inquiry.getContent()).isEqualTo("문의사항 수정 테스트입니다.");
+    }
+
+    @Test
+    @DisplayName("문의 삭제 테스트")
+    void t3() throws Exception {
+
+        ResultActions resultActions = mockMvc.perform(
+                        delete("/api/v1/common/inquiries/{id}", inquiryId)
+                                .contentType(new MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8)
+                                )
+                )
+                .andDo(print());
+
+        resultActions.andExpect(handler().handlerType(InquiryController.class))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("문의사항 삭제가 완료되었습니다."));
+
+        assertThrows(InquiryException.class, () -> this.inquiryService.findById(inquiryId));
     }
 }
