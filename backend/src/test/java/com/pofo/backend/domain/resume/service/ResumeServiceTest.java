@@ -7,7 +7,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.pofo.backend.domain.resume.resume.dto.request.ResumeCreateRequest;
+import com.pofo.backend.domain.resume.resume.dto.request.ResumeRequest;
 import com.pofo.backend.domain.resume.resume.dto.response.ResumeCreateResponse;
 import com.pofo.backend.domain.resume.resume.dto.response.ResumeResponse;
 import com.pofo.backend.domain.resume.resume.entity.Resume;
@@ -59,23 +59,23 @@ class ResumeServiceTest {
         when(mockResume.getUser()).thenReturn(mockUser);
     }
 
-    private ResumeCreateRequest createResumeRequest() {
-        ResumeCreateRequest resumeCreateRequest = new ResumeCreateRequest();
-        resumeCreateRequest.setName("김상진");
-        resumeCreateRequest.setBirth(LocalDate.of(2000, 11, 18));
-        resumeCreateRequest.setNumber("010-1234-5678");
-        resumeCreateRequest.setEmail("prgrms@naver.com");
-        resumeCreateRequest.setAddress("서울시 강남구");
-        resumeCreateRequest.setGitAddress("https://github.com/kim");
-        resumeCreateRequest.setBlogAddress("https://kim.blog");
-        return resumeCreateRequest;
+    private ResumeRequest createResumeRequest() {
+        ResumeRequest resumeRequest = new ResumeRequest();
+        resumeRequest.setName("김상진");
+        resumeRequest.setBirth(LocalDate.of(2000, 11, 18));
+        resumeRequest.setNumber("010-1234-5678");
+        resumeRequest.setEmail("prgrms@naver.com");
+        resumeRequest.setAddress("서울시 강남구");
+        resumeRequest.setGitAddress("https://github.com/kim");
+        resumeRequest.setBlogAddress("https://kim.blog");
+        return resumeRequest;
     }
 
     @Test
     @DisplayName("이력서 생성 성공")
     void createResume() {
-        ResumeCreateRequest resumeCreateRequest = createResumeRequest();
-        ResumeCreateResponse response = resumeService.createResume(resumeCreateRequest, mockUser);
+        ResumeRequest resumeRequest = createResumeRequest();
+        ResumeCreateResponse response = resumeService.createResume(resumeRequest, mockUser);
         assertEquals("이력서 생성이 완료되었습니다.", response.getMessage());
     }
 
@@ -84,9 +84,9 @@ class ResumeServiceTest {
     void createResumeThrowsException() {
         doThrow(new RuntimeException("서버 오류로 인해 이력서 생성에 실패했습니다."))
             .when(mockUser).getId();
-        ResumeCreateRequest resumeCreateRequest = createResumeRequest();
+        ResumeRequest resumeRequest = createResumeRequest();
         try {
-            resumeService.createResume(resumeCreateRequest, mockUser);
+            resumeService.createResume(resumeRequest, mockUser);
         } catch (RuntimeException e) {
             assertEquals("서버 오류로 인해 이력서 생성에 실패했습니다.", e.getMessage());
         }
@@ -126,7 +126,7 @@ class ResumeServiceTest {
     @Test
     @DisplayName("이력서 수정 성공")
     void updateResume_success() {
-        ResumeCreateRequest resumeCreateRequest = createResumeRequest();
+        ResumeRequest resumeRequest = createResumeRequest();
         Resume realResume = Resume.builder()
             .name("김상진")
             .email("prgrmsNo@naver.com")
@@ -135,7 +135,7 @@ class ResumeServiceTest {
 
         when(resumeRepository.findById(1L)).thenReturn(Optional.of(realResume));
 
-        ResumeCreateResponse response = resumeService.updateResume(1L, resumeCreateRequest, mockUser);
+        ResumeCreateResponse response = resumeService.updateResume(1L, resumeRequest, mockUser);
 
         assertEquals("이력서 수정이 완료되었습니다.", response.getMessage());
         verify(resumeRepository).findById(1L);
@@ -145,12 +145,12 @@ class ResumeServiceTest {
     @Test
     @DisplayName("이력서 수정 실패 - 이력서가 존재하지 않음")
     void updateResume_notFound() {
-        ResumeCreateRequest resumeCreateRequest = createResumeRequest();
+        ResumeRequest resumeRequest = createResumeRequest();
 
         when(resumeRepository.findById(1L)).thenReturn(Optional.empty());
 
         ResumeCreationException exception = assertThrows(ResumeCreationException.class, () -> {
-            resumeService.updateResume(1L, resumeCreateRequest, mockUser);
+            resumeService.updateResume(1L, resumeRequest, mockUser);
         });
         assertEquals("이력서가 존재하지 않습니다.", exception.getMessage());
         verify(resumeRepository).findById(1L);
@@ -159,14 +159,14 @@ class ResumeServiceTest {
     @Test
     @DisplayName("이력서 수정 실패 - 권한 없음")
     void updateResume_noPermission() {
-        ResumeCreateRequest resumeCreateRequest = createResumeRequest();
+        ResumeRequest resumeRequest = createResumeRequest();
         User differentUser = Mockito.mock(User.class);
 
         when(resumeRepository.findById(1L)).thenReturn(Optional.of(mockResume));
         when(mockResume.getUser()).thenReturn(differentUser);
 
         UnauthorizedActionException exception = assertThrows(UnauthorizedActionException.class, () -> {
-            resumeService.updateResume(1L, resumeCreateRequest, mockUser);
+            resumeService.updateResume(1L, resumeRequest, mockUser);
         });
         assertEquals("이력서를 수정할 권한이 없습니다.", exception.getMessage());
         verify(resumeRepository).findById(1L);

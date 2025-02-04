@@ -1,7 +1,7 @@
 package com.pofo.backend.domain.resume.resume.controller;
 
 import com.pofo.backend.common.rsData.RsData;
-import com.pofo.backend.domain.resume.resume.dto.request.ResumeCreateRequest;
+import com.pofo.backend.domain.resume.resume.dto.request.ResumeRequest;
 import com.pofo.backend.domain.resume.resume.dto.response.ResumeCreateResponse;
 import com.pofo.backend.domain.resume.resume.dto.response.ResumeIdResponse;
 import com.pofo.backend.domain.resume.resume.dto.response.ResumeResponse;
@@ -30,19 +30,19 @@ public class ResumeController {
 
     @PostMapping("")
     public ResponseEntity<RsData<ResumeIdResponse>> createResume(
-        @Valid @RequestBody ResumeCreateRequest resumeCreateRequest,
+        @Valid @RequestBody ResumeRequest resumeRequest,
         @AuthenticationPrincipal User user) {
 
-        ResumeCreateResponse response = resumeService.createResume(resumeCreateRequest, user);
+        ResumeCreateResponse response = resumeService.createResume(resumeRequest, user);
         return ResponseEntity.ok(
             new RsData<>("200", response.getMessage(), new ResumeIdResponse(response.getId())));
     }
 
     @PutMapping("/{resumeId}")
     public ResponseEntity<RsData<ResumeIdResponse>> updateResume(@PathVariable Long resumeId,
-        @RequestBody ResumeCreateRequest resumeCreateRequest, @AuthenticationPrincipal User user) {
+        @RequestBody ResumeRequest resumeRequest, @AuthenticationPrincipal User user) {
 
-        ResumeCreateResponse response = resumeService.updateResume(resumeId, resumeCreateRequest,
+        ResumeCreateResponse response = resumeService.updateResume(resumeId, resumeRequest,
             user);
         return ResponseEntity.ok(
             new RsData<>("200", response.getMessage(), new ResumeIdResponse(response.getId())));

@@ -5,7 +5,7 @@ import com.pofo.backend.domain.resume.course.service.CourseService;
 import com.pofo.backend.domain.resume.experience.service.ExperienceService;
 import com.pofo.backend.domain.resume.education.service.EducationService;
 import com.pofo.backend.domain.resume.license.service.LicenseService;
-import com.pofo.backend.domain.resume.resume.dto.request.ResumeCreateRequest;
+import com.pofo.backend.domain.resume.resume.dto.request.ResumeRequest;
 import com.pofo.backend.domain.resume.resume.dto.response.ResumeCreateResponse;
 import com.pofo.backend.domain.resume.resume.dto.response.ResumeResponse;
 import com.pofo.backend.domain.resume.resume.entity.Resume;
@@ -34,33 +34,33 @@ public class ResumeService {
     private final LanguageService languageService;
 
     @Transactional
-    public ResumeCreateResponse createResume(ResumeCreateRequest resumeCreateRequest, User user) {
+    public ResumeCreateResponse createResume(ResumeRequest resumeRequest, User user) {
         try {
             Resume resume = Resume.builder()
                 .user(user)
-                .name(resumeCreateRequest.getName())
-                .birth(resumeCreateRequest.getBirth())
-                .number(resumeCreateRequest.getNumber())
-                .email(resumeCreateRequest.getEmail())
-                .address(resumeCreateRequest.getAddress())
-                .gitAddress(resumeCreateRequest.getGitAddress())
-                .blogAddress(resumeCreateRequest.getBlogAddress())
+                .name(resumeRequest.getName())
+                .birth(resumeRequest.getBirth())
+                .number(resumeRequest.getNumber())
+                .email(resumeRequest.getEmail())
+                .address(resumeRequest.getAddress())
+                .gitAddress(resumeRequest.getGitAddress())
+                .blogAddress(resumeRequest.getBlogAddress())
                 .build();
             resume = resumeRepository.save(resume);
-            if (resumeCreateRequest.getCourses() != null) {
-                courseService.addCourses(resume.getId(), resumeCreateRequest.getCourses());
+            if (resumeRequest.getCourses() != null) {
+                courseService.addCourses(resume.getId(), resumeRequest.getCourses());
             }
-            if (resumeCreateRequest.getExperiences() != null) {
-                experienceService.addExperiences(resume.getId(), resumeCreateRequest.getExperiences());
+            if (resumeRequest.getExperiences() != null) {
+                experienceService.addExperiences(resume.getId(), resumeRequest.getExperiences());
             }
-            if (resumeCreateRequest.getEducations() != null) {
-                educationService.addEducations(resume.getId(), resumeCreateRequest.getEducations());
+            if (resumeRequest.getEducations() != null) {
+                educationService.addEducations(resume.getId(), resumeRequest.getEducations());
             }
-            if (resumeCreateRequest.getLicenses() != null) {
-                licenseService.addLicenses(resume.getId(), resumeCreateRequest.getLicenses());
+            if (resumeRequest.getLicenses() != null) {
+                licenseService.addLicenses(resume.getId(), resumeRequest.getLicenses());
             }
-            if (resumeCreateRequest.getLanguages() != null) {
-                languageService.addLanguages(resume.getId(), resumeCreateRequest.getLanguages());
+            if (resumeRequest.getLanguages() != null) {
+                languageService.addLanguages(resume.getId(), resumeRequest.getLanguages());
             }
             return new ResumeCreateResponse(resume.getId(), "이력서 생성이 완료되었습니다.");
         } catch (DataAccessException e) {
@@ -71,7 +71,7 @@ public class ResumeService {
     }
 
     @Transactional
-    public ResumeCreateResponse updateResume(Long resumeId, ResumeCreateRequest resumeCreateRequest, User user) {
+    public ResumeCreateResponse updateResume(Long resumeId, ResumeRequest resumeRequest, User user) {
         Resume resume = resumeRepository.findById(resumeId)
             .orElseThrow(() -> new ResumeCreationException("이력서가 존재하지 않습니다."));
 
@@ -81,28 +81,28 @@ public class ResumeService {
 
         try {
             resume = resume.toBuilder()
-                .name(resumeCreateRequest.getName())
-                .birth(resumeCreateRequest.getBirth())
-                .number(resumeCreateRequest.getNumber())
-                .email(resumeCreateRequest.getEmail())
-                .address(resumeCreateRequest.getAddress())
-                .gitAddress(resumeCreateRequest.getGitAddress())
-                .blogAddress(resumeCreateRequest.getBlogAddress())
+                .name(resumeRequest.getName())
+                .birth(resumeRequest.getBirth())
+                .number(resumeRequest.getNumber())
+                .email(resumeRequest.getEmail())
+                .address(resumeRequest.getAddress())
+                .gitAddress(resumeRequest.getGitAddress())
+                .blogAddress(resumeRequest.getBlogAddress())
                 .build();
-            if (resumeCreateRequest.getCourses() != null) {
-                courseService.updateCourses(resume.getId(), resumeCreateRequest.getCourses());
+            if (resumeRequest.getCourses() != null) {
+                courseService.updateCourses(resume.getId(), resumeRequest.getCourses());
             }
-            if (resumeCreateRequest.getExperiences() != null) {
-                experienceService.updateExperiences(resume.getId(), resumeCreateRequest.getExperiences());
+            if (resumeRequest.getExperiences() != null) {
+                experienceService.updateExperiences(resume.getId(), resumeRequest.getExperiences());
             }
-            if (resumeCreateRequest.getEducations() != null) {
-                educationService.updateEducations(resume.getId(), resumeCreateRequest.getEducations());
+            if (resumeRequest.getEducations() != null) {
+                educationService.updateEducations(resume.getId(), resumeRequest.getEducations());
             }
-            if (resumeCreateRequest.getLicenses() != null) {
-                licenseService.updateLicenses(resume.getId(), resumeCreateRequest.getLicenses());
+            if (resumeRequest.getLicenses() != null) {
+                licenseService.updateLicenses(resume.getId(), resumeRequest.getLicenses());
             }
-            if (resumeCreateRequest.getLanguages() != null) {
-                languageService.updateLanguages(resume.getId(), resumeCreateRequest.getLanguages());
+            if (resumeRequest.getLanguages() != null) {
+                languageService.updateLanguages(resume.getId(), resumeRequest.getLanguages());
             }
             resumeRepository.save(resume);
             return new ResumeCreateResponse(resume.getId(), "이력서 수정이 완료되었습니다.");

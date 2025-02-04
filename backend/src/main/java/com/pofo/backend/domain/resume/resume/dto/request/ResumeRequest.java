@@ -14,7 +14,7 @@ import lombok.Setter;
 
 @Setter
 @Getter
-public class ResumeCreateRequest {
+public class ResumeRequest {
 
     @NotBlank
     private String name;
