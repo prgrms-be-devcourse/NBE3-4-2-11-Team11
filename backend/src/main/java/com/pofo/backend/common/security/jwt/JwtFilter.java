@@ -11,11 +11,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
-
 import java.io.IOException;
 
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
+
     // Authorization 헤더의 키값 ("Authorization" 등이 들어감)
     private final String AUTHORIZATION_KEY;
     // JWT 토큰 관련 생성 및 검증 로직을 제공하는 컴포넌트
@@ -27,23 +27,18 @@ public class JwtFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
-        // 요청 헤더에서 JWT 토큰 추출
         String tokenValue = parseHeader(request);
-
-        // 토큰이 존재하고, 유효한 경우에만 진행
-        if (StringUtils.hasText(tokenValue) && tokenProvider.validateToken(tokenValue)) {
-            // Redis에서 해당 토큰이 "logout" 상태로 등록되어 있는지 확인
-            String logOut = redisTemplate.opsForValue().get(tokenValue);
-            // 토큰이 블랙리스트에 등록되어 있지 않다면 (즉, 로그아웃 처리되지 않았다면)
-            if (ObjectUtils.isEmpty(logOut)) {
-                // 토큰으로부터 Authentication 객체를 생성하고 SecurityContext에 저장
-                Authentication authentication = tokenProvider.getAuthentication(tokenValue);
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+            if (StringUtils.hasText(tokenValue) && tokenProvider.validateToken(tokenValue)) {
+                // Redis에서 해당 토큰이 "logout" 상태로 등록되어 있는지 확인
+                String logOut = redisTemplate.opsForValue().get(tokenValue);
+                if (ObjectUtils.isEmpty(logOut)) {
+                    // 토큰으로부터 Authentication 객체를 생성하고 SecurityContext에 저장
+                    Authentication authentication = tokenProvider.getAuthentication(tokenValue);
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                }
             }
-        }
-
-        // 다음 필터로 요청 전달
-        filterChain.doFilter(request, response);
+            // 정상적인 경우 다음 필터로 요청 전달
+            filterChain.doFilter(request, response);
     }
 
     /**
@@ -52,7 +47,6 @@ public class JwtFilter extends OncePerRequestFilter {
      */
     public String parseHeader(HttpServletRequest request) {
         String token = request.getHeader(AUTHORIZATION_KEY);
-
         if (StringUtils.hasText(token) && token.startsWith("Bearer ")) {
             return token.substring(7);
         }

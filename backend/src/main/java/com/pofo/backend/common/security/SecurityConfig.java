@@ -15,7 +15,9 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
 
 @Configuration
 @RequiredArgsConstructor
@@ -26,6 +28,9 @@ public class SecurityConfig {
     private final JwtSecurityConfig jwtSecurityConfig;
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2AuthenticationSuccessHandler successHandler;
+
+    AuthenticationEntryPoint customAuthenticationEntryPoint;
+    AccessDeniedHandler jwtAccessDeniedHandler;
 
     // 관리자 전용 UserDetailsService
     private final AdminDetailsService adminDetailsService;
@@ -55,6 +60,7 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider()); // 관리자 전용 provider 사용
+
         return http.build();
     }
 

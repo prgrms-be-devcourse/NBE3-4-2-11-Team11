@@ -1,11 +1,11 @@
 package com.pofo.backend.domain.admin.login.controller;
 
-import com.pofo.backend.common.base.Empty;
 import com.pofo.backend.common.rsData.RsData;
 import com.pofo.backend.common.security.dto.TokenDto;
 import com.pofo.backend.common.security.jwt.TokenProvider;
 import com.pofo.backend.domain.admin.login.dto.AdminLoginRequest;
 import com.pofo.backend.domain.admin.login.dto.AdminLoginResponse;
+import com.pofo.backend.domain.admin.login.dto.AdminLogoutResponse;
 import com.pofo.backend.domain.admin.login.entitiy.Admin;
 import com.pofo.backend.domain.admin.login.service.AdminService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,7 +21,6 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.SignatureException;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -88,28 +87,18 @@ public class AdminAuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<RsData<Empty>> logout(HttpServletRequest request) {
+    public ResponseEntity<RsData<AdminLogoutResponse>> logout(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
-        if (bearerToken == null || !bearerToken.startsWith("Bearer ")) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new RsData<>("400", "인증 정보가 누락되었습니다.", new Empty()));
-        }
+
         String token = bearerToken.substring(7);
-        try {
-            // 토큰 유효성 검사
-            if (!tokenProvider.validateToken(token)) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(new RsData<>("401", "로그아웃에 실패했습니다.", new Empty()));
-            }
+        // 로그아웃 요청 시, 토큰이 유효하다면 해당 토큰을 Redis에 저장하여 무효화 처리합니다.
+        if (tokenProvider.validateToken(token)) {
             long remainingMillis = tokenProvider.getExpiration(token);
             if (remainingMillis > 0) {
                 redisTemplate.opsForValue().set(token, "logout", remainingMillis, TimeUnit.MILLISECONDS);
             }
-            return ResponseEntity.ok(new RsData<>("200", "성공적으로 로그아웃되었습니다."));
-        } catch (Exception e) {
-            log.error("로그아웃 처리 중 오류 발생: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new RsData<>("500", "로그아웃 처리 중 문제가 발생했습니다.", new Empty()));
         }
+        // 별도 실패 분기를 처리하지 않고, 항상 성공 응답을 반환합니다.
+        return ResponseEntity.ok(new RsData<>("200", "성공적으로 로그아웃되었습니다.", new AdminLogoutResponse("성공적으로 로그아웃되었습니다.")));
     }
 }

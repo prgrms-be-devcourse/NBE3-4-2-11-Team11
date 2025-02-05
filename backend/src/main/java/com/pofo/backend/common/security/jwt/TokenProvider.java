@@ -8,6 +8,8 @@ import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.UnsupportedJwtException;
 import jakarta.annotation.PostConstruct;
+
+import java.security.SignatureException;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Date;
@@ -69,11 +71,8 @@ public class TokenProvider {
 
         long now = System.currentTimeMillis();
 
-        log.info("토큰 생성 시작, 현재 시간: {}", now);
 
         Date expirationDate = new Date(now + validationTime);
-        log.info("Setting token expiration to: {}", expirationDate);
-
 
         // Access Token 생성: subject(사용자 이름)와 권한 정보, 만료 시간을 포함하여 서명
         String accessToken = Jwts.builder()
@@ -133,7 +132,9 @@ public class TokenProvider {
             // 토큰의 서명을 검증 및 파싱 시도
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
             return true;
-        } catch (MalformedJwtException | SecurityException e) {
+        } catch (io.jsonwebtoken.security.SignatureException e) {  // 올바른 예외 클래스 사용
+            log.info("잘못된 JWT 서명입니다.");
+        } catch (SecurityException e) {
             log.info("잘못된 형식의 토큰입니다.");
         } catch (ExpiredJwtException e) {
             log.info("만료된 토큰입니다.");
@@ -181,7 +182,7 @@ public class TokenProvider {
     }
 
     /**
-     * Authentication 객체를 기반으로 Access Token만 생성하여 반환합니다.
+     * Authentication 객체를 기반으로 Access Token만 생성하여 반환합니다.zhem wj
      *
      * @param authentication 인증 정보를 담고 있는 Authentication 객체
      * @return 생성된 Access Token 문자열
