@@ -279,4 +279,23 @@ public class ProjectServiceTest {
         assertEquals("유효하지 않은 사용자입니다.", rsData.getMsg());
 
     }
+
+    @Test
+    @DisplayName("프로젝트 단건 조회 실패 - 예기치 못한 오류")
+    void t11(){
+        Long projectId = 1L;
+        User mockUser = mock(User.class);
+        when(projectRepository.findById(projectId)).thenThrow(new RuntimeException("Unexpected Error"));
+
+        //when & Then
+        ProjectCreationException exception = assertThrows(ProjectCreationException.class, () -> {
+            projectService.detailProject(projectId, mockUser);
+        });
+
+        RsData<Void> rsData = exception.getRsData();
+        assertEquals("400", rsData.getResultCode());
+        assertEquals("프로젝트 단건 조회 중 오류가 발생했습니다.", rsData.getMsg());
+
+
+    }
 }
