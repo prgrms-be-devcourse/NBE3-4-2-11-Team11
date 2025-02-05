@@ -22,5 +22,5 @@ public class Reply extends BaseTime {
     private Inquiry inquiry;
 
     @Column(columnDefinition = "TEXT", nullable = false)
-    private String comment;
+    private String content;
 }
