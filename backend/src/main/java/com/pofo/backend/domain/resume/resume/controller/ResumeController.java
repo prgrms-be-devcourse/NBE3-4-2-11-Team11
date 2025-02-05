@@ -40,7 +40,7 @@ public class ResumeController {
 
     @PutMapping("/{resumeId}")
     public ResponseEntity<RsData<ResumeIdResponse>> updateResume(@PathVariable Long resumeId,
-        @RequestBody ResumeCreateRequest resumeCreateRequest, @AuthenticationPrincipal User user) {
+        @Valid @RequestBody ResumeCreateRequest resumeCreateRequest, @AuthenticationPrincipal User user) {
 
         ResumeCreateResponse response = resumeService.updateResume(resumeId, resumeCreateRequest,
             user);
