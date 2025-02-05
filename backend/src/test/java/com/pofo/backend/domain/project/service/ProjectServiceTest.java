@@ -395,7 +395,22 @@ public class ProjectServiceTest {
         assertEquals("404", rsData.getResultCode());
         assertEquals("프로젝트의 사용자 정보가 없습니다.", rsData.getMsg());
 
+    }
 
+    @Test
+    @DisplayName("프로젝트 수정 실패 - 프로젝트 없음")
+    void t14(){
+        ProjectUpdateRequest updateRequest = projectUpdateRequest(); // 업데이트할 요청 객체
+
+        when(projectRepository.findById(1L)).thenReturn(Optional.empty()); // 프로젝트 없음 처리
+
+        ProjectCreationException exception = assertThrows(ProjectCreationException.class, () -> {
+            projectService.updateProject(1L, updateRequest, mockUser);
+        });
+
+        RsData<Void> rsData = exception.getRsData();
+        assertEquals("404", rsData.getResultCode());
+        assertEquals("해당 프로젝트를 찾을 수 없습니다.", rsData.getMsg());
     }
 
 }
