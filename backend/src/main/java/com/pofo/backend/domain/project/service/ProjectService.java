@@ -100,20 +100,32 @@ public class ProjectService {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> ProjectCreationException.notFound("해당 프로젝트를 찾을 수 없습니다."));
 
-        if(!project.getUser().getId().equals(user.getId())){
-            throw ProjectCreationException.forbidden("프로젝트 수정 권한이 없습니다.");
-        }
+        try {
+            // 프로젝트 사용자 정보가 없는 경우 예외 처리
+            if (user == null) {
+                throw ProjectCreationException.forbidden("프로젝트의 사용자 정보가 없습니다.");
+            }
 
-        project.update(
-                request.getName(),
-                request.getStartDate(),
-                request.getEndDate(),
-                request.getMemberCount(),
-                request.getPosition(),
-                request.getRepositoryLink(),
-                request.getDescription(),
-                request.getImageUrl()
-        );
+
+            // 프로젝트 정보 업데이트
+            project.update(
+                    request.getName(),
+                    request.getStartDate(),
+                    request.getEndDate(),
+                    request.getMemberCount(),
+                    request.getPosition(),
+                    request.getRepositoryLink(),
+                    request.getDescription(),
+                    request.getImageUrl()
+            );
+
+        }catch (DataAccessException ex){
+            throw ProjectCreationException.serverError("프로젝트 조회 중 데이터베이스 오류가 발생했습니다.");
+        }catch (ProjectCreationException ex) {
+            throw ex;  // 이미 정의된 예외는 다시 던진다.
+        }catch (Exception ex){
+            throw ProjectCreationException.badRequest("프로젝트 단건 조회 중 오류가 발생했습니다.");
+        }
 
         // 응답 변환
         return new ProjectUpdateResponse(
@@ -128,4 +140,5 @@ public class ProjectService {
                 project.getImageUrl()
         );
     }
+
 }

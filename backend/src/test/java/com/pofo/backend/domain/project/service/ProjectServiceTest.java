@@ -3,8 +3,10 @@ package com.pofo.backend.domain.project.service;
 import com.pofo.backend.common.rsData.RsData;
 import com.pofo.backend.domain.mapper.ProjectMapper;
 import com.pofo.backend.domain.project.dto.request.ProjectCreateRequest;
+import com.pofo.backend.domain.project.dto.request.ProjectUpdateRequest;
 import com.pofo.backend.domain.project.dto.response.ProjectCreateResponse;
 import com.pofo.backend.domain.project.dto.response.ProjectDetailResponse;
+import com.pofo.backend.domain.project.dto.response.ProjectUpdateResponse;
 import com.pofo.backend.domain.project.entity.Project;
 import com.pofo.backend.domain.project.exception.ProjectCreationException;
 import com.pofo.backend.domain.project.repository.ProjectRepository;
@@ -44,6 +46,7 @@ public class ProjectServiceTest {
     @Mock
     private ProjectDetailResponse mockProjectResponse;
 
+
     LocalDate startDate = LocalDate.of(2025, 1, 22);
     LocalDate endDate = LocalDate.of(2025, 2, 14);
 
@@ -63,6 +66,7 @@ public class ProjectServiceTest {
         when(mockProject.getDescription()).thenReturn("커피 원두를 주문할 수 있는 웹페이지");
         when(mockProject.getImageUrl()).thenReturn("test.img");
 
+        when(mockProject.getUser()).thenReturn(mockUser);
     }
 
     private ProjectCreateRequest projectCreateRequest(){
@@ -298,4 +302,69 @@ public class ProjectServiceTest {
 
 
     }
+
+    private ProjectUpdateRequest projectUpdateRequest() {
+        return ProjectUpdateRequest.builder()
+                .name("업데이트된 프로젝트")
+                .startDate(LocalDate.of(2025, 1, 25))
+                .endDate(LocalDate.of(2025, 2, 20))
+                .memberCount(8)
+                .position("프론트엔드")
+                .repositoryLink("newRepoLink")
+                .description("업데이트된 프로젝트 설명")
+                .imageUrl("newImage.img")
+                .build();
+    }
+
+    @Test
+    @DisplayName("프로젝트 수정 성공")
+    void t12() {
+        // Given
+        Long projectId = 1L;
+        ProjectUpdateRequest updateRequest = projectUpdateRequest(); // 업데이트할 요청 객체
+
+        // 실제 프로젝트 객체 생성 (Spy 사용)
+        Project realProject = spy(Project.builder()
+                .user(mockUser)
+                .name("기존 프로젝트")
+                .startDate(LocalDate.of(2025, 1, 1))
+                .endDate(LocalDate.of(2025, 2, 10))
+                .memberCount(4)
+                .position("백엔드")
+                .repositoryLink("oldRepoLink")
+                .description("기존 프로젝트 설명")
+                .imageUrl("oldImage.img")
+                .build());
+
+        when(projectRepository.findById(projectId)).thenReturn(Optional.of(realProject));
+
+        // When
+        ProjectUpdateResponse response = projectService.updateProject(projectId, updateRequest, mockUser);
+
+        // Then
+        assertNotNull(response);
+        assertEquals(updateRequest.getName(), response.getName());
+        assertEquals(updateRequest.getStartDate(), response.getStartDate());
+        assertEquals(updateRequest.getEndDate(), response.getEndDate());
+        assertEquals(updateRequest.getMemberCount(), response.getMemberCount());
+        assertEquals(updateRequest.getPosition(), response.getPosition());
+        assertEquals(updateRequest.getRepositoryLink(), response.getRepositoryLink());
+        assertEquals(updateRequest.getDescription(), response.getDescription());
+        assertEquals(updateRequest.getImageUrl(), response.getImageUrl());
+
+        // 프로젝트 엔티티가 업데이트되었는지 확인
+        verify(realProject).update(
+                updateRequest.getName(),
+                updateRequest.getStartDate(),
+                updateRequest.getEndDate(),
+                updateRequest.getMemberCount(),
+                updateRequest.getPosition(),
+                updateRequest.getRepositoryLink(),
+                updateRequest.getDescription(),
+                updateRequest.getImageUrl()
+        );
+
+    }
+
+
 }
