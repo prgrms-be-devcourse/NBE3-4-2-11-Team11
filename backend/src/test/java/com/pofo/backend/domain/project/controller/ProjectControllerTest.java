@@ -3,8 +3,10 @@ package com.pofo.backend.domain.project.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.pofo.backend.domain.project.dto.request.ProjectCreateRequest;
+import com.pofo.backend.domain.project.dto.request.ProjectUpdateRequest;
 import com.pofo.backend.domain.project.dto.response.ProjectCreateResponse;
 import com.pofo.backend.domain.project.dto.response.ProjectDetailResponse;
+import com.pofo.backend.domain.project.dto.response.ProjectUpdateResponse;
 import com.pofo.backend.domain.project.service.ProjectService;
 import com.pofo.backend.domain.user.entity.User;
 import com.pofo.backend.domain.user.repository.UserRepository;
@@ -30,8 +32,7 @@ import java.util.Optional;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -190,5 +191,60 @@ public class ProjectControllerTest {
 
         System.out.println("Response: " + result.getResponse().getContentAsString());
 
+    }
+
+    @Test
+    @WithMockUser(username = "testUser", roles = {"USER"})
+    @DisplayName("프로젝트 수정 테스트")
+    void t4() throws Exception{
+        //given
+        Long projectId = 1L;
+
+        ProjectUpdateRequest updateRequest = new ProjectUpdateRequest();
+
+        updateRequest.setName("업데이트된 프로젝트");
+        updateRequest.setStartDate(startDate);
+        updateRequest.setEndDate(endDate);
+        updateRequest.setMemberCount(10);
+        updateRequest.setPosition("프론트엔드");
+        updateRequest.setRepositoryLink("updatedRepoLink");
+        updateRequest.setDescription("업데이트된 프로젝트 설명");
+        updateRequest.setImageUrl("updated.img");
+
+        ProjectUpdateResponse updateResponse = new ProjectUpdateResponse(
+                projectId,
+                updateRequest.getName(),
+                updateRequest.getStartDate(),
+                updateRequest.getEndDate(),
+                updateRequest.getMemberCount(),
+                updateRequest.getPosition(),
+                updateRequest.getRepositoryLink(),
+                updateRequest.getDescription(),
+                updateRequest.getImageUrl()
+        );
+
+        given(projectService.updateProject(eq(projectId), any(ProjectUpdateRequest.class), any(User.class)))
+                .willReturn(updateResponse);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+
+        String body = objectMapper.writeValueAsString(updateRequest);
+
+        // when & then
+        mvc.perform(put("/api/v1/user/projects/{projectId}", projectId)
+                        .content(body)
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.name").value(updateRequest.getName()))
+                .andExpect(jsonPath("$.data.startDate").value(updateRequest.getStartDate().toString()))
+                .andExpect(jsonPath("$.data.endDate").value(updateRequest.getEndDate().toString()))
+                .andExpect(jsonPath("$.data.memberCount").value(updateRequest.getMemberCount()))
+                .andExpect(jsonPath("$.data.position").value(updateRequest.getPosition()))
+                .andExpect(jsonPath("$.data.repositoryLink").value(updateRequest.getRepositoryLink()))
+                .andExpect(jsonPath("$.data.description").value(updateRequest.getDescription()))
+                .andExpect(jsonPath("$.data.imageUrl").value(updateRequest.getImageUrl()));
     }
 }
