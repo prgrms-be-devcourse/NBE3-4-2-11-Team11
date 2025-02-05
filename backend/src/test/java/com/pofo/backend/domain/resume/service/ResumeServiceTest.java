@@ -10,6 +10,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.pofo.backend.domain.resume.activity.activity.service.ActivityService;
+import com.pofo.backend.domain.resume.education.entity.Education;
 import com.pofo.backend.domain.resume.resume.dto.request.ResumeCreateRequest;
 import com.pofo.backend.domain.resume.resume.entity.Resume;
 import com.pofo.backend.domain.resume.resume.exception.ResumeCreationException;
@@ -18,6 +19,7 @@ import com.pofo.backend.domain.resume.resume.repository.ResumeRepository;
 import com.pofo.backend.domain.resume.resume.service.ResumeService;
 import com.pofo.backend.domain.user.join.entity.User;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -154,4 +156,35 @@ class ResumeServiceTest {
             resumeService.deleteResume(1L, mockUser);
         });
     }
+
+    @Test
+    @DisplayName("이력서 조회 성공 - 교육 정보 포함")
+    void getResumeByUser_withEducations() {
+        List<Education> educations = List.of(
+            Education.builder()
+                .name("서울대학교")
+                .major("컴퓨터 공학")
+                .startDate(LocalDate.of(2018, 3, 1))
+                .endDate(LocalDate.of(2022, 2, 28))
+                .status(Education.Status.GRADUATED)
+                .resume(mockResume)
+                .build()
+        );
+
+        when(mockResume.getEducations()).thenReturn(educations);
+        when(resumeRepository.findResumeWithDetails(mockUser)).thenReturn(Optional.of(mockResume));
+
+        Resume result = resumeService.getResumeByUser(mockUser);
+
+        assertEquals("김상진", result.getName());
+        assertEquals("prgrms@naver.com", result.getEmail());
+        assertEquals(1, result.getEducations().size());
+        assertEquals("서울대학교", result.getEducations().get(0).getName());
+        assertEquals("컴퓨터 공학", result.getEducations().get(0).getMajor());
+        assertEquals(Education.Status.GRADUATED, result.getEducations().get(0).getStatus());
+
+        verify(resumeRepository).findResumeWithDetails(mockUser);
+    }
+
+
 }
