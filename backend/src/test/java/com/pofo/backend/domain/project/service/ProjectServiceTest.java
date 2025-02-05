@@ -259,10 +259,24 @@ public class ProjectServiceTest {
         RsData<Void> rsData = exception.getRsData();
         assertEquals("404", rsData.getResultCode());
         assertEquals("해당 프로젝트를 찾을 수 없습니다.", rsData.getMsg());
+    }
 
+    @Test
+    @DisplayName("프로젝트 단건 조회 실패 - 사용자 정보 없음")
+    void t10(){
 
+        //Given
+        Long projectId =1L;
+        User nullUser = null;
 
+        //when & Then
+        ProjectCreationException exception = assertThrows(ProjectCreationException.class, () -> {
+            projectService.detailProject(projectId, nullUser);
+        });
 
+        RsData<Void> rsData = exception.getRsData();
+        assertEquals("400", rsData.getResultCode());
+        assertEquals("유효하지 않은 사용자입니다.", rsData.getMsg());
 
     }
 }
