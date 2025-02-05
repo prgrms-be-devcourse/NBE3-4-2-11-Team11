@@ -44,7 +44,20 @@ public class ProjectController {
         List<ProjectDetailResponse> response = projectService.detailAllProject(u);
 
         return ResponseEntity.status(HttpStatus.OK)
-                .body(new RsData<>("200", "프로젝트 조회가 완료되었습니다.", response));
+                .body(new RsData<>("200", "프로젝트 전체 조회가 완료되었습니다.", response));
+    }
+
+    //프로젝트 단건 조회
+    @GetMapping("/projects/{projectId}")
+    public ResponseEntity<RsData<ProjectDetailResponse>> detailProject(@AuthenticationPrincipal User user){
+        //인증로직이 없어서 임시조치
+        User u = userRepository.findById(null).orElseThrow(()->new ProjectCreationException("404",""));
+
+        ProjectDetailResponse response = projectService.detailProject(u);
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new RsData<>("200","프로젝트 단건 조회가 완료되었습니다." , response));
+
     }
 
 
