@@ -21,8 +21,8 @@ public class ProjectCreationException extends RuntimeException{
         return new ProjectCreationException("404", msg);
     }
 
-    public static ProjectCreationException invalidUser(String msg) {
-        return new ProjectCreationException("400", msg);
+    public static ProjectCreationException invalidUser() {
+        return new ProjectCreationException("400", "유효하지 않은 사용자입니다.");
     }
 
     // 400 오류 생성
