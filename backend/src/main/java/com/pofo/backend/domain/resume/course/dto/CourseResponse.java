@@ -1,4 +1,4 @@
-package com.pofo.backend.domain.resume.activity.award.dto;
+package com.pofo.backend.domain.resume.course.dto;
 
 import java.time.LocalDate;
 import lombok.Builder;
@@ -6,8 +6,9 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class AwardResponse {
+public class CourseResponse {
     private String name;
     private String institution;
-    private LocalDate awardDate;
+    private LocalDate startDate;
+    private LocalDate endDate;
 }
