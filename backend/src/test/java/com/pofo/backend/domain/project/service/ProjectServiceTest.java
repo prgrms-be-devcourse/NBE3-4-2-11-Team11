@@ -19,6 +19,7 @@ import org.mockito.MockitoAnnotations;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -201,5 +202,44 @@ public class ProjectServiceTest {
         RsData<Void> rsData = exception.getRsData();
         assertEquals("400", rsData.getResultCode());
         assertEquals("유효하지 않은 사용자입니다.", rsData.getMsg());
+    }
+
+    @Test
+    @DisplayName("프로젝트 단건 조회 성공")
+    void t8(){
+        Long projectId = 1L;
+        User mockUser = mock(User.class);
+        Project mockProject = mock(Project.class);
+        ProjectDetailResponse mockResponse = mock(ProjectDetailResponse.class);
+
+        when(mockResponse.getName()).thenReturn("국내 여행 추천 웹페이지");
+        when(mockResponse.getStartDate()).thenReturn(startDate);
+        when(mockResponse.getEndDate()).thenReturn(endDate);
+        when(mockResponse.getMemberCount()).thenReturn(4);
+        when(mockResponse.getPosition()).thenReturn("백엔드");
+        when(mockResponse.getRepositoryLink()).thenReturn("koreaTravel@github.com");
+        when(mockResponse.getDescription()).thenReturn("국내 여행지 추천해주는 웹페이지입니다.");
+        when(mockResponse.getImageUrl()).thenReturn("travel.img");
+
+        when(projectRepository.findById(projectId)).thenReturn(Optional.of(mockProject));
+        when(projectMapper.projectToProjectDetailResponse(mockProject)).thenReturn(mockResponse);
+
+        // When
+        ProjectDetailResponse response = projectService.detailProject(projectId, mockUser);
+
+        // Then
+        assertNotNull(response);
+        assertEquals("국내 여행 추천 웹페이지", response.getName());
+        assertEquals(startDate, response.getStartDate());
+        assertEquals(endDate, response.getEndDate());
+        assertEquals(4, response.getMemberCount());
+        assertEquals("백엔드", response.getPosition());
+        assertEquals("koreaTravel@github.com", response.getRepositoryLink());
+        assertEquals("국내 여행지 추천해주는 웹페이지입니다.", response.getDescription());
+        assertEquals("travel.img", response.getImageUrl());
+
+        // Verify
+        verify(projectRepository).findById(projectId);
+        verify(projectMapper).projectToProjectDetailResponse(mockProject);
     }
 }
