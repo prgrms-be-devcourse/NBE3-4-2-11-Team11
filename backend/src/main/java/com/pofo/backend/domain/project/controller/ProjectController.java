@@ -67,12 +67,13 @@ public class ProjectController {
     //프로젝트 수정
     @PatchMapping("/projects/{projectId}")
     public ResponseEntity<RsData<ProjectUpdateResponse>> updateProject(
+            @PathVariable Long projectId,
             @Valid @RequestBody ProjectUpdateRequest request,
             @AuthenticationPrincipal User user
     ){
         //인증로직이 없어서 임시조치
         User u = userRepository.findById(null).orElseThrow(()->new ProjectCreationException("404",""));
-        ProjectUpdateResponse response = projectService.updateProject(request, u);
+        ProjectUpdateResponse response = projectService.updateProject(projectId, request, u);
 
         return ResponseEntity.status(HttpStatus.OK).body(new RsData<>("201", "프로젝트 수정이 완료되었습니다.", response));
     }
