@@ -6,6 +6,7 @@ import com.pofo.backend.domain.resume.education.dto.EducationResponse;
 import com.pofo.backend.domain.resume.experience.dto.ExperienceResponse;
 import com.pofo.backend.domain.resume.language.dto.LanguageResponse;
 import com.pofo.backend.domain.resume.license.dto.LicenseResponse;
+import com.pofo.backend.domain.resume.resume.entity.Resume;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.AllArgsConstructor;
