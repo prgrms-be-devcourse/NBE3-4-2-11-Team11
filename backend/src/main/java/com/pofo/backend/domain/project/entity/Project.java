@@ -3,10 +3,7 @@ package com.pofo.backend.domain.project.entity;
 import com.pofo.backend.common.jpa.entity.BaseTime;
 import com.pofo.backend.domain.user.entity.User;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDate;
 
@@ -16,6 +13,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @Table(name="projects")
 @Getter
+@Setter
 public class Project extends BaseTime {
 
     @ManyToOne(fetch = FetchType.LAZY)
