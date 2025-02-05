@@ -4,16 +4,11 @@ import com.pofo.backend.common.security.dto.TokenDto;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.UnsupportedJwtException;
 import jakarta.annotation.PostConstruct;
 
-import java.security.SignatureException;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -24,6 +19,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -34,7 +31,7 @@ public class TokenProvider {
     private String secret;
 
     // Access Token의 유효 시간 (밀리초 단위)
-    @Value("${JWT_VALIDATION_TIME:3600000}")
+    @Value("${JWT_VALIDATION_TIME}")
     private Long validationTime;
 
     // JWT 내에서 권한 정보를 저장하는 클레임의 키 값 (예: "auth")
@@ -53,8 +50,22 @@ public class TokenProvider {
     public void init() {
         // secret 문자열을 Base64로 디코딩하고 HS512 알고리즘에 맞는 SecretKeySpec를 생성
         this.key = new SecretKeySpec(Base64.getDecoder().decode(secret), SignatureAlgorithm.HS512.getJcaName());
-        log.info("JWT_VALIDATION_TIME: {}", validationTime);
-        log.info("JWT_REFRESH_VALIDATION_TIME: {}", refreshTokenValidationTime);
+    }
+
+    // UserDetailsService를 주입받아 DB에서 사용자 정보를 조회하도록 함
+    private final UserDetailsService userDetailsService;
+
+    // 생성자 주입 (Lombok @RequiredArgsConstructor 사용 시 final 필드에 대해 자동 주입)
+    public TokenProvider(@Value("${JWT_SECRET_KEY}") String secret,
+                         @Value("${JWT_VALIDATION_TIME}") Long validationTime,
+                         @Value("${AUTHORIZATION_KEY}") String AUTHORIZATION_KEY,
+                         @Value("${JWT_REFRESH_VALIDATION_TIME}") Long refreshTokenValidationTime,
+                         UserDetailsService userDetailsService) {
+        this.secret = secret;
+        this.validationTime = validationTime;
+        this.AUTHORIZATION_KEY = AUTHORIZATION_KEY;
+        this.refreshTokenValidationTime = refreshTokenValidationTime;
+        this.userDetailsService = userDetailsService;
     }
 
     /**
@@ -64,61 +75,83 @@ public class TokenProvider {
      * @return 생성된 토큰 정보를 담은 TokenDto 객체
      */
     public TokenDto createToken(Authentication authentication) {
-        // 인증 객체에서 권한(roles) 정보를 콤마(,)로 구분된 문자열로 변환
+        long now = System.currentTimeMillis();
+
+        if (authentication == null || authentication.getName() == null) {
+            log.error("createToken: authentication or authentication name is null.");
+            throw new IllegalArgumentException("Authentication is invalid");
+        }
+
         String authorities = authentication.getAuthorities()
                 .stream().map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","));
 
-        long now = System.currentTimeMillis();
-
-
-        Date expirationDate = new Date(now + validationTime);
-
-        // Access Token 생성: subject(사용자 이름)와 권한 정보, 만료 시간을 포함하여 서명
         String accessToken = Jwts.builder()
-                .setExpiration(new Date(now + validationTime))  // 만료 시간 설정
-                .setSubject(authentication.getName())           // 사용자 이름 설정
-                .claim(AUTHORIZATION_KEY, authorities)          // 권한 정보를 클레임에 저장
-                .signWith(this.key, SignatureAlgorithm.HS512)     // 비밀 키와 알고리즘을 사용하여 서명
+                .setSubject(authentication.getName())  // ✅ subject 추가
+                .setExpiration(new Date(now + validationTime))
+                .claim(AUTHORIZATION_KEY, authorities)
+                .signWith(this.key, SignatureAlgorithm.HS512)
                 .compact();
 
-        // Refresh Token 생성: 만료 시간만 포함하여 서명 (보통 사용자 정보는 포함하지 않음)
         String refreshToken = Jwts.builder()
-                .setExpiration(new Date(now + refreshTokenValidationTime))  // 만료 시간 설정
-                .signWith(this.key, SignatureAlgorithm.HS512)                 // 비밀 키와 알고리즘을 사용하여 서명
+                .setSubject(authentication.getName())  // ✅ subject 추가
+                .setExpiration(new Date(now + refreshTokenValidationTime))
+                .signWith(this.key, SignatureAlgorithm.HS512)
                 .compact();
 
-        // 생성된 토큰 정보를 TokenDto 객체에 담아 반환
         return TokenDto.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .accessTokenValidationTime(validationTime)
                 .refreshTokenValidationTime(refreshTokenValidationTime)
-                .type("Bearer ")
+                .type("Bearer")
                 .build();
     }
 
     /**
+     * Authentication 객체를 기반으로 Access Token만 생성하여 반환합니다.
+     * @param authentication 인증 정보를 담고 있는 Authentication 객체
+     * @return 생성된 Access Token 문자열
+     */
+    public String generateAccessToken(Authentication authentication) {
+        return createToken(authentication).getAccessToken();
+    }
+
+    /**
      * 토큰을 파싱하여 Authentication 객체를 생성합니다.
-     *
      * @param token JWT 토큰 문자열
      * @return 인증 정보를 담은 Authentication 객체
      */
     public Authentication getAuthentication(String token) {
-        // 토큰에서 클레임(데이터)을 파싱
         Claims claims = parseData(token);
 
-        // 클레임에 저장된 권한 정보를 콤마로 구분된 문자열에서 SimpleGrantedAuthority 리스트로 변환
-        List<SimpleGrantedAuthority> authorities = Arrays
-                .stream(claims.get(AUTHORIZATION_KEY).toString().split(","))
-                .map(SimpleGrantedAuthority::new)
-                .collect(Collectors.toList());
+        Object authClaim = claims.get(AUTHORIZATION_KEY);
+        List<SimpleGrantedAuthority> authorities;
+        if (authClaim != null) {
+            authorities = Arrays
+                    .stream(authClaim.toString().split(","))
+                    .map(SimpleGrantedAuthority::new)
+                    .collect(Collectors.toList());
+        } else {
 
-        // 사용자 정보를 기반으로 User 객체 생성 (비밀번호는 빈 문자열로 처리)
+            authorities = Collections.emptyList();
+        }
+
+        if (claims.getSubject() == null || claims.getSubject().trim().isEmpty()) {
+            log.error("getAuthentication: claims.getSubject() is null or empty. Token: {}", token);
+            throw new IllegalArgumentException("Cannot create User with null subject");
+        }
+
         User principal = new User(claims.getSubject(), "", authorities);
-
-        // UsernamePasswordAuthenticationToken 객체를 생성하여 반환
         return new UsernamePasswordAuthenticationToken(principal, "", authorities);
+    }
+
+    public Authentication getAuthenticationFromRefreshToken(String token) {
+        Claims claims = parseData(token);
+        String username = claims.getSubject();
+        // DB에서 사용자 정보를 조회하여 UserDetails 객체를 얻음
+        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
     }
 
     /**
@@ -154,14 +187,22 @@ public class TokenProvider {
      */
     public Claims parseData(String token) {
         try {
-            return Jwts.parserBuilder()
+            Claims claims = Jwts.parserBuilder()
                     .setSigningKey(this.key)
-                    .build().parseClaimsJws(token).getBody();
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+            log.info("Parsed claims: {}", claims);
+            return claims;
         } catch (ExpiredJwtException e) {
-            // 토큰이 만료된 경우에도 클레임 데이터를 반환할 수 있음
-            return e.getClaims();
+            log.error("parseData: Expired token. Token: {}", token);
+            return e.getClaims(); // 만료된 경우에도 클레임을 반환하도록 처리
+        } catch (Exception e) {
+            log.error("parseData: Failed to parse token. Token: {} | Error: {}", token, e.getMessage());
+            return null;
         }
     }
+
 
     /**
      * Access Token의 남은 유효 시간을 계산하여 반환합니다.
@@ -181,13 +222,14 @@ public class TokenProvider {
         return (expiration.getTime() - now);
     }
 
-    /**
-     * Authentication 객체를 기반으로 Access Token만 생성하여 반환합니다.zhem wj
-     *
-     * @param authentication 인증 정보를 담고 있는 Authentication 객체
-     * @return 생성된 Access Token 문자열
-     */
-    public String generateAccessToken(Authentication authentication) {
-        return createToken(authentication).getAccessToken();
+    // Getter 추가: 클라이언트에 토큰 만료 시간 전달 등 필요시 사용
+
+    public Long getValidationTime() {
+        return validationTime;
     }
+
+    public Long getRefreshTokenValidationTime() {
+        return refreshTokenValidationTime;
+    }
+
 }

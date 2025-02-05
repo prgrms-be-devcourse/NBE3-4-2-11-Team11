@@ -19,6 +19,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
@@ -101,4 +102,64 @@ public class AdminAuthController {
         // 별도 실패 분기를 처리하지 않고, 항상 성공 응답을 반환합니다.
         return ResponseEntity.ok(new RsData<>("200", "성공적으로 로그아웃되었습니다.", new AdminLogoutResponse("성공적으로 로그아웃되었습니다.")));
     }
+
+    /**
+     * Refresh Token을 이용해 새로운 Access Token을 발급하는 엔드포인트.
+     * 클라이언트는 저장된 Refresh Token을 HTTP 헤더("Refresh-Token")에 담아서 호출합니다.
+     */
+    @PostMapping("/refresh-token")
+    public ResponseEntity<RsData<TokenDto>> refreshToken(
+            @RequestHeader(value = "Refresh-Token", required = false) String refreshToken) {
+
+        log.info("Received Refresh-Token: {}", refreshToken);
+
+        try {
+            if (refreshToken == null || refreshToken.trim().isEmpty()) {
+                log.error("Refresh Token is null or empty.");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(new RsData<>("400", "Refresh Token이 제공되지 않았습니다.", null));
+            }
+
+            if (!tokenProvider.validateToken(refreshToken)) {
+                log.error("Invalid Refresh Token.");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(new RsData<>("401", "Refresh Token이 유효하지 않습니다.", null));
+            }
+
+            Authentication authentication = tokenProvider.getAuthentication(refreshToken);
+            if (authentication == null) {
+                log.error("Authentication is null for Refresh Token: {}", refreshToken);
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(new RsData<>("401", "인증 정보를 가져올 수 없습니다.", null));
+            }
+
+            String newAccessToken = tokenProvider.generateAccessToken(authentication);
+            if (newAccessToken == null || newAccessToken.trim().isEmpty()) {
+                log.error("Generated newAccessToken is null or empty.");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(new RsData<>("500", "새로운 Access Token을 생성하는 중 오류가 발생했습니다.", null));
+            }
+
+            log.info("Creating TokenDto with newAccessToken: {} and refreshToken: {}", newAccessToken, refreshToken);
+
+            TokenDto newTokenDto = TokenDto.builder()
+                    .accessToken(newAccessToken)
+                    .refreshToken(refreshToken)
+                    .accessTokenValidationTime(tokenProvider.getValidationTime())
+                    .refreshTokenValidationTime(tokenProvider.getRefreshTokenValidationTime())
+                    .type("Bearer")
+                    .build();
+
+            log.info("Successfully generated new TokenDto: {}", newTokenDto);
+
+            return ResponseEntity.ok(new RsData<>("200", "새로운 Access Token이 발급되었습니다.", newTokenDto));
+
+        } catch (Exception e) {
+            log.error("Exception occurred in refreshToken: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new RsData<>("500", "서버 내부 오류가 발생했습니다.", null));
+        }
+    }
+
+
 }
