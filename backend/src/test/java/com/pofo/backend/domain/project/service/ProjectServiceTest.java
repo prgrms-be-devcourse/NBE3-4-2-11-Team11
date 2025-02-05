@@ -366,5 +366,36 @@ public class ProjectServiceTest {
 
     }
 
+    @Test
+    @DisplayName("프로젝트 수정 실패 - 사용자 정보 없음")
+    void t13() {
+
+        ProjectUpdateRequest updateRequest = projectUpdateRequest(); // 업데이트할 요청 객체
+
+        Project realProject = Project.builder()
+                .user(mockUser)
+                .name("업데이트된 프로젝트")
+                .startDate(LocalDate.of(2025,1,25))
+                .endDate(LocalDate.of(2025,2,20))
+                .memberCount(5)
+                .position("백엔드")
+                .repositoryLink("newRepoLink")
+                .description("업데이트된 프로젝트 설명")
+                .imageUrl("newImage.img")
+                .build();
+
+        when(projectRepository.findById(1L)).thenReturn(Optional.of(realProject));
+
+        // 사용자 정보 없음
+        ProjectCreationException exception = assertThrows(ProjectCreationException.class, () -> {
+            projectService.updateProject(1L, updateRequest, null);
+        });
+
+        RsData<Void> rsData = exception.getRsData();
+        assertEquals("404", rsData.getResultCode());
+        assertEquals("프로젝트의 사용자 정보가 없습니다.", rsData.getMsg());
+
+
+    }
 
 }
