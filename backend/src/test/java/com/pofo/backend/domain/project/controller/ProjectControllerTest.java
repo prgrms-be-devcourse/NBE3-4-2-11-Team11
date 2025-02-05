@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.pofo.backend.domain.project.dto.request.ProjectCreateRequest;
 import com.pofo.backend.domain.project.dto.response.ProjectCreateResponse;
+import com.pofo.backend.domain.project.dto.response.ProjectDetailResponse;
 import com.pofo.backend.domain.project.service.ProjectService;
 import com.pofo.backend.domain.user.entity.User;
 import com.pofo.backend.domain.user.repository.UserRepository;
@@ -21,12 +22,14 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -99,5 +102,57 @@ public class ProjectControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.resultCode").value("201"))
                 .andExpect(jsonPath("$.msg").value("프로젝트 등록이 완료되었습니다."));
+    }
+
+    @Test
+    @WithMockUser(username = "testUser", roles = {"USER"})
+    @DisplayName("프로젝트 전체 조회 테스트")
+    void t2() throws Exception{
+        //given
+        ProjectDetailResponse project1 = new ProjectDetailResponse(1L,"프로젝트1" ,startDate, endDate, 5, "백엔드", "testLinkA", "프로젝트1 입니다.", "project1.img" );
+        ProjectDetailResponse project2 = new ProjectDetailResponse(2L,"프로젝트2" ,startDate, endDate, 4, "백엔드", "testLinkB", "프로젝트2 입니다.", "project2.img" );
+        ProjectDetailResponse project3 = new ProjectDetailResponse(3L,"프로젝트3" ,startDate, endDate, 6, "백엔드", "testLinkC", "프로젝트3 입니다.", "project3.img" );
+
+        List<ProjectDetailResponse> projects = Arrays.asList(project1,project2,project3);
+
+        given(projectService.detailAllProject(any(User.class))).willReturn(projects);
+
+        //when&Then
+        mvc.perform(get("/api/v1/user/projects")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.resultCode").value("200"))
+                .andExpect(jsonPath("$.msg").value("프로젝트 전체 조회가 완료되었습니다."))
+                .andExpect(jsonPath("$.data[0].projectId").value(1))
+                .andExpect(jsonPath("$.data[0].name").value("프로젝트1"))
+                .andExpect(jsonPath("$.data[0].startDate").value(startDate.toString()))
+                .andExpect(jsonPath("$.data[0].endDate").value(endDate.toString()))
+                .andExpect(jsonPath("$.data[0].memberCount").value(5))
+                .andExpect(jsonPath("$.data[0].position").value("백엔드"))
+                .andExpect(jsonPath("$.data[0].repositoryLink").value("testLinkA"))
+                .andExpect(jsonPath("$.data[0].description").value("프로젝트1 입니다."))
+                .andExpect(jsonPath("$.data[0].imageUrl").value("project1.img"))
+
+                .andExpect(jsonPath("$.data[1].projectId").value(2))
+                .andExpect(jsonPath("$.data[1].name").value("프로젝트2"))
+                .andExpect(jsonPath("$.data[1].startDate").value(startDate.toString()))
+                .andExpect(jsonPath("$.data[1].endDate").value(endDate.toString()))
+                .andExpect(jsonPath("$.data[1].memberCount").value(4))
+                .andExpect(jsonPath("$.data[1].position").value("백엔드"))
+                .andExpect(jsonPath("$.data[1].repositoryLink").value("testLinkB"))
+                .andExpect(jsonPath("$.data[1].description").value("프로젝트2 입니다."))
+                .andExpect(jsonPath("$.data[1].imageUrl").value("project2.img"))
+
+                .andExpect(jsonPath("$.data[2].projectId").value(3))
+                .andExpect(jsonPath("$.data[2].name").value("프로젝트3"))
+                .andExpect(jsonPath("$.data[2].startDate").value(startDate.toString()))
+                .andExpect(jsonPath("$.data[2].endDate").value(endDate.toString()))
+                .andExpect(jsonPath("$.data[2].memberCount").value(6))
+                .andExpect(jsonPath("$.data[2].position").value("백엔드"))
+                .andExpect(jsonPath("$.data[2].repositoryLink").value("testLinkC"))
+                .andExpect(jsonPath("$.data[2].description").value("프로젝트3 입니다."))
+                .andExpect(jsonPath("$.data[2].imageUrl").value("project3.img"));
+
     }
 }

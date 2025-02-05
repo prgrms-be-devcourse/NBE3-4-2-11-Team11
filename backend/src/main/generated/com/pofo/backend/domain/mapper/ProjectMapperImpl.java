@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-02-05T10:11:44+0900",
+    date = "2025-02-05T12:13:16+0900",
     comments = "version: 1.5.2.Final, compiler: javac, environment: Java 21.0.2 (GraalVM Community)"
 )
 @Component
@@ -38,7 +38,9 @@ public class ProjectMapperImpl implements ProjectMapper {
         description = project.getDescription();
         imageUrl = project.getImageUrl();
 
-        ProjectDetailResponse projectDetailResponse = new ProjectDetailResponse( name, startDate, endDate, memberCount, position, repositoryLink, description, imageUrl );
+        Long projectId = null;
+
+        ProjectDetailResponse projectDetailResponse = new ProjectDetailResponse( projectId, name, startDate, endDate, memberCount, position, repositoryLink, description, imageUrl );
 
         return projectDetailResponse;
     }
