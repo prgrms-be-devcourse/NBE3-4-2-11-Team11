@@ -53,7 +53,8 @@ public class ProjectController {
             @PathVariable Long projectId,
             @AuthenticationPrincipal User user){
 
-        ProjectDetailResponse response = projectService.detailProject(projectId, user);
+        User u = userRepository.findById(null).orElseThrow(()->new ProjectCreationException("404",""));
+        ProjectDetailResponse response = projectService.detailProject(projectId, u);
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new RsData<>("200","프로젝트 단건 조회가 완료되었습니다." , response));

@@ -19,6 +19,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
@@ -29,7 +30,8 @@ import java.util.Optional;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -153,6 +155,40 @@ public class ProjectControllerTest {
                 .andExpect(jsonPath("$.data[2].repositoryLink").value("testLinkC"))
                 .andExpect(jsonPath("$.data[2].description").value("프로젝트3 입니다."))
                 .andExpect(jsonPath("$.data[2].imageUrl").value("project3.img"));
+
+    }
+
+    @Test
+    @WithMockUser(username = "testUser", roles = {"USER"})
+    @DisplayName("프로젝트 단건 조회 테스트")
+    void t3() throws Exception{
+        //given
+        Long projectId = 1L;
+        ProjectDetailResponse projectResponse = new ProjectDetailResponse(
+                projectId,"프로젝트1", startDate, endDate, 5, "백엔드", "testLinkA", "프로젝트1 입니다.", "project1.img"
+        );
+
+        given(projectService.detailProject(eq(projectId), any(User.class))).willReturn(projectResponse);
+
+        //when & Then
+        MvcResult result = mvc.perform(get("/api/v1/user/projects/{projectId}", projectId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.resultCode").value("200"))
+                .andExpect(jsonPath("$.msg").value("프로젝트 단건 조회가 완료되었습니다."))
+                .andExpect(jsonPath("$.data.projectId").value(projectId))
+                .andExpect(jsonPath("$.data.name").value("프로젝트1"))
+                .andExpect(jsonPath("$.data.startDate").value(startDate.toString()))
+                .andExpect(jsonPath("$.data.endDate").value(endDate.toString()))
+                .andExpect(jsonPath("$.data.memberCount").value(5))
+                .andExpect(jsonPath("$.data.position").value("백엔드"))
+                .andExpect(jsonPath("$.data.repositoryLink").value("testLinkA"))
+                .andExpect(jsonPath("$.data.description").value("프로젝트1 입니다."))
+                .andExpect(jsonPath("$.data.imageUrl").value("project1.img"))
+                .andReturn();
+
+        System.out.println("Response: " + result.getResponse().getContentAsString());
 
     }
 }
