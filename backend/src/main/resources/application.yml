@@ -46,7 +46,7 @@ spring:
 
   data:
     redis:
-      host: 172.17.0.4
+      host: localhost
       port: 6379
 
   profiles:
@@ -60,6 +60,7 @@ logging:
     org.hibernate.SQL: DEBUG  # Hibernate SQL 로그 레벨 설정
     org.hibernate.orm.jdbc.bind: TRACE  # Hibernate 바인딩 로그 레벨 설정
     org.hibernate.orm.jdbc.extract: TRACE  # Hibernate JDBC 추출 로그 레벨 설정
+    org.springframework.data.redis: DEBUG  # Spring Data Redis 로그 레벨 추가
 
 jwt:
   secret:

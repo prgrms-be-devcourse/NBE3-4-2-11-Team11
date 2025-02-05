@@ -32,7 +32,7 @@ public class TokenProvider {
     private String secret;
 
     // Access Token의 유효 시간 (밀리초 단위)
-    @Value("${JWT_VALIDATION_TIME}")
+    @Value("${JWT_VALIDATION_TIME:3600000}")
     private Long validationTime;
 
     // JWT 내에서 권한 정보를 저장하는 클레임의 키 값 (예: "auth")
@@ -51,6 +51,8 @@ public class TokenProvider {
     public void init() {
         // secret 문자열을 Base64로 디코딩하고 HS512 알고리즘에 맞는 SecretKeySpec를 생성
         this.key = new SecretKeySpec(Base64.getDecoder().decode(secret), SignatureAlgorithm.HS512.getJcaName());
+        log.info("JWT_VALIDATION_TIME: {}", validationTime);
+        log.info("JWT_REFRESH_VALIDATION_TIME: {}", refreshTokenValidationTime);
     }
 
     /**
@@ -66,6 +68,12 @@ public class TokenProvider {
                 .collect(Collectors.joining(","));
 
         long now = System.currentTimeMillis();
+
+        log.info("토큰 생성 시작, 현재 시간: {}", now);
+
+        Date expirationDate = new Date(now + validationTime);
+        log.info("Setting token expiration to: {}", expirationDate);
+
 
         // Access Token 생성: subject(사용자 이름)와 권한 정보, 만료 시간을 포함하여 서명
         String accessToken = Jwts.builder()
@@ -162,7 +170,12 @@ public class TokenProvider {
      */
     public Long getExpiration(String accessToken) {
         // 토큰에서 만료 날짜를 파싱
-        Date expiration = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(accessToken).getBody().getExpiration();
+        Date expiration = Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(accessToken)
+                .getBody()
+                .getExpiration();
         Long now = System.currentTimeMillis();
         return (expiration.getTime() - now);
     }

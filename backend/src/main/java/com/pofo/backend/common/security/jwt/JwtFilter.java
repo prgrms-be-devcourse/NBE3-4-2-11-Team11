@@ -16,31 +16,44 @@ import java.io.IOException;
 
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
+    // Authorization 헤더의 키값 ("Authorization" 등이 들어감)
     private final String AUTHORIZATION_KEY;
+    // JWT 토큰 관련 생성 및 검증 로직을 제공하는 컴포넌트
     private final TokenProvider tokenProvider;
-    private final RedisTemplate<String,String> redisTemplate;
+    // Redis를 통해 블랙리스트(로그아웃 처리된 토큰) 여부를 확인하기 위한 템플릿
+    private final RedisTemplate<String, String> redisTemplate;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
+        // 요청 헤더에서 JWT 토큰 추출
         String tokenValue = parseHeader(request);
 
-        if(StringUtils.hasText(tokenValue) && tokenProvider.validateToken(tokenValue)) {
-            String logOut=(String) redisTemplate.opsForValue().get(tokenValue);
-            if(ObjectUtils.isEmpty(logOut)){
+        // 토큰이 존재하고, 유효한 경우에만 진행
+        if (StringUtils.hasText(tokenValue) && tokenProvider.validateToken(tokenValue)) {
+            // Redis에서 해당 토큰이 "logout" 상태로 등록되어 있는지 확인
+            String logOut = redisTemplate.opsForValue().get(tokenValue);
+            // 토큰이 블랙리스트에 등록되어 있지 않다면 (즉, 로그아웃 처리되지 않았다면)
+            if (ObjectUtils.isEmpty(logOut)) {
+                // 토큰으로부터 Authentication 객체를 생성하고 SecurityContext에 저장
                 Authentication authentication = tokenProvider.getAuthentication(tokenValue);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         }
 
+        // 다음 필터로 요청 전달
         filterChain.doFilter(request, response);
     }
 
+    /**
+     * 요청 헤더에서 Authorization 토큰을 파싱합니다.
+     * "Bearer " 접두어가 있으면 제거하고 토큰 문자열만 반환합니다.
+     */
     public String parseHeader(HttpServletRequest request) {
         String token = request.getHeader(AUTHORIZATION_KEY);
 
-        if(StringUtils.hasText(token) && token.startsWith("Bearer ")) {
+        if (StringUtils.hasText(token) && token.startsWith("Bearer ")) {
             return token.substring(7);
         }
         return null;
