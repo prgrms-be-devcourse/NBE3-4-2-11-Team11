@@ -393,8 +393,8 @@ public class ProjectServiceTest {
         });
 
         RsData<Void> rsData = exception.getRsData();
-        assertEquals("404", rsData.getResultCode());
-        assertEquals("프로젝트의 사용자 정보가 없습니다.", rsData.getMsg());
+        assertEquals("400", rsData.getResultCode());
+        assertEquals("유효하지 않은 사용자입니다.", rsData.getMsg());
 
     }
 
