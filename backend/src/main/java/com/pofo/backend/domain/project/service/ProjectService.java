@@ -69,4 +69,25 @@ public class ProjectService {
             throw ProjectCreationException.badRequest("프로젝트 전체 조회 중 오류가 발생했습니다.");
         }
     }
+
+    public ProjectDetailResponse detailProject(Long projectId, User user) {
+
+        if(user==null){
+            throw ProjectCreationException.invalidUser();
+        }
+
+        try{
+            Project project = projectRepository.findById(projectId)
+                    .orElseThrow(() -> ProjectCreationException.notFound("해당 프로젝트를 찾을 수 없습니다."));
+
+            return projectMapper.projectToProjectDetailResponse(project);
+
+        }catch (DataAccessException ex){
+            throw ProjectCreationException.serverError("프로젝트 조회 중 데이터베이스 오류가 발생했습니다.");
+        }catch (ProjectCreationException ex) {
+            throw ex;  // 이미 정의된 예외는 다시 던진다.
+        }catch (Exception ex){
+            throw ProjectCreationException.badRequest("프로젝트 단건 조회 중 오류가 발생했습니다.");
+        }
+    }
 }
