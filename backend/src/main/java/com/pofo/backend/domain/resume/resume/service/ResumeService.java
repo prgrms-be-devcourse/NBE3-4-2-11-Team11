@@ -147,6 +147,6 @@ public class ResumeService {
         resumeResponse.setEducations(educationService.getEducationsByResumeId(resume.getId()));
         resumeResponse.setLicenses(licenseService.getLicensesByResumeId(resume.getId()));
         resumeResponse.setLanguages(languageService.getLanguagesByResumeId(resume.getId()));
-        return resumeMapper.resumeToResumeResponse(resume);
+        return resumeResponse;
     }
 }
