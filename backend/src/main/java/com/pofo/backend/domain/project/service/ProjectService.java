@@ -103,7 +103,11 @@ public class ProjectService {
         try {
             // 프로젝트 사용자 정보가 없는 경우 예외 처리
             if (user == null) {
-                throw ProjectCreationException.forbidden("프로젝트의 사용자 정보가 없습니다.");
+                throw ProjectCreationException.invalidUser();
+            }
+
+            if(!project.getUser().equals(user)){
+                throw ProjectCreationException.forbidden("프로젝트 수정 할 권한이 없습니다.");
             }
 
 
@@ -120,11 +124,11 @@ public class ProjectService {
             );
 
         }catch (DataAccessException ex){
-            throw ProjectCreationException.serverError("프로젝트 조회 중 데이터베이스 오류가 발생했습니다.");
+            throw ProjectCreationException.serverError("프로젝트 수정 중 데이터베이스 오류가 발생했습니다.");
         }catch (ProjectCreationException ex) {
             throw ex;  // 이미 정의된 예외는 다시 던진다.
         }catch (Exception ex){
-            throw ProjectCreationException.badRequest("프로젝트 단건 조회 중 오류가 발생했습니다.");
+            throw ProjectCreationException.badRequest("프로젝트 수정 중 오류가 발생했습니다.");
         }
 
         // 응답 변환

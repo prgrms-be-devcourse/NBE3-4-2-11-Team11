@@ -16,6 +16,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import java.time.LocalDate;
@@ -413,4 +414,25 @@ public class ProjectServiceTest {
         assertEquals("해당 프로젝트를 찾을 수 없습니다.", rsData.getMsg());
     }
 
-}
+    @Test
+    @DisplayName("프로젝트 수정 실패 - 권한 없음")
+    void t15() {
+        ProjectUpdateRequest updateRequest = projectUpdateRequest(); // 업데이트할 요청 객체
+        User differentUser = Mockito.mock(User.class); // 다른 사용자
+
+        // Project를 Mock 객체로 생성
+        Project mockProject = Mockito.mock(Project.class);
+
+        when(projectRepository.findById(1L)).thenReturn(Optional.of(mockProject));
+        when(mockProject.getUser()).thenReturn(differentUser); // mockUser와 다르게 설정
+
+        // 예외 발생 여부 확인
+        ProjectCreationException exception = assertThrows(ProjectCreationException.class, () -> {
+            projectService.updateProject(1L, updateRequest, mockUser);
+        });
+
+        RsData<Void> rsData = exception.getRsData();
+        assertEquals("404", rsData.getResultCode());
+        assertEquals("프로젝트 수정 할 권한이 없습니다.", rsData.getMsg());
+    }
+    }
