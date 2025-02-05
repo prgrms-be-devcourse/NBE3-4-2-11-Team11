@@ -1,6 +1,7 @@
 package com.pofo.backend.domain.project.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.pofo.backend.domain.project.dto.request.ProjectCreateRequest;
 import com.pofo.backend.domain.project.dto.response.ProjectCreateResponse;
 import com.pofo.backend.domain.project.service.ProjectService;
@@ -84,7 +85,10 @@ public class ProjectControllerTest {
          given(projectService.createProject(any(ProjectCreateRequest.class),eq(testUser)))
                 .willReturn(new ProjectCreateResponse(1L));
 
-        String body = new ObjectMapper().writeValueAsString(projectCreateRequest);
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+
+        String body = objectMapper.writeValueAsString(projectCreateRequest);
 
         // when & then
         mvc.perform(post("/api/v1/user/project")
