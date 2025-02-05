@@ -242,4 +242,27 @@ public class ProjectServiceTest {
         verify(projectRepository).findById(projectId);
         verify(projectMapper).projectToProjectDetailResponse(mockProject);
     }
+
+    @Test
+    @DisplayName("프로젝트 단건 조회 실패 - 프로젝트 없음")
+    void t9(){
+        //Given
+        Long projectId = 1L;
+        User mockUser = mock(User.class);
+        when(projectRepository.findById(projectId)).thenReturn(Optional.empty());
+
+        //when&Then
+        ProjectCreationException exception = assertThrows(ProjectCreationException.class, () -> {
+            projectService.detailProject(projectId, mockUser);
+        });
+
+        RsData<Void> rsData = exception.getRsData();
+        assertEquals("404", rsData.getResultCode());
+        assertEquals("해당 프로젝트를 찾을 수 없습니다.", rsData.getMsg());
+
+
+
+
+
+    }
 }
