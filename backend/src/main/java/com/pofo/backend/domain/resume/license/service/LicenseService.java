@@ -1,6 +1,7 @@
 package com.pofo.backend.domain.resume.license.service;
 
 import com.pofo.backend.domain.resume.license.dto.LicenseRequest;
+import com.pofo.backend.domain.resume.license.dto.LicenseResponse;
 import com.pofo.backend.domain.resume.license.entity.License;
 import com.pofo.backend.domain.resume.license.repository.LicenseRepository;
 import com.pofo.backend.domain.resume.resume.entity.Resume;
@@ -39,7 +40,15 @@ public class LicenseService {
         addLicenses(resumeId, licenses);
     }
 
-    public List<License> getLicensesByResumeId(Long resumeId) {
-        return licenseRepository.findByResumeId(resumeId);
+    public List<LicenseResponse> getLicensesByResumeId(Long resumeId) {
+        return licenseRepository.findByResumeId(resumeId).stream()
+            .map(license -> {
+                LicenseResponse response = new LicenseResponse();
+                response.setName(license.getName());
+                response.setInstitution(license.getInstitution());
+                response.setCertifiedDate(license.getCertifiedDate());
+                return response;
+            })
+            .collect(Collectors.toList());
     }
 }

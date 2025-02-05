@@ -1,6 +1,7 @@
 package com.pofo.backend.domain.resume.course.service;
 
 import com.pofo.backend.domain.resume.course.dto.CourseRequest;
+import com.pofo.backend.domain.resume.course.dto.CourseResponse;
 import com.pofo.backend.domain.resume.course.entity.Course;
 import com.pofo.backend.domain.resume.course.repository.CourseRepository;
 import com.pofo.backend.domain.resume.resume.entity.Resume;
@@ -40,7 +41,15 @@ public class CourseService {
         addCourses(resumeId, courseRequests);
     }
 
-    public List<Course> getCoursesByResumeId(Long resumeId) {
-        return courseRepository.findByResumeId(resumeId);
+    public List<CourseResponse> getCoursesByResumeId(Long resumeId) {
+        return courseRepository.findByResumeId(resumeId).stream()
+            .map(course -> CourseResponse.builder()
+                .name(course.getName())
+                .institution(course.getInstitution())
+                .startDate(course.getStartDate())
+                .endDate(course.getEndDate())
+                .build())
+            .collect(Collectors.toList());
     }
+
 }

@@ -1,6 +1,7 @@
 package com.pofo.backend.domain.resume.activity.activity.service;
 
 import com.pofo.backend.domain.resume.activity.activity.dto.ActivityRequest;
+import com.pofo.backend.domain.resume.activity.activity.dto.ActivityResponse;
 import com.pofo.backend.domain.resume.activity.activity.entity.Activity;
 import com.pofo.backend.domain.resume.activity.activity.repository.ActivityRepository;
 import com.pofo.backend.domain.resume.activity.award.dto.AwardRequest;
@@ -51,7 +52,15 @@ public class ActivityService {
         addActivities(resumeId, activities);
     }
 
-    public List<Activity> getActivitiesByResumeId(Long resumeId) {
-        return activityRepository.findByResumeId(resumeId);
+    public List<ActivityResponse> getActivitiesByResumeId(Long resumeId) {
+        return activityRepository.findByResumeId(resumeId).stream()
+            .map(activity -> ActivityResponse.builder()
+                .name(activity.getName())
+                .history(activity.getHistory())
+                .startDate(activity.getStartDate())
+                .endDate(activity.getEndDate())
+                .awards(awardService.getAwardsByActivityId(activity.getId()))
+                .build())
+            .collect(Collectors.toList());
     }
 }
