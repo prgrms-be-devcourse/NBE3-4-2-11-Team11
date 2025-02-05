@@ -3,15 +3,15 @@ package com.pofo.backend.domain.project.dto.request;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDate;
 
 @Getter
 @Setter
+@NoArgsConstructor
 @Builder
+@AllArgsConstructor
 public class ProjectUpdateRequest {
 
     @NotBlank

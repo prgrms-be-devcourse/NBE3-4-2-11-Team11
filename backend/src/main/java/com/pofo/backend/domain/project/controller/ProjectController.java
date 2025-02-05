@@ -65,7 +65,7 @@ public class ProjectController {
     }
 
     //프로젝트 수정
-    @PatchMapping("/projects/{projectId}")
+    @PutMapping("/projects/{projectId}")
     public ResponseEntity<RsData<ProjectUpdateResponse>> updateProject(
             @PathVariable Long projectId,
             @Valid @RequestBody ProjectUpdateRequest request,
