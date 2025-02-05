@@ -20,8 +20,7 @@ import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 public class ProjectServiceTest {
@@ -50,8 +49,7 @@ public class ProjectServiceTest {
 
     @BeforeEach
     void setUp(){
-        MockitoAnnotations.openMocks(this);
-
+        MockitoAnnotations.openMocks(this);  // mockUser가 제대로 초기화되도록 호출
 
         when(mockUser.getId()).thenReturn(1L);
         when(mockProject.getId()).thenReturn(1L);
@@ -155,7 +153,10 @@ public class ProjectServiceTest {
     @DisplayName("프로젝트 전체 조회 실패 - 프로젝트 없는 경우")
     void t5(){
         // given
+        User mockUser = mock(User.class);
         when(projectRepository.findAllByOrderByIdDesc()).thenReturn(Collections.emptyList());
+        //System.out.println("mockUser: " + mockUser);
+
 
         // when & then
         ProjectCreationException exception = assertThrows(ProjectCreationException.class, () -> {

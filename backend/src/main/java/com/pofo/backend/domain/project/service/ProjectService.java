@@ -40,16 +40,15 @@ public class ProjectService {
             return new ProjectCreateResponse(project.getId());
 
         }catch (Exception ex){
-            throw ProjectCreationException.invalidUser("유효하지 않은 사용자입니다.");
+            throw ProjectCreationException.invalidUser();
         }
     }
 
     public List<ProjectDetailResponse> detailAllProject(User user){
 
         if(user==null){
-            throw ProjectCreationException.invalidUser("유효하지 않은 사용자입니다.");
+            throw ProjectCreationException.invalidUser();
         }
-
         try{
             List<Project> projects = projectRepository.findAllByOrderByIdDesc();
 
@@ -64,6 +63,8 @@ public class ProjectService {
 
         }catch (DataAccessException ex){
             throw ProjectCreationException.serverError("프로젝트 조회 중 데이터베이스 오류가 발생했습니다.");
+        }catch (ProjectCreationException ex) {
+            throw ex;  // 이미 정의된 예외는 다시 던진다.
         }catch (Exception ex){
             throw ProjectCreationException.badRequest("프로젝트 전체 조회 중 오류가 발생했습니다.");
         }
