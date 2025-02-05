@@ -40,5 +40,15 @@ public class Project extends BaseTime {
     @Column(nullable = false)
     private String imageUrl;
 
-
+    public void update(String name, LocalDate startDate, LocalDate endDate, int memberCount,
+                       String position, String repositoryLink, String description, String imageUrl) {
+        this.name = name;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.memberCount = memberCount;
+        this.position = position;
+        this.repositoryLink = repositoryLink;
+        this.description = description;
+        this.imageUrl = imageUrl;
+    }
 }

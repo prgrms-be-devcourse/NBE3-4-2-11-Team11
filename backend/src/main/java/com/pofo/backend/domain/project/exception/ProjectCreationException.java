@@ -34,4 +34,10 @@ public class ProjectCreationException extends RuntimeException{
     public static ProjectCreationException serverError(String msg) {
         return new ProjectCreationException("500", msg);
     }
+
+
+    //권한 없음
+    public static ProjectCreationException forbidden(String msg){
+        return new ProjectCreationException("404", msg);
+    }
 }
