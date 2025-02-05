@@ -11,6 +11,7 @@ import java.time.LocalDate;
 @Setter
 public class ProjectDetailResponse {
 
+    private Long projectId;
     private String name;
     private LocalDate startDate;
     private LocalDate endDate;
