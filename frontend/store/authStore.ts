@@ -1,22 +1,26 @@
-"use client"; // ✅ 클라이언트 컴포넌트에서만 실행
-
 import { create } from "zustand";
 
 interface AuthState {
     isLoggedIn: boolean;
-    login: () => void;
+    login: (token: string) => void;
     logout: () => void;
 }
 
-// ✅ localStorage 제거 & 클라이언트에서만 상태 관리
+// ✅ SSR에서 localStorage 접근 방지 & 초기값 false 설정
 export const useAuthStore = create<AuthState>((set) => ({
-    isLoggedIn: false, // 기본값은 false (서버에서는 항상 false)
+    isLoggedIn: false, // 🔥 서버에서 렌더링될 때는 무조건 false로 설정
 
-    login: () => {
-        set({ isLoggedIn: true }); // 로그인 상태 true로 변경
+    login: (token) => {
+        if (typeof window !== "undefined") { // 🔥 브라우저 환경에서만 실행
+            localStorage.setItem("accessToken", token);
+        }
+        set({ isLoggedIn: true });
     },
 
     logout: () => {
-        set({ isLoggedIn: false }); // 로그아웃 시 false
-    },
+        if (typeof window !== "undefined") {
+            localStorage.removeItem("accessToken");
+        }
+        set({ isLoggedIn: false });
+    }
 }));

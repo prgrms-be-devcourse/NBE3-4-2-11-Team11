@@ -1,24 +1,18 @@
-"use client"; // ✅ 클라이언트 컴포넌트에서만 실행
+"use client";
 
 import Link from "next/link";
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/store/authStore"; // ✅ Zustand 사용
+import { useEffect, useState } from "react";
+import { useAuthStore } from "@/store/authStore";
 
 const Header = () => {
   const { isLoggedIn, login, logout } = useAuthStore();
-  const router = useRouter();
+  const [hasMounted, setHasMounted] = useState(false); // ✅ Hydration 방지용 상태
 
   useEffect(() => {
-    // ✅ 서버에서는 실행되지 않도록 보장
-    if (typeof window !== "undefined") {
-      // 🔥 localStorage 제거 & 상태 관리
-      const tokenExists = !!document.cookie.includes("accessToken");
-      if (tokenExists) {
-        login();
-      }
-    }
-  }, [login]);
+    setHasMounted(true); // ✅ 클라이언트에서 마운트 후 상태 업데이트
+  }, []);
+
+  if (!hasMounted) return null; // 🔥 서버 렌더링 시 빈 화면 유지하여 Hydration 에러 방지
 
   return (
       <header className="bg-gray-900 text-white py-4 px-8 flex justify-between items-center">
@@ -29,6 +23,9 @@ const Header = () => {
           <ul className="flex space-x-6">
             <li>
               <Link href="/notice" className="hover:text-gray-400">공지사항</Link>
+            </li>
+            <li>
+              <Link href="/mypage" className="hover:text-gray-400">마이페이지</Link>
             </li>
             <li>
               <Link href="/contact" className="hover:text-gray-400">문의하기</Link>

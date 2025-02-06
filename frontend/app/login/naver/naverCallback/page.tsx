@@ -1,34 +1,74 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useAuthStore } from "@/store/authStore";
+import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/store/authStore"; // ✅ Zustand 스토어 사용
 
-const NaverCallback = () => {
+export default function NaverCallback() {
     const router = useRouter();
-    const params = useSearchParams();
     const { login } = useAuthStore();
 
     useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
         const code = params.get("code");
         const state = params.get("state");
 
-        if (code && state) {
-            fetch(`/api/v1/user/naver/login/process?code=${code}&state=${state}`)
-                .then((res) => res.json())
-                .then((data) => {
-                    if (data.resultCode === "200") {
-                        login(); // ✅ Zustand 사용하여 로그인 상태 변경
-                        router.push("/");
-                    } else {
-                        router.push("/login?error=auth_failed");
-                    }
-                })
-                .catch(() => router.push("/login?error=auth_failed"));
+        if (!code || !state) {
+            console.log("❌ 네이버 로그인 콜백 파라미터 누락!");
+            router.push("/login?error=missing_params");
+            return;
         }
-    }, [params, login, router]);
 
-    return <div>네이버 로그인 처리 중...</div>;
-};
+        console.log("✅ 네이버 로그인 콜백 수신: ", code, state);
 
-export default NaverCallback;
+        const handleNaverLogin = async () => {
+            try {
+                const response = await fetch(
+                    `/api/v1/user/naver/login/process?code=${code}&state=${state}`,
+                    {
+                        method: "GET",
+                        credentials: "include",
+                        headers: {
+                            "Content-Type": "application/json",
+                        }
+                    }
+                );
+
+                if (!response.ok) {
+                    throw new Error(`네이버 로그인 실패: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log("✅ 로그인 성공", data);
+
+                if (data.resultCode === "200") {
+                    if (data.data.token) {
+                        login(data.data.token);  // ✅ Zustand에 로그인 상태 반영
+                        router.push("/");
+
+                    } else {
+                        console.error("❌ JWT 토큰이 없습니다.");
+                        router.push("/login");
+                    }
+                } else if (data.resultCode === "201") {
+                    console.log("📌 네이버 로그인 후 회원가입 필요", data);
+                    if (!data.data?.email || !data.data?.identify) {
+                        console.error("⚠️ 회원가입에 필요한 정보가 부족합니다:", data);
+                        router.push("/login?error=missing_user_info");
+                        return;
+                    }
+
+                    router.push(`/join?email=${data.data.email}&identify=${data.data.identify}&provider=NAVER`);
+                }
+
+            } catch (error) {
+                console.error("❌ 네이버 로그인 실패: ", error);
+                router.push("/login?error=naver_login_failed");
+            }
+        };
+
+        handleNaverLogin();
+    }, [router]);
+
+    return <div>네이버 로그인 중...</div>;
+}
