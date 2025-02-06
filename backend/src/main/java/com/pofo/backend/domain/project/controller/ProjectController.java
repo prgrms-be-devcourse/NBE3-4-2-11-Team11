@@ -4,6 +4,7 @@ import com.pofo.backend.common.rsData.RsData;
 import com.pofo.backend.domain.project.dto.request.ProjectCreateRequest;
 import com.pofo.backend.domain.project.dto.request.ProjectUpdateRequest;
 import com.pofo.backend.domain.project.dto.response.ProjectCreateResponse;
+import com.pofo.backend.domain.project.dto.response.ProjectDeleteResponse;
 import com.pofo.backend.domain.project.dto.response.ProjectDetailResponse;
 import com.pofo.backend.domain.project.dto.response.ProjectUpdateResponse;
 import com.pofo.backend.domain.project.exception.ProjectCreationException;
@@ -78,5 +79,15 @@ public class ProjectController {
         return ResponseEntity.status(HttpStatus.OK).body(new RsData<>("201", "프로젝트 수정이 완료되었습니다.", response));
     }
 
+    //프로젝트 삭제
+    @DeleteMapping("/projects/{projectId}")
+    public ResponseEntity<RsData<ProjectDeleteResponse>> deleteProject(
+            @PathVariable Long projectId,
+            @AuthenticationPrincipal User user
+    ){
+        //인증로직이 없어서 임시조치
+        User u = userRepository.findById(null).orElseThrow(()->new ProjectCreationException("404",""));
+        ProjectDeleteResponse response = projectService.deleteProject(projectId, u);
+    }
 
 }
