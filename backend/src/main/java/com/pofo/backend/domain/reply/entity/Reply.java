@@ -23,4 +23,8 @@ public class Reply extends BaseTime {
 
     @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
+
+    public void update(String content) {
+        this.content = content;
+    }
 }
