@@ -58,8 +58,8 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // 관리자 로그인은 인증 없이 접근 가능하도록 허용 (필요 시)
                         .requestMatchers("/api/v1/admin/login","/api/v1/admin/refresh-token").permitAll()
+                        .requestMatchers("/api/v1/admin/me").authenticated() // ✅ 관리자 정보 조회는 인증 필요
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider()); // 관리자 전용 provider 사용
