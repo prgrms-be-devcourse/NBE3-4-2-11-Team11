@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/admin/inquiries")
 @RequiredArgsConstructor
-public class ReplyAdminController {
+public class ReplyController {
 
     private final ReplyService replyService;
 

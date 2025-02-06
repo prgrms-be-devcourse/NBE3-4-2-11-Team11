@@ -4,12 +4,15 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pofo.backend.common.TestSecurityConfig;
 import com.pofo.backend.domain.inquiry.dto.request.InquiryCreateRequest;
+import com.pofo.backend.domain.inquiry.entity.Inquiry;
+import com.pofo.backend.domain.inquiry.repository.InquiryRepository;
 import com.pofo.backend.domain.inquiry.service.InquiryService;
 import com.pofo.backend.domain.notice.exception.NoticeException;
 import com.pofo.backend.domain.reply.controller.ReplyController;
 import com.pofo.backend.domain.reply.dto.request.ReplyCreateRequest;
 import com.pofo.backend.domain.reply.dto.response.ReplyDetailResponse;
 import com.pofo.backend.domain.reply.entity.Reply;
+import com.pofo.backend.domain.reply.exception.ReplyException;
 import com.pofo.backend.domain.reply.repository.ReplyRepository;
 import com.pofo.backend.domain.reply.service.ReplyService;
 import org.assertj.core.api.Assertions;
@@ -29,8 +32,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.nio.charset.StandardCharsets;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -44,10 +47,13 @@ public class ReplyControllerTest {
     private ReplyService replyService;
 
     @Autowired
+    private ReplyRepository replyRepository;
+
+    @Autowired
     private InquiryService inquiryService;
 
     @Autowired
-    private ReplyRepository replyRepository;
+    private InquiryRepository inquiryRepository;
 
     @Autowired
     private MockMvc mockMvc;
@@ -131,5 +137,26 @@ public class ReplyControllerTest {
                 .orElseThrow(() -> new NoticeException("해당 답변을 찾을 수 없습니다."));
 
         Assertions.assertThat(reply.getContent()).isEqualTo("답변 수정 테스트입니다.");
+    }
+
+    @Test
+    @DisplayName("답변 삭제 테스트")
+    void t3() throws Exception {
+
+        ResultActions resultActions = mockMvc.perform(
+                        delete("/api/v1/admin/inquiries/{inquiryId}/reply/{replyId}", inquiryId, replyId)
+                                .contentType(new MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8)
+                                )
+                )
+                .andDo(print());
+
+        Inquiry inquiry = this.inquiryRepository.findById(inquiryId).orElseThrow(() -> new ReplyException("문의사항을 찾을 수 없습니다."));
+
+        resultActions.andExpect(handler().handlerType(ReplyController.class))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("답변 삭제가 완료되었습니다."));
+
+        assertThrows(ReplyException.class, () -> this.replyService.findById(replyId));
+        assertThat(inquiry.getResponse()).isEqualTo(0);
     }
 }
