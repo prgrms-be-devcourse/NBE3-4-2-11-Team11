@@ -52,8 +52,17 @@ public class ReplyControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
+    private Long inquiryId;
+
+    private Long replyId;
+
     @BeforeEach
     void initData() throws Exception {
+        InquiryCreateRequest inquiryCreateRequest = new InquiryCreateRequest("문의사항 테스트", "문의사항 테스트입니다.");
+        inquiryId = this.inquiryService.create(inquiryCreateRequest).getId();
+
+        ReplyCreateRequest replyCreateRequest = new ReplyCreateRequest("답변 테스트");
+        replyId = this.replyService.create(inquiryId, replyCreateRequest).getId();
     }
 
     @Test
@@ -61,7 +70,7 @@ public class ReplyControllerTest {
     void t1() throws Exception {
 
         InquiryCreateRequest inquiryCreateRequest = new InquiryCreateRequest("문의사항 테스트", "문의사항 테스트입니다.");
-        Long inquiryId = this.inquiryService.create(inquiryCreateRequest).getId();
+        inquiryId = this.inquiryService.create(inquiryCreateRequest).getId();
 
         ResultActions resultActions = mockMvc.perform(
                         post("/api/v1/admin/inquiries/{id}/reply", inquiryId)
@@ -98,14 +107,6 @@ public class ReplyControllerTest {
     @Rollback(false)
     void t2() throws Exception {
 
-        InquiryCreateRequest inquiryCreateRequest = new InquiryCreateRequest("문의사항 테스트", "문의사항 테스트입니다.");
-        Long inquiryId = this.inquiryService.create(inquiryCreateRequest).getId();
-
-        ReplyCreateRequest replyCreateRequest = new ReplyCreateRequest("답변 테스트");
-        Long replyId = this.replyService.create(inquiryId, replyCreateRequest).getId();
-
-        System.out.println("replyId = " + replyId); // 이 값이 계속 71인지 확인
-
         ResultActions resultActions = mockMvc.perform(
                         patch("/api/v1/admin/inquiries/{inquiryId}/reply/{replyId}", inquiryId, replyId)
                                 .content("""
@@ -117,8 +118,6 @@ public class ReplyControllerTest {
                                 )
                 )
                 .andDo(print());
-
-        System.out.println("replyId = " + replyId); // 이 값이 계속 71인지 확인
 
         ReplyDetailResponse replyDetailResponse = this.replyService.findById(replyId);
 
