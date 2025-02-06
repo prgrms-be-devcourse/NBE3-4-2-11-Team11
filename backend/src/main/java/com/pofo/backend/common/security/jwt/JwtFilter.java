@@ -28,17 +28,17 @@ public class JwtFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
         String tokenValue = parseHeader(request);
-            if (StringUtils.hasText(tokenValue) && tokenProvider.validateToken(tokenValue)) {
-                // Redis에서 해당 토큰이 "logout" 상태로 등록되어 있는지 확인
-                String logOut = redisTemplate.opsForValue().get(tokenValue);
-                if (ObjectUtils.isEmpty(logOut)) {
-                    // 토큰으로부터 Authentication 객체를 생성하고 SecurityContext에 저장
-                    Authentication authentication = tokenProvider.getAuthentication(tokenValue);
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
-                }
+        if (StringUtils.hasText(tokenValue) && tokenProvider.validateToken(tokenValue)) {
+            // Redis에서 해당 토큰이 "logout" 상태로 등록되어 있는지 확인
+            String logOut = redisTemplate.opsForValue().get(tokenValue);
+            if (ObjectUtils.isEmpty(logOut)) {
+                // 토큰으로부터 Authentication 객체를 생성하고 SecurityContext에 저장
+                Authentication authentication = tokenProvider.getAuthentication(tokenValue);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
             }
-            // 정상적인 경우 다음 필터로 요청 전달
-            filterChain.doFilter(request, response);
+        }
+        // 정상적인 경우 다음 필터로 요청 전달
+        filterChain.doFilter(request, response);
     }
 
     /**

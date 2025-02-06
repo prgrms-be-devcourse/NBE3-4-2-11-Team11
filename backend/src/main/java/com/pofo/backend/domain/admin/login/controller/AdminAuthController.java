@@ -113,41 +113,52 @@ public class AdminAuthController {
 
         log.info("Received Refresh-Token: {}", refreshToken);
 
-        if (refreshToken == null || refreshToken.trim().isEmpty()) {
-            log.error("Refresh Token is null or empty.");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new RsData<>("400", "Refresh Token이 제공되지 않았습니다.", null));
-        }
+        try {
+            if (refreshToken == null || refreshToken.trim().isEmpty()) {
+                log.error("Refresh Token is null or empty.");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(new RsData<>("400", "Refresh Token이 제공되지 않았습니다.", null));
+            }
 
-        if (!tokenProvider.validateToken(refreshToken)) {
-            log.error("Invalid Refresh Token.");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new RsData<>("401", "Refresh Token이 유효하지 않습니다.", null));
-        }
+            if (!tokenProvider.validateToken(refreshToken)) {
+                log.error("Invalid Refresh Token.");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(new RsData<>("401", "Refresh Token이 유효하지 않습니다.", null));
+            }
 
-        Authentication authentication = tokenProvider.getAuthentication(refreshToken);
-        if (authentication == null) {
-            log.error("Authentication is null for Refresh Token: {}", refreshToken);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new RsData<>("401", "인증 정보를 가져올 수 없습니다.", null));
-        }
+            Authentication authentication = tokenProvider.getAuthentication(refreshToken);
+            if (authentication == null) {
+                log.error("Authentication is null for Refresh Token: {}", refreshToken);
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(new RsData<>("401", "인증 정보를 가져올 수 없습니다.", null));
+            }
 
-        String newAccessToken = tokenProvider.generateAccessToken(authentication);
-        if (newAccessToken == null || newAccessToken.trim().isEmpty()) {
-            log.error("Generated newAccessToken is null or empty.");
+            String newAccessToken = tokenProvider.generateAccessToken(authentication);
+            if (newAccessToken == null || newAccessToken.trim().isEmpty()) {
+                log.error("Generated newAccessToken is null or empty.");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(new RsData<>("500", "새로운 Access Token을 생성하는 중 오류가 발생했습니다.", null));
+            }
+
+            log.info("Creating TokenDto with newAccessToken: {} and refreshToken: {}", newAccessToken, refreshToken);
+
+            TokenDto newTokenDto = TokenDto.builder()
+                    .accessToken(newAccessToken)
+                    .refreshToken(refreshToken)
+                    .accessTokenValidationTime(tokenProvider.getValidationTime())
+                    .refreshTokenValidationTime(tokenProvider.getRefreshTokenValidationTime())
+                    .type("Bearer")
+                    .build();
+
+            log.info("Successfully generated new TokenDto: {}", newTokenDto);
+
+            return ResponseEntity.ok(new RsData<>("200", "새로운 Access Token이 발급되었습니다.", newTokenDto));
+
+        } catch (Exception e) {
+            log.error("Exception occurred in refreshToken: ", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new RsData<>("500", "새로운 Access Token을 생성하는 중 오류가 발생했습니다.", null));
+                    .body(new RsData<>("500", "서버 내부 오류가 발생했습니다.", null));
         }
-
-        TokenDto newTokenDto = TokenDto.builder()
-                .accessToken(newAccessToken)
-                .refreshToken(refreshToken)
-                .accessTokenValidationTime(tokenProvider.getValidationTime())
-                .refreshTokenValidationTime(tokenProvider.getRefreshTokenValidationTime())
-                .type("Bearer")
-                .build();
-
-        return ResponseEntity.ok(new RsData<>("200", "새로운 Access Token이 발급되었습니다.", newTokenDto));
     }
 
 

@@ -15,9 +15,12 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
 @RequiredArgsConstructor
@@ -28,9 +31,6 @@ public class SecurityConfig {
     private final JwtSecurityConfig jwtSecurityConfig;
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2AuthenticationSuccessHandler successHandler;
-
-    AuthenticationEntryPoint customAuthenticationEntryPoint;
-    AccessDeniedHandler jwtAccessDeniedHandler;
 
     // 관리자 전용 UserDetailsService
     private final AdminDetailsService adminDetailsService;
@@ -64,6 +64,7 @@ public class SecurityConfig {
         return http.build();
     }
 
+
     /**
      * 유저용 SecurityFilterChain
      * - '/api/v1/user/**' 경로에 대해 별도의 보안 설정 적용
@@ -80,22 +81,17 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         // 유저 로그인, OAuth2 로그인은 인증 없이 접근 가능하도록 허용
-                        .requestMatchers("/api/v1/user/login", "/api/v1/user/naver/login", "/api/v1/user/oauth2/**").permitAll()
+                        .requestMatchers(
+                                "/api/v1/user/join",
+                                "/api/v1/user/login",
+                                "/api/v1/user/naver/login",
+                                "/api/v1/user/naver/login/naver/callback",
+                                "/api/v1/user/naver/login/process",
+                                "/api/v1/user/oauth2/**"
+                        ).permitAll()
                         .anyRequest().authenticated()
-                )
-                // OAuth2 로그인 설정 (필요 시)
-                .oauth2Login(oauth2 -> oauth2
-                        .authorizationEndpoint(auth -> auth
-                                .baseUri("/api/v1/user/oauth2/authorize")
-                        )
-                        .redirectionEndpoint(redir -> redir
-                                .baseUri("/api/v1/user/oauth2/callback/*")
-                        )
-                        .userInfoEndpoint(userInfo -> userInfo
-                                .userService(customOAuth2UserService)
-                        )
-                        .successHandler(successHandler)
                 );
+
         return http.build();
     }
 
@@ -116,5 +112,19 @@ public class SecurityConfig {
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of("http://localhost:3000")); // ✅ 프론트엔드 주소 허용
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowCredentials(true);
+        configuration.setAllowedHeaders(List.of("*"));
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+
+        return source;
     }
 }
