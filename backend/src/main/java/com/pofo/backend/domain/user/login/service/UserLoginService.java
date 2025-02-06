@@ -9,6 +9,7 @@ import com.pofo.backend.domain.user.login.dto.NaverTokenResponse;
 import com.pofo.backend.domain.user.login.dto.UserLoginResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
@@ -21,12 +22,14 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserLoginService {
 
     //  Users 테이블에 대한 레포지토리
@@ -35,14 +38,16 @@ public class UserLoginService {
     //  Oauths 테이블에 대한 레포지토리
     private final OauthsRepository oauthsRepository;
 
-    @Value("${spring.security.oauth2.client.registration.naver.client_id}")
+    @Value("${spring.security.oauth2.client.registration.naver.client-id}")
     private String naverClientId;
 
-    @Value("${spring.security.oauth2.client.registration.naver.client_secret}")
+    @Value("${spring.security.oauth2.client.registration.naver.client-secret}")
     private String naverClientSecret;
 
-    public void processNaverLogin(String code, String state) {
+    public UserLoginResponseDto processNaverLogin(String code, String state) {
         try {
+            log.info("🛠 네이버 로그인 처리 시작! code: {}, state: {}", code, state);
+
             // 1.  토큰 발급 : 네이버
             String naverAccessToken = getAccessNaverToken(code, state);
 
@@ -54,6 +59,8 @@ public class UserLoginService {
 
             // 4. 사용자 인증 처리  : 네이버
             authenticateUser(naverUser);
+
+            return naverUser;
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -102,8 +109,10 @@ public class UserLoginService {
         }
 
         String email = (String) responseMap.get("email");
+        String identify =  (String) responseMap.get("id");
 
         return UserLoginResponseDto.builder()
+                .identify(identify)
                 .email(email)
                 .build();
     }
@@ -112,39 +121,33 @@ public class UserLoginService {
         String naverId = userInfo.getIdentify();
         String email = userInfo.getEmail();
 
+
         Optional<User> existingUser = usersRepository.findByEmail(email);
         User naverUser;
 
         if (existingUser.isPresent()) {
-            naverUser = existingUser.get();
-        } else {
-            naverUser = User.builder()
+            //  네이버 계정 통해 로그인 이력이 있으면 로그인 진행.
+            log.info("✅ 기존 회원: 이메일({}) - 로그인 완료", email);
+            return UserLoginResponseDto.builder()
+                    .message("로그인이 완료 되었습니다.")
+                    .resultCode("200")
+                    .provide("NAVER")
+                    .identify(naverId)
                     .email(email)
                     .build();
+        } else {
+            //  네이버 계정을 통한 로그인을 최초로 진행하는 경우
+            log.info("🆕 신규 회원: 이메일({}) - 회원가입 진행", email);
+            log.info(" 신규 회원: identify({}) - 회원가입 진행", naverId);
 
-            usersRepository.save(naverUser);
-        }
-
-        //Oauths 저장 전 중복 체크
-        Optional<Oauth> existingOauths = oauthsRepository.findByProviderAndIdentify(Oauth.Provider.NAVER, naverId);
-
-        if (existingOauths.isEmpty()) {
-            Oauth naverOauth = Oauth.builder()
-                    .user(naverUser)
-                    .provider(Oauth.Provider.NAVER)
+            return UserLoginResponseDto.builder()
+                    .message("123.")
+                    .resultCode("201")
+                    .provide("NAVER")
                     .identify(naverId)
+                    .email(email)
                     .build();
-
-            oauthsRepository.save(naverOauth);
         }
-
-        return UserLoginResponseDto.builder()
-                .message("로그인이 완료 되었습니다.")
-                .resultCode("200")
-                .provide("NAVER")
-                .identify(naverId)
-                .email(email)
-                .build();
     }
 
     private void authenticateUser(UserLoginResponseDto userInfo) {
