@@ -50,9 +50,9 @@ public class ReplyService {
     }
 
     @Transactional
-    public ReplyUpdateResponse update(Long replyId, Long inquiryId, ReplyUpdateRequest replyUpdateRequest) {
+    public ReplyUpdateResponse update(Long inquiryId, Long replyId, ReplyUpdateRequest replyUpdateRequest) {
 
-        Reply reply = this.replyRepository.findByIdAndInquiryId(replyId, inquiryId)
+        Reply reply = this.replyRepository.findByInquiryIdAndId(inquiryId, replyId)
                 .orElseThrow(() -> new ReplyException("해당 답변을 찾을 수 없습니다."));
 
         try {

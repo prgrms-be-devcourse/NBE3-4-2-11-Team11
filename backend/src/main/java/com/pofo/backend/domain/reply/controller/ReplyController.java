@@ -26,7 +26,7 @@ public class ReplyController {
 
     @PatchMapping("{inquiryId}/reply/{replyId}")
     public ResponseEntity<RsData<ReplyUpdateResponse>> updateReply(@PathVariable Long inquiryId, @PathVariable Long replyId, @Valid @RequestBody ReplyUpdateRequest replyUpdateRequest) {
-        ReplyUpdateResponse replyUpdateResponse = this.replyService.update(replyId, inquiryId, replyUpdateRequest);
+        ReplyUpdateResponse replyUpdateResponse = this.replyService.update(inquiryId, replyId, replyUpdateRequest);
         return ResponseEntity.ok(new RsData<>("200", "답변 수정이 완료되었습니다.", replyUpdateResponse));
     }
 }
