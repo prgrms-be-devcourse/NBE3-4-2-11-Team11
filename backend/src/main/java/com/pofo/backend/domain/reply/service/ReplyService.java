@@ -3,9 +3,10 @@ package com.pofo.backend.domain.reply.service;
 import com.pofo.backend.domain.inquiry.entity.Inquiry;
 import com.pofo.backend.domain.inquiry.repository.InquiryRepository;
 import com.pofo.backend.domain.reply.dto.request.ReplyCreateRequest;
-import com.pofo.backend.domain.reply.dto.response.ReplyDetailResponse;
 import com.pofo.backend.domain.reply.dto.request.ReplyUpdateRequest;
 import com.pofo.backend.domain.reply.dto.response.ReplyCreateResponse;
+import com.pofo.backend.domain.reply.dto.response.ReplyDeleteResponse;
+import com.pofo.backend.domain.reply.dto.response.ReplyDetailResponse;
 import com.pofo.backend.domain.reply.dto.response.ReplyUpdateResponse;
 import com.pofo.backend.domain.reply.entity.Reply;
 import com.pofo.backend.domain.reply.exception.ReplyException;
@@ -43,6 +44,7 @@ public class ReplyService {
                     .build();
 
             this.replyRepository.save(reply);
+            inquiry.updateResponse(true); // 답변 등록으로 response 값 1로 변경
             return new ReplyCreateResponse(reply.getId());
         } catch (Exception e) {
             throw new ReplyException("답변 생성 중 오류가 발생했습니다. 원인: " + e.getMessage());
@@ -60,6 +62,25 @@ public class ReplyService {
             return new ReplyUpdateResponse(reply.getId());
         } catch (Exception e) {
             throw new ReplyException("답변 수정 중 오류가 발생했습니다. 원인: " + e.getMessage());
+        }
+    }
+
+    @Transactional
+    public ReplyDeleteResponse delete(Long inquiryId, Long replyId) {
+
+        Reply reply = this.replyRepository.findByInquiryIdAndId(inquiryId, replyId)
+                .orElseThrow(() -> new ReplyException("해당 답변을 찾을 수 없습니다."));
+
+        try {
+            this.replyRepository.delete(reply);
+
+            Inquiry inquiry = this.inquiryRepository.findById(inquiryId)
+                    .orElseThrow(() -> new ReplyException("문의사항을 찾을 수 없습니다."));
+            inquiry.updateResponse(false);
+
+            return new ReplyDeleteResponse();
+        } catch (Exception e) {
+            throw new ReplyException("답변 삭제 중 오류가 발생했습니다. 원인: " + e.getMessage());
         }
     }
 

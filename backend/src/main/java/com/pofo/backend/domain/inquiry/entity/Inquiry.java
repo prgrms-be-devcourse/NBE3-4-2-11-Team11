@@ -31,4 +31,8 @@ public class Inquiry extends BaseTime {
 		this.subject = subject;
 		this.content = content;
 	}
+
+	public void updateResponse(boolean response) {
+		this.response = response ? 1 : 0;
+	}
 }
