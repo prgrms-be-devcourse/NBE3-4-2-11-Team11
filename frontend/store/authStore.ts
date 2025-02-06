@@ -1,26 +1,36 @@
 import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
 
-interface AuthState {
+type AuthState = {
     isLoggedIn: boolean;
     login: (token: string) => void;
     logout: () => void;
-}
+};
 
-// ✅ SSR에서 localStorage 접근 방지 & 초기값 false 설정
-export const useAuthStore = create<AuthState>((set) => ({
-    isLoggedIn: false, // 🔥 서버에서 렌더링될 때는 무조건 false로 설정
+export const useAuthStore = create<AuthState>()(
+    persist(
+        (set) => ({
+            isLoggedIn: false,
 
-    login: (token) => {
-        if (typeof window !== "undefined") { // 🔥 브라우저 환경에서만 실행
-            localStorage.setItem("accessToken", token);
+            login: (token) => {
+                if (typeof window !== "undefined") {
+                    localStorage.setItem("accessToken", token);
+                }
+                set({ isLoggedIn: true });
+            },
+
+            logout: () => {
+                if (typeof window !== "undefined") {
+                    localStorage.removeItem("accessToken");
+                }
+                set({ isLoggedIn: false });
+            },
+        }),
+        {
+            name: "auth-storage", // localStorage에 저장될 키 이름
+            storage: typeof window !== "undefined"
+                ? createJSONStorage(() => localStorage)
+                : undefined, // 서버 환경에서는 localStorage 사용 X
         }
-        set({ isLoggedIn: true });
-    },
-
-    logout: () => {
-        if (typeof window !== "undefined") {
-            localStorage.removeItem("accessToken");
-        }
-        set({ isLoggedIn: false });
-    }
-}));
+    )
+);

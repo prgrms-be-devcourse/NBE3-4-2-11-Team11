@@ -6,13 +6,17 @@ import { useAuthStore } from "@/store/authStore";
 
 const Header = () => {
   const { isLoggedIn, login, logout } = useAuthStore();
-  const [hasMounted, setHasMounted] = useState(false); // ✅ Hydration 방지용 상태
+  const [hasMounted, setHasMounted] = useState(false);
 
   useEffect(() => {
-    setHasMounted(true); // ✅ 클라이언트에서 마운트 후 상태 업데이트
-  }, []);
+    setHasMounted(true);
 
-  if (!hasMounted) return null; // 🔥 서버 렌더링 시 빈 화면 유지하여 Hydration 에러 방지
+    // ✅ localStorage에서 accessToken이 있으면 로그인 유지
+    const token = localStorage.getItem("accessToken");
+    if (token) login(token);
+  }, [login]);
+
+  if (!hasMounted) return null; // Hydration 오류 방지
 
   return (
       <header className="bg-gray-900 text-white py-4 px-8 flex justify-between items-center">
