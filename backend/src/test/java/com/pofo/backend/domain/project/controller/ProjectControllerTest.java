@@ -5,6 +5,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.pofo.backend.domain.project.dto.request.ProjectCreateRequest;
 import com.pofo.backend.domain.project.dto.request.ProjectUpdateRequest;
 import com.pofo.backend.domain.project.dto.response.ProjectCreateResponse;
+import com.pofo.backend.domain.project.dto.response.ProjectDeleteResponse;
 import com.pofo.backend.domain.project.dto.response.ProjectDetailResponse;
 import com.pofo.backend.domain.project.dto.response.ProjectUpdateResponse;
 import com.pofo.backend.domain.project.service.ProjectService;
@@ -246,5 +247,25 @@ public class ProjectControllerTest {
                 .andExpect(jsonPath("$.data.repositoryLink").value(updateRequest.getRepositoryLink()))
                 .andExpect(jsonPath("$.data.description").value(updateRequest.getDescription()))
                 .andExpect(jsonPath("$.data.imageUrl").value(updateRequest.getImageUrl()));
+    }
+
+    @Test
+    @WithMockUser(username = "testUser", roles = {"USER"})
+    @DisplayName("프로젝트 삭제 테스트")
+    void t5() throws Exception{
+        //Given
+        Long projectId = 1L;
+        ProjectDeleteResponse response = new ProjectDeleteResponse(projectId);
+
+        given(projectService.deleteProject(eq(projectId), any(User.class)))
+                .willReturn(response);
+
+        //when & Then
+        mvc.perform(delete("/api/v1/user/projects/{projectId}", projectId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.projectId").value(projectId));
+
     }
 }
