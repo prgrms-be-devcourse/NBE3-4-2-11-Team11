@@ -125,6 +125,8 @@ public class SecurityConfig {
         configuration.setAllowCredentials(true);
         configuration.setAllowedHeaders(List.of("*"));
 
+        configuration.setExposedHeaders(List.of("Authorization", "Refresh-Token"));
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
 

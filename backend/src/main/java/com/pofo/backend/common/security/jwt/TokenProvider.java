@@ -99,6 +99,10 @@ public class TokenProvider {
                 .signWith(this.key, SignatureAlgorithm.HS512)
                 .compact();
 
+        // ✅ 콘솔에 토큰 로그 출력
+        log.info("🚀 생성된 Access Token: {}", accessToken);
+        log.info("🚀 생성된 Refresh Token: {}", refreshToken);
+
         return TokenDto.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
@@ -164,6 +168,8 @@ public class TokenProvider {
         try {
             // 토큰의 서명을 검증 및 파싱 시도
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+            System.out.println("[TokenProvider] Token is valid: " + token);
+
             return true;
         } catch (io.jsonwebtoken.security.SignatureException e) {  // 올바른 예외 클래스 사용
             log.info("잘못된 JWT 서명입니다.");
@@ -193,6 +199,7 @@ public class TokenProvider {
                     .parseClaimsJws(token)
                     .getBody();
             log.info("Parsed claims: {}", claims);
+            System.out.println("[TokenProvider] Parsed claims: " + claims);
             return claims;
         } catch (ExpiredJwtException e) {
             log.error("parseData: Expired token. Token: {}", token);
@@ -232,4 +239,7 @@ public class TokenProvider {
         return refreshTokenValidationTime;
     }
 
+    public SecretKey getKey() {
+        return key;
+    }
 }

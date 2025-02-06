@@ -8,6 +8,8 @@ import com.pofo.backend.domain.admin.login.dto.AdminLoginResponse;
 import com.pofo.backend.domain.admin.login.dto.AdminLogoutResponse;
 import com.pofo.backend.domain.admin.login.entitiy.Admin;
 import com.pofo.backend.domain.admin.login.service.AdminService;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +24,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -51,6 +54,12 @@ public class AdminAuthController {
             // JWT 토큰 생성
             TokenDto token = tokenProvider.createToken(authentication);
 
+
+            redisTemplate.opsForValue().set(token.getRefreshToken(),"valid",
+                    tokenProvider.getRefreshTokenValidationTime(), TimeUnit.MILLISECONDS);
+
+            log.info("🚀 Access Token: {}", token.getAccessToken());
+            log.info("🚀 Refresh Token: {}", token.getRefreshToken());
             return ResponseEntity.ok()
                     .header("Authorization", "Bearer " + token.getAccessToken())
                     .header("Refresh-Token", token.getRefreshToken())
@@ -126,31 +135,53 @@ public class AdminAuthController {
                         .body(new RsData<>("401", "Refresh Token이 유효하지 않습니다.", null));
             }
 
-            Authentication authentication = tokenProvider.getAuthentication(refreshToken);
+            // Refresh Token의 남은 유효 시간을 계산합니다.
+            long remainingMillis = tokenProvider.getExpiration(refreshToken);
+            final long THREE_DAYS_IN_MILLIS = 3 * 24 * 60 * 60 * 1000L;
+
+            Authentication authentication = tokenProvider.getAuthenticationFromRefreshToken(refreshToken);
             if (authentication == null) {
                 log.error("Authentication is null for Refresh Token: {}", refreshToken);
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(new RsData<>("401", "인증 정보를 가져올 수 없습니다.", null));
             }
 
+            // 새로운 Access Token 발급
             String newAccessToken = tokenProvider.generateAccessToken(authentication);
             if (newAccessToken == null || newAccessToken.trim().isEmpty()) {
                 log.error("Generated newAccessToken is null or empty.");
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                         .body(new RsData<>("500", "새로운 Access Token을 생성하는 중 오류가 발생했습니다.", null));
             }
+            log.info("새로운 Access Token이 발급되었습니다: {}", newAccessToken);
 
-            log.info("Creating TokenDto with newAccessToken: {} and refreshToken: {}", newAccessToken, refreshToken);
+            String newRefreshToken = refreshToken; // 기본값은 기존 Refresh Token 사용
+
+            // 만약 Refresh Token의 남은 유효시간이 3일 이하라면 Refresh Token도 재발급합니다.
+            if (remainingMillis <= THREE_DAYS_IN_MILLIS) {
+                long now = System.currentTimeMillis();
+                newRefreshToken = Jwts.builder()
+                        .setSubject(authentication.getName())
+                        .setExpiration(new Date(now + tokenProvider.getRefreshTokenValidationTime()))
+                        .signWith(tokenProvider.getKey(), SignatureAlgorithm.HS512)
+                        .compact();
+                // 새로운 Refresh Token을 Redis에도 업데이트합니다.
+                redisTemplate.opsForValue().set(newRefreshToken, "valid",
+                        tokenProvider.getRefreshTokenValidationTime(), TimeUnit.MILLISECONDS);
+                log.info("만료 임박한 Refresh Token을 감지하여 새로운 Refresh Token도 재발급되었습니다: {}", newRefreshToken);
+            } else {
+                log.info("기존 Refresh Token의 유효기간이 충분하여 재발급하지 않고 기존 Refresh Token을 사용합니다.");
+            }
 
             TokenDto newTokenDto = TokenDto.builder()
                     .accessToken(newAccessToken)
-                    .refreshToken(refreshToken)
+                    .refreshToken(newRefreshToken)
                     .accessTokenValidationTime(tokenProvider.getValidationTime())
                     .refreshTokenValidationTime(tokenProvider.getRefreshTokenValidationTime())
                     .type("Bearer")
                     .build();
 
-            log.info("Successfully generated new TokenDto: {}", newTokenDto);
+            log.info("최종적으로 발급된 TokenDto: {}", newTokenDto);
 
             return ResponseEntity.ok(new RsData<>("200", "새로운 Access Token이 발급되었습니다.", newTokenDto));
 
@@ -160,6 +191,5 @@ public class AdminAuthController {
                     .body(new RsData<>("500", "서버 내부 오류가 발생했습니다.", null));
         }
     }
-
 
 }
