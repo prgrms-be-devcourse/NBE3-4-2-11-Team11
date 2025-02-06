@@ -4,6 +4,8 @@ import com.pofo.backend.domain.inquiry.dto.request.InquiryCreateRequest;
 import com.pofo.backend.domain.inquiry.service.InquiryService;
 import com.pofo.backend.domain.notice.dto.request.NoticeCreateRequest;
 import com.pofo.backend.domain.notice.service.NoticeService;
+import com.pofo.backend.domain.reply.dto.request.ReplyCreateRequest;
+import com.pofo.backend.domain.reply.service.ReplyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationRunner;
@@ -25,6 +27,9 @@ public class BaseInitData {
     private final InquiryService inquiryService;
 
     @Autowired
+    private ReplyService replyService;
+
+    @Autowired
     @Lazy
     private BaseInitData self;
 
@@ -33,6 +38,7 @@ public class BaseInitData {
         return args -> {
             self.makeSampleNotices();
             self.makeSampleInquiry();
+            self.makeSampleReply();
         };
     }
 
@@ -53,6 +59,16 @@ public class BaseInitData {
         for (int i = 1; i <= 5; i++) {
             InquiryCreateRequest inquiryCreateRequest = new InquiryCreateRequest("문의사항 테스트 " + i + "번", "문의사항 테스트 " + i + "번 입니다.");
             this.inquiryService.create(inquiryCreateRequest);
+        }
+    }
+
+    @Transactional
+    public void makeSampleReply() throws IOException {
+        if (replyService.count() > 0) return;
+
+        for (Long i = 1L; i <= 5L; i++) {
+            ReplyCreateRequest replyCreateRequest = new ReplyCreateRequest("답변 테스트 " + i + "번");
+            this.replyService.create(i, replyCreateRequest);
         }
     }
 }
