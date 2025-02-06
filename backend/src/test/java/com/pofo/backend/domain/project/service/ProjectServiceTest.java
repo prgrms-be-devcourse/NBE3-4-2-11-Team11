@@ -19,6 +19,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.springframework.dao.DataAccessException;
 
 import java.time.LocalDate;
 import java.util.Collections;
@@ -490,5 +491,28 @@ public class ProjectServiceTest {
         RsData<Void> rsData = exception.getRsData();
         assertEquals("404", rsData.getResultCode());
         assertEquals("프로젝트 수정 할 권한이 없습니다.", rsData.getMsg());
+    }
+
+    @Test
+    @DisplayName("프로젝트 삭제 실패 - 데이터베이스 오류 발생")
+    void t19(){
+
+        Long projectId=1L;
+
+        // Given
+        Project mockProject = Mockito.mock(Project.class);
+        when(projectRepository.findById(projectId)).thenReturn(Optional.of(mockProject));
+        when(mockProject.getUser()).thenReturn(mockUser);
+        doThrow(new DataAccessException("DB 오류"){}).when(projectRepository).delete(mockProject);
+
+        // When & Then
+        ProjectCreationException exception = assertThrows(ProjectCreationException.class, () -> {
+            projectService.deleteProject(projectId, mockUser);
+        });
+
+        RsData<Void> rsData = exception.getRsData();
+        assertEquals("500", rsData.getResultCode());
+        assertEquals("프로젝트 삭제 중 데이터베이스 오류가 발생했습니다.", rsData.getMsg());
+
     }
 }
