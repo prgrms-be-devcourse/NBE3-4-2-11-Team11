@@ -5,6 +5,7 @@ import com.pofo.backend.domain.mapper.ProjectMapper;
 import com.pofo.backend.domain.project.dto.request.ProjectCreateRequest;
 import com.pofo.backend.domain.project.dto.request.ProjectUpdateRequest;
 import com.pofo.backend.domain.project.dto.response.ProjectCreateResponse;
+import com.pofo.backend.domain.project.dto.response.ProjectDeleteResponse;
 import com.pofo.backend.domain.project.dto.response.ProjectDetailResponse;
 import com.pofo.backend.domain.project.dto.response.ProjectUpdateResponse;
 import com.pofo.backend.domain.project.entity.Project;
@@ -435,4 +436,23 @@ public class ProjectServiceTest {
         assertEquals("404", rsData.getResultCode());
         assertEquals("프로젝트 수정 할 권한이 없습니다.", rsData.getMsg());
     }
+
+    @Test
+    @DisplayName("프로젝트 삭제 성공")
+    void t16() {
+        Long projectId=1L;
+
+        Project mockProject = Mockito.mock(Project.class);
+        when(projectRepository.findById(projectId)).thenReturn(Optional.of(mockProject));
+        when(mockProject.getUser()).thenReturn(mockUser); // 사용자 일치
+
+        // When
+        ProjectDeleteResponse response = projectService.deleteProject(projectId, mockUser);
+
+        // Then
+        assertNotNull(response);
+        assertEquals(projectId, response.getProjectId());
+        verify(projectRepository).delete(mockProject); // 삭제 확인
+
     }
+}
