@@ -22,6 +22,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
+import static org.springframework.security.config.Customizer.withDefaults;
+
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
@@ -52,6 +54,7 @@ public class SecurityConfig {
         http
                 // '/api/v1/admin/**' 경로에만 적용
                 .securityMatcher("/api/v1/admin/**")
+                .cors(withDefaults())  // ✅ CORS 활성화 추가
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
