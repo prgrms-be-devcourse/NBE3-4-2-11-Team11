@@ -48,8 +48,6 @@ public class UserLoginController {
                 + "&redirect_uri=" + naverRedirectUri
                 + "&state="+ state;
 
-        log.info("🔗 네이버 로그인 URL: {}", naverLoginUrl);
-
         return ResponseEntity.status(HttpStatus.FOUND) // 302 리디렉트 응답
                 .header(HttpHeaders.LOCATION, naverLoginUrl)
                 .build();

@@ -1,9 +1,9 @@
 package com.pofo.backend.domain.user.login.service;
 
 import com.pofo.backend.common.exception.SocialLoginException;
-import com.pofo.backend.domain.user.join.entity.Oauth;
+import com.pofo.backend.common.security.dto.TokenDto;
+import com.pofo.backend.common.security.jwt.TokenProvider;
 import com.pofo.backend.domain.user.join.entity.User;
-import com.pofo.backend.domain.user.join.repository.OauthsRepository;
 import com.pofo.backend.domain.user.join.repository.UsersRepository;
 import com.pofo.backend.domain.user.login.dto.NaverTokenResponse;
 import com.pofo.backend.domain.user.login.dto.UserLoginResponseDto;
@@ -22,7 +22,6 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -35,8 +34,7 @@ public class UserLoginService {
     //  Users 테이블에 대한 레포지토리
     private final UsersRepository usersRepository;
 
-    //  Oauths 테이블에 대한 레포지토리
-    private final OauthsRepository oauthsRepository;
+    private final TokenProvider tokenProvider;
 
     @Value("${spring.security.oauth2.client.registration.naver.client-id}")
     private String naverClientId;
@@ -57,8 +55,6 @@ public class UserLoginService {
             // 3. 사용자 정보 처리 및 저장/업데이트  : 네이버
             UserLoginResponseDto naverUser = saveOrUpdateNaverUser(naverUserInfo);
 
-            // 4. 사용자 인증 처리  : 네이버
-            authenticateUser(naverUser);
 
             return naverUser;
 
@@ -127,18 +123,21 @@ public class UserLoginService {
 
         if (existingUser.isPresent()) {
             //  네이버 계정 통해 로그인 이력이 있으면 로그인 진행.
+            User nowUser = existingUser.get();
+            TokenDto jwtToken = authenticateUser(nowUser);
             log.info("✅ 기존 회원: 이메일({}) - 로그인 완료", email);
+
             return UserLoginResponseDto.builder()
                     .message("로그인이 완료 되었습니다.")
                     .resultCode("200")
                     .provide("NAVER")
                     .identify(naverId)
                     .email(email)
+                    .username(nowUser.name)
+                    .token(jwtToken.getAccessToken())
                     .build();
         } else {
             //  네이버 계정을 통한 로그인을 최초로 진행하는 경우
-            log.info("🆕 신규 회원: 이메일({}) - 회원가입 진행", email);
-            log.info(" 신규 회원: identify({}) - 회원가입 진행", naverId);
 
             return UserLoginResponseDto.builder()
                     .message("123.")
@@ -150,7 +149,7 @@ public class UserLoginService {
         }
     }
 
-    private void authenticateUser(UserLoginResponseDto userInfo) {
+    private TokenDto authenticateUser(User userInfo) {
         // Spring Security 사용 시 SecurityContext에 인증 정보 설정
         List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
         UsernamePasswordAuthenticationToken authentication =
@@ -159,5 +158,10 @@ public class UserLoginService {
 
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
         request.getSession().setAttribute("SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext());
+
+        //  JWT 토큰 생성
+        TokenDto jwtToken = tokenProvider.createToken(authentication);
+
+        return jwtToken;
     }
 }

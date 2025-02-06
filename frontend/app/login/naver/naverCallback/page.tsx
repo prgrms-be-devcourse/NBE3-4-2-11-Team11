@@ -19,7 +19,7 @@ export default function NaverCallback() {
 
         console.log("✅ 네이버 로그인 콜백 수신: ", code, state);
 
-        // ✅ Next.js에서 직접 백엔드의 로그인 API를 호출
+        //  Next.js에서 직접 백엔드의 로그인 API를 호출
         const handleNaverLogin = async () => {
             try {
                 const response = await fetch(
@@ -28,7 +28,7 @@ export default function NaverCallback() {
                         method: "GET",
                         credentials: "include",
                         headers: {
-                            "Content-Type": "application/json"
+                            "Content-Type": "application/json",
                         }
                     }
                 );
@@ -41,10 +41,13 @@ export default function NaverCallback() {
                 console.log("✅ 로그인 성공", data);
 
                 if (data.resultCode === "200") {
-                    if (data.token) {
-                        localStorage.setItem("access_token", data.token);
+                    if (data.data.token) {
+                        localStorage.setItem("accessToken", data.data.token);
+                        router.push("/");
+                    } else {
+                        console.error("❌ JWT 토큰이 없습니다.");
+                        router.push("/login");
                     }
-                    router.push("/");
                 } else if (data.resultCode === "201") {
                     console.log("📌 네이버 로그인 후 회원가입 필요", data);
 
