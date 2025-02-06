@@ -469,8 +469,26 @@ public class ProjectServiceTest {
         RsData<Void> rsData = exception.getRsData();
         assertEquals("400", rsData.getResultCode());
         assertEquals("유효하지 않은 사용자입니다.", rsData.getMsg());
+    }
 
+    @Test
+    @DisplayName("프로젝트 삭제 실패 - 삭제 권한 없음")
+    void t18(){
 
+        Long projectId=1L;
 
+        Project mockProject = Mockito.mock(Project.class);
+        User differentUser = Mockito.mock(User.class); // 다른 사용자
+        when(projectRepository.findById(projectId)).thenReturn(Optional.of(mockProject));
+        when(mockProject.getUser()).thenReturn(differentUser); // 사용자 불일치
+
+        // When & Then
+        ProjectCreationException exception = assertThrows(ProjectCreationException.class, () -> {
+            projectService.deleteProject(projectId, mockUser);
+        });
+
+        RsData<Void> rsData = exception.getRsData();
+        assertEquals("404", rsData.getResultCode());
+        assertEquals("프로젝트 수정 할 권한이 없습니다.", rsData.getMsg());
     }
 }
