@@ -455,4 +455,22 @@ public class ProjectServiceTest {
         verify(projectRepository).delete(mockProject); // 삭제 확인
 
     }
+
+    @Test
+    @DisplayName("프로젝트 삭제 실패 - 사용자 정보 없음")
+    void t17() {
+        Long projectId=1L;
+
+        // When & Then
+        ProjectCreationException exception = assertThrows(ProjectCreationException.class, () -> {
+            projectService.deleteProject(projectId, null);
+        });
+
+        RsData<Void> rsData = exception.getRsData();
+        assertEquals("400", rsData.getResultCode());
+        assertEquals("유효하지 않은 사용자입니다.", rsData.getMsg());
+
+
+
+    }
 }
