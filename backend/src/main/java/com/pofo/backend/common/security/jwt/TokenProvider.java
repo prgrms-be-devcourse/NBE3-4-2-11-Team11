@@ -122,4 +122,9 @@ public class TokenProvider {
     public String generateAccessToken(Authentication authentication) {
         return createToken(authentication).getAccessToken();
     }
+
+    public long getTokenExpirationTime(String token) {
+        Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
+        return claims.getExpiration().getTime() - System.currentTimeMillis();
+    }
 }
