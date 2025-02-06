@@ -90,6 +90,8 @@ public class ReplyControllerTest {
                 )
                 .andDo(print());
 
+        Inquiry inquiry = this.inquiryRepository.findById(inquiryId).orElseThrow(() -> new ReplyException("문의사항을 찾을 수 없습니다."));
+
         resultActions.andExpect(handler().handlerType(ReplyController.class))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("답변 생성이 완료되었습니다."))
@@ -106,6 +108,8 @@ public class ReplyControllerTest {
                 .orElseThrow(() -> new NoticeException("해당 답변을 찾을 수 없습니다."));
 
         assertThat(reply.getContent()).isEqualTo("테스트 답변 생성");
+        assertThat(inquiry.getResponse()).isEqualTo(1); // 답변 생성 시 response 1로 변경
+
     }
 
     @Test
@@ -157,6 +161,6 @@ public class ReplyControllerTest {
                 .andExpect(jsonPath("$.message").value("답변 삭제가 완료되었습니다."));
 
         assertThrows(ReplyException.class, () -> this.replyService.findById(replyId));
-        assertThat(inquiry.getResponse()).isEqualTo(0);
+        assertThat(inquiry.getResponse()).isEqualTo(0); // 답변 삭제 시 response 0으로 변경
     }
 }
