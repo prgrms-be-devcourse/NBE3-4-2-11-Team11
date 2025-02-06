@@ -9,6 +9,8 @@ import com.pofo.backend.domain.inquiry.dto.request.InquiryUpdateRequest;
 import com.pofo.backend.domain.inquiry.entity.Inquiry;
 import com.pofo.backend.domain.inquiry.exception.InquiryException;
 import com.pofo.backend.domain.inquiry.repository.InquiryRepository;
+import com.pofo.backend.domain.reply.entity.Reply;
+import com.pofo.backend.domain.reply.repository.ReplyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +23,8 @@ import java.util.stream.Collectors;
 public class InquiryService {
 
     private final InquiryRepository inquiryRepository;
+
+    private final ReplyRepository replyRepository;
 
     @Transactional
     public InquiryCreateResponse create(InquiryCreateRequest inquiryCreateRequest) {
@@ -76,7 +80,9 @@ public class InquiryService {
         Inquiry inquiry = this.inquiryRepository.findById(id)
                 .orElseThrow(() -> new InquiryException("해당 문의사항을 찾을 수 없습니다."));
 
-        return new InquiryDetailResponse(inquiry.getId(), inquiry.getSubject(), inquiry.getContent(), inquiry.getResponse(), inquiry.getCreatedAt());
+        Reply reply = this.replyRepository.findByInquiryId(id).orElse(null);
+
+        return InquiryDetailResponse.from(inquiry, reply);
     }
 
     @Transactional(readOnly = true)
@@ -84,7 +90,10 @@ public class InquiryService {
 
         List<Inquiry> inquiries = this.inquiryRepository.findAllByOrderByCreatedAtDesc();
         return inquiries.stream()
-                .map(inquiry -> new InquiryDetailResponse(inquiry.getId(), inquiry.getSubject(), inquiry.getContent(), inquiry.getResponse(), inquiry.getCreatedAt()))
+                .map(inquiry -> {
+                    Reply reply = this.replyRepository.findByInquiryId(inquiry.getId()).orElse(null);
+                    return InquiryDetailResponse.from(inquiry, reply);
+                })
                 .collect(Collectors.toList());
     }
 

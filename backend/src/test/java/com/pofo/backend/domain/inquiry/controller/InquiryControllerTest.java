@@ -145,7 +145,7 @@ public class InquiryControllerTest {
     void t4() throws Exception {
 
         ResultActions resultActions = mockMvc.perform(
-                        get("/api/v1/common/inquiries/{id}", inquiryId)
+                        get("/api/v1/common/inquiries/{id}", 168L) // 테스트 용이를 위해 답변이 존재하는 문의글 get
                                 .contentType(new MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8)
                                 )
                 )
@@ -158,7 +158,8 @@ public class InquiryControllerTest {
                 .andExpect(jsonPath("$.data.id").exists())
                 .andExpect(jsonPath("$.data.id").isNumber())
                 .andExpect(jsonPath("$.data.subject").value("문의사항 테스트"))
-                .andExpect(jsonPath("$.data.content").value("문의사항 테스트입니다."));
+                .andExpect(jsonPath("$.data.content").value("문의사항 테스트입니다."))
+                .andExpect(jsonPath("$.data.reply").exists()); // 답변 존재하는지 확인
     }
 
     @Test

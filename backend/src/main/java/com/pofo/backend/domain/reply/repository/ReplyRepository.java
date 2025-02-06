@@ -7,6 +7,6 @@ import java.util.Optional;
 
 public interface ReplyRepository extends JpaRepository<Reply, Long> {
     Optional<Reply> findByInquiryIdAndId(Long replyId, Long inquiryId);
-
+    Optional<Reply> findByInquiryId(Long inquiryId);
     boolean existsByInquiryId(Long id);
 }
