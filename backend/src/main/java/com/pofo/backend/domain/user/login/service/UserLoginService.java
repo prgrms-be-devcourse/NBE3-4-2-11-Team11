@@ -35,9 +35,6 @@ public class UserLoginService {
     //  Users 테이블에 대한 레포지토리
     private final UsersRepository usersRepository;
 
-    //  Oauths 테이블에 대한 레포지토리
-    private final OauthsRepository oauthsRepository;
-
     @Value("${spring.security.oauth2.client.registration.naver.client-id}")
     private String naverClientId;
 
@@ -127,7 +124,6 @@ public class UserLoginService {
 
         if (existingUser.isPresent()) {
             //  네이버 계정 통해 로그인 이력이 있으면 로그인 진행.
-            log.info("✅ 기존 회원: 이메일({}) - 로그인 완료", email);
             return UserLoginResponseDto.builder()
                     .message("로그인이 완료 되었습니다.")
                     .resultCode("200")
@@ -137,8 +133,6 @@ public class UserLoginService {
                     .build();
         } else {
             //  네이버 계정을 통한 로그인을 최초로 진행하는 경우
-            log.info("🆕 신규 회원: 이메일({}) - 회원가입 진행", email);
-            log.info(" 신규 회원: identify({}) - 회원가입 진행", naverId);
 
             return UserLoginResponseDto.builder()
                     .message("123.")
