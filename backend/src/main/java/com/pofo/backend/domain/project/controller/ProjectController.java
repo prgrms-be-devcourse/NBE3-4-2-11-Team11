@@ -88,6 +88,8 @@ public class ProjectController {
         //인증로직이 없어서 임시조치
         User u = userRepository.findById(null).orElseThrow(()->new ProjectCreationException("404",""));
         ProjectDeleteResponse response = projectService.deleteProject(projectId, u);
+
+        return ResponseEntity.status(HttpStatus.OK).body(new RsData<>("200", "프로젝트 삭제가 완료되었습니다.", response));
     }
 
 }
