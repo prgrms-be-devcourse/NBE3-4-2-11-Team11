@@ -48,4 +48,11 @@ public class AdminDetails implements UserDetails {
     public boolean isEnabled() {
         return admin.getStatus() == Admin.Status.ACTIVE;
     }
+
+    /**
+     * 내부의 Admin 엔티티를 반환하는 메서드입니다.
+     */
+    public Admin getAdmin() {
+        return this.admin;
+    }
 }

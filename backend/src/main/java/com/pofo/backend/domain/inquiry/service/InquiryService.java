@@ -1,7 +1,7 @@
 package com.pofo.backend.domain.inquiry.service;
 
+import com.pofo.backend.domain.admin.login.entitiy.Admin;
 import com.pofo.backend.domain.inquiry.dto.reponse.InquiryCreateResponse;
-import com.pofo.backend.domain.inquiry.dto.reponse.InquiryDeleteResponse;
 import com.pofo.backend.domain.inquiry.dto.reponse.InquiryDetailResponse;
 import com.pofo.backend.domain.inquiry.dto.reponse.InquiryUpdateResponse;
 import com.pofo.backend.domain.inquiry.dto.request.InquiryCreateRequest;
@@ -9,6 +9,10 @@ import com.pofo.backend.domain.inquiry.dto.request.InquiryUpdateRequest;
 import com.pofo.backend.domain.inquiry.entity.Inquiry;
 import com.pofo.backend.domain.inquiry.exception.InquiryException;
 import com.pofo.backend.domain.inquiry.repository.InquiryRepository;
+import com.pofo.backend.domain.reply.entity.Reply;
+import com.pofo.backend.domain.reply.repository.ReplyRepository;
+import com.pofo.backend.domain.resume.resume.exception.UnauthorizedActionException;
+import com.pofo.backend.domain.user.join.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,20 +26,23 @@ public class InquiryService {
 
     private final InquiryRepository inquiryRepository;
 
-    @Transactional
-    public InquiryCreateResponse create(InquiryCreateRequest inquiryCreateRequest) {
+    private final ReplyRepository replyRepository;
 
-//        if (user == null) {
-//            throw new InquiryException("사용자 정보가 유효하지 않습니다.");
-//        }
+    @Transactional
+    public InquiryCreateResponse create(InquiryCreateRequest inquiryCreateRequest, User user) {
+
+        if (user == null) {
+            throw new InquiryException("사용자 정보가 유효하지 않습니다.");
+        }
+
         try {
             Inquiry inquiry = Inquiry.builder()
-//                    .user(user)
+                    .user(user)
                     .subject(inquiryCreateRequest.getSubject())
                     .content(inquiryCreateRequest.getContent())
                     .build();
 
-            inquiryRepository.save(inquiry);
+            this.inquiryRepository.save(inquiry);
             return new InquiryCreateResponse(inquiry.getId());
         } catch (Exception e) {
             throw new InquiryException("문의사항 생성 중 오류가 발생했습니다. 원인: " + e.getMessage());
@@ -43,10 +50,14 @@ public class InquiryService {
     }
 
     @Transactional
-    public InquiryUpdateResponse update(Long id, InquiryUpdateRequest updateRequest) {
+    public InquiryUpdateResponse update(Long id, InquiryUpdateRequest updateRequest, User user) {
 
         Inquiry inquiry = this.inquiryRepository.findById(id)
                 .orElseThrow(() -> new InquiryException("해당 문의사항을 찾을 수 없습니다."));
+
+        if (!inquiry.getUser().equals(user)) {
+            throw new UnauthorizedActionException("문의사항을 수정할 권한이 없습니다.");
+        }
 
         try {
             inquiry.update(updateRequest.getSubject(), updateRequest.getContent());
@@ -57,16 +68,20 @@ public class InquiryService {
     }
 
     @Transactional
-    public InquiryDeleteResponse delete(Long id) {
+    public void delete(Long id, User user, Admin admin) {
 
         Inquiry inquiry = this.inquiryRepository.findById(id)
                 .orElseThrow(() -> new InquiryException("해당 문의사항을 찾을 수 없습니다."));
 
-        try {
-            this.inquiryRepository.delete(inquiry);
-            return new InquiryDeleteResponse();
-        } catch (Exception e) {
-            throw new InquiryException("문의사항 삭제 중 오류가 발생했습니다. 원인: " + e.getMessage());
+
+        if ((user != null && inquiry.getUser().equals(user)) || admin != null) {
+            try {
+                this.inquiryRepository.delete(inquiry);
+            } catch (Exception e) {
+                throw new InquiryException("문의사항 삭제 중 오류가 발생했습니다. 원인: " + e.getMessage());
+            }
+        } else {
+            throw new UnauthorizedActionException("문의사항을 삭제할 권한이 없습니다.");
         }
     }
 
@@ -76,7 +91,10 @@ public class InquiryService {
         Inquiry inquiry = this.inquiryRepository.findById(id)
                 .orElseThrow(() -> new InquiryException("해당 문의사항을 찾을 수 없습니다."));
 
-        return new InquiryDetailResponse(inquiry.getId(), inquiry.getSubject(), inquiry.getContent(), inquiry.getResponse(), inquiry.getCreatedAt());
+        // 문의글 조회 시 답변도 함께 조회
+        Reply reply = this.replyRepository.findByInquiryId(id).orElse(null);
+
+        return InquiryDetailResponse.from(inquiry, reply);
     }
 
     @Transactional(readOnly = true)
@@ -84,7 +102,10 @@ public class InquiryService {
 
         List<Inquiry> inquiries = this.inquiryRepository.findAllByOrderByCreatedAtDesc();
         return inquiries.stream()
-                .map(inquiry -> new InquiryDetailResponse(inquiry.getId(), inquiry.getSubject(), inquiry.getContent(), inquiry.getResponse(), inquiry.getCreatedAt()))
+                .map(inquiry -> {
+                    Reply reply = this.replyRepository.findByInquiryId(inquiry.getId()).orElse(null);
+                    return InquiryDetailResponse.from(inquiry, reply);
+                })
                 .collect(Collectors.toList());
     }
 

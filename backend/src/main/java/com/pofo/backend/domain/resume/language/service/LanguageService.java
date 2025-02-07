@@ -1,6 +1,7 @@
 package com.pofo.backend.domain.resume.language.service;
 
 import com.pofo.backend.domain.resume.language.dto.LanguageRequest;
+import com.pofo.backend.domain.resume.language.dto.LanguageResponse;
 import com.pofo.backend.domain.resume.language.entity.Language;
 import com.pofo.backend.domain.resume.language.repository.LanguageRepository;
 import com.pofo.backend.domain.resume.resume.entity.Resume;
@@ -40,7 +41,16 @@ public class LanguageService {
         addLanguages(resumeId, languages);
     }
 
-    public List<Language> getLanguagesByResumeId(Long resumeId) {
-        return languageRepository.findByResumeId(resumeId);
+    public List<LanguageResponse> getLanguagesByResumeId(Long resumeId) {
+        return languageRepository.findByResumeId(resumeId).stream()
+            .map(language -> {
+                LanguageResponse response = new LanguageResponse();
+                response.setLanguage(language.getLanguage());
+                response.setName(language.getName());
+                response.setResult(language.getResult());
+                response.setCertifiedDate(language.getCertifiedDate());
+                return response;
+            })
+            .collect(Collectors.toList());
     }
 }
