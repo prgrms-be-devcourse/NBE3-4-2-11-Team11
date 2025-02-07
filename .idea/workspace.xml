@@ -5,10 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="7ed7dd5a-30ae-4a2b-8826-6d1a86180548" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/pofo/backend/domain/admin/login/controller/AdminAuthController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/pofo/backend/domain/admin/login/controller/AdminAuthController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/package.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/pofo/backend/domain/user/join/controller/AdminRefreshTokenController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/pofo/backend/domain/admin/login/controller/RefreshTokenController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/pofo/backend/domain/admin/login/controller/RefreshTokenController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/app/admin/login/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/admin/login/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/store/authStore.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/store/authStore.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -18,10 +20,10 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "customColor": "",
-  "associatedIndex": 5
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;customColor&quot;: &quot;&quot;,
+  &quot;associatedIndex&quot;: 5
+}</component>
   <component name="ProjectId" id="2se1xxdhUCs8CzwhCgf3ClfkFyA" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
