@@ -1,7 +1,7 @@
 package com.pofo.backend.domain.notice.service;
 
+import com.pofo.backend.domain.admin.login.entitiy.Admin;
 import com.pofo.backend.domain.notice.dto.reponse.NoticeCreateResponse;
-import com.pofo.backend.domain.notice.dto.reponse.NoticeDeleteResponse;
 import com.pofo.backend.domain.notice.dto.reponse.NoticeDetailResponse;
 import com.pofo.backend.domain.notice.dto.reponse.NoticeUpdateResponse;
 import com.pofo.backend.domain.notice.dto.request.NoticeCreateRequest;
@@ -9,6 +9,7 @@ import com.pofo.backend.domain.notice.dto.request.NoticeUpdateRequest;
 import com.pofo.backend.domain.notice.entity.Notice;
 import com.pofo.backend.domain.notice.exception.NoticeException;
 import com.pofo.backend.domain.notice.repository.NoticeRepository;
+import com.pofo.backend.domain.resume.resume.exception.UnauthorizedActionException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -67,14 +68,14 @@ public class NoticeService {
         Notice notice = this.noticeRepository.findById(id)
                 .orElseThrow(() -> new NoticeException("해당 공지사항을 찾을 수 없습니다."));
 
-        if (!notice.getAdmin().equals(admin)) {
-            throw new UnauthorizedActionException("공지사항을 삭제할 권한이 없습니다.");
-
+        if (notice.getAdmin().equals(admin)) {
             try {
                 this.noticeRepository.delete(notice);
             } catch (Exception e) {
                 throw new NoticeException("공지사항 삭제 중 오류가 발생했습니다. 원인: " + e.getMessage());
             }
+        } else {
+            throw new UnauthorizedActionException("공지사항을 삭제할 권한이 없습니다.");
         }
     }
 
