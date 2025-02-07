@@ -11,6 +11,17 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-};
 
-export default nextConfig;
+
+    async rewrites() {
+      return [
+        {
+          source: "/api/:path*",
+          destination: "http://localhost:8080/api/:path*",
+        },
+      ];
+    },
+  };
+
+// export default nextConfig;
+module.exports = nextConfig;
