@@ -1,14 +1,13 @@
 package com.pofo.backend.common.security.jwt;
 
+import com.pofo.backend.common.service.TokenBlacklistService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
@@ -20,8 +19,8 @@ public class JwtFilter extends OncePerRequestFilter {
     private final String AUTHORIZATION_KEY;
     // JWT 토큰 관련 생성 및 검증 로직을 제공하는 컴포넌트
     private final TokenProvider tokenProvider;
-    // Redis를 통해 블랙리스트(로그아웃 처리된 토큰) 여부를 확인하기 위한 템플릿
-    private final RedisTemplate<String, String> redisTemplate;
+    // TokenBlacklistService를 통해 로그아웃 처리된 토큰 여부 확인
+    private final TokenBlacklistService tokenBlacklistService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -30,16 +29,14 @@ public class JwtFilter extends OncePerRequestFilter {
         String tokenValue = parseHeader(request);
 
         if (StringUtils.hasText(tokenValue) && tokenProvider.validateToken(tokenValue)) {
-            String logOut = redisTemplate.opsForValue().get(tokenValue);
-
-            if (ObjectUtils.isEmpty(logOut)) {
+            // 블랙리스트에 포함되었는지 TokenBlacklistService를 통해 확인
+            if (!tokenBlacklistService.isBlacklisted(tokenValue)) {
                 Authentication authentication = tokenProvider.getAuthentication(tokenValue);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         }
         filterChain.doFilter(request, response);
     }
-
 
     /**
      * 요청 헤더에서 Authorization 토큰을 파싱합니다.

@@ -3,6 +3,7 @@ package com.pofo.backend.domain.admin.login.controller;
 import com.pofo.backend.common.rsData.RsData;
 import com.pofo.backend.common.security.dto.TokenDto;
 import com.pofo.backend.common.security.jwt.TokenProvider;
+import com.pofo.backend.common.service.TokenBlacklistService;
 import com.pofo.backend.domain.admin.login.dto.AdminLoginRequest;
 import com.pofo.backend.domain.admin.login.dto.AdminLoginResponse;
 import com.pofo.backend.domain.admin.login.dto.AdminLogoutResponse;
@@ -36,6 +37,7 @@ public class AdminAuthController {
     private final AdminService adminService;
     private final RedisTemplate<String, String> redisTemplate;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final TokenBlacklistService tokenBlacklistService; // 분리된 블랙리스트 서비스 주입
 
     @PostMapping("/login")
     public ResponseEntity<RsData<AdminLoginResponse>> login(@RequestBody AdminLoginRequest request) {
@@ -83,6 +85,7 @@ public class AdminAuthController {
     @PostMapping("/logout")
     public ResponseEntity<RsData<AdminLogoutResponse>> logout(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
+        // "Bearer " 접두어 제거
         String token = (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer "))
                 ? bearerToken.substring(7)
                 : null;
@@ -90,11 +93,13 @@ public class AdminAuthController {
         if (token != null && tokenProvider.validateToken(token)) {
             long remainingMillis = tokenProvider.getExpiration(token);
             if (remainingMillis > 0) {
-                redisTemplate.opsForValue().set(token, "logout", remainingMillis, TimeUnit.MILLISECONDS);
+                // 토큰의 남은 유효시간을 기준으로 블랙리스트에 추가 (내부적으로 "blacklist:" 접두어 사용)
+                tokenBlacklistService.addToBlacklist(token, remainingMillis);
             }
         }
-        return ResponseEntity.ok(new RsData<>("200", "성공적으로 로그아웃되었습니다.", new AdminLogoutResponse("성공적으로 로그아웃되었습니다.")));
+        return ResponseEntity.ok(
+                new RsData<>("200", "성공적으로 로그아웃되었습니다.", new AdminLogoutResponse("성공적으로 로그아웃되었습니다."))
+        );
     }
-
 
 }
