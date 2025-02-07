@@ -8,7 +8,6 @@ import com.pofo.backend.domain.project.dto.request.ProjectUpdateRequest;
 import com.pofo.backend.domain.project.dto.response.ProjectCreateResponse;
 import com.pofo.backend.domain.project.dto.response.ProjectDetailResponse;
 import com.pofo.backend.domain.project.dto.response.ProjectUpdateResponse;
-import com.pofo.backend.domain.project.exception.ProjectCreationException;
 import com.pofo.backend.domain.project.service.ProjectService;
 import com.pofo.backend.domain.user.join.entity.User;
 import com.pofo.backend.domain.user.join.repository.UserRepository;
@@ -90,12 +89,11 @@ public class ProjectController {
     @DeleteMapping("/projects/{projectId}")
     public ResponseEntity<RsData<Empty>> deleteProject(
             @PathVariable Long projectId,
-            @AuthenticationPrincipal User user
+            @AuthenticationPrincipal CustomUserDetails customUserDetails
     ){
-        //인증로직이 없어서 임시조치
-        User u = userRepository.findById(null).orElseThrow(()->new ProjectCreationException("404",""));
+        User user = customUserDetails.getUser();
 
-        projectService.deleteProject(projectId, u);
+        projectService.deleteProject(projectId, user);
 
         return ResponseEntity.status(HttpStatus.OK).body(new RsData<>("200", "프로젝트 삭제가 완료되었습니다.", new Empty()));
     }
