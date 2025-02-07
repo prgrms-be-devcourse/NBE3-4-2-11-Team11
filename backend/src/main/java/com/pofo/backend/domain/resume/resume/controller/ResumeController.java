@@ -13,7 +13,14 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
@@ -57,8 +64,11 @@ public class ResumeController {
     @GetMapping("")
     public ResponseEntity<RsData<ResumeResponse>> getResume(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
         User user = customUserDetails.getUser();
-        Resume resume = resumeService.getResumeByUser(user);
-        ResumeResponse resumeResponse = resumeMapper.toResponse(resume);
+        ResumeResponse resumeResponse = resumeService.getResumeResponse(user);
+
         return ResponseEntity.ok(new RsData<>("200", "이력서 조회 성공", resumeResponse));
     }
+
+
+
 }

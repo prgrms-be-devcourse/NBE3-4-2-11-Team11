@@ -19,4 +19,5 @@ public interface ResumeRepository extends JpaRepository<Resume, Long> {
         "WHERE r.user = :user")
     Optional<Resume> findResumeWithDetails(@Param("user") User user);
 
+    Optional<Resume> findByUser(User user);
 }

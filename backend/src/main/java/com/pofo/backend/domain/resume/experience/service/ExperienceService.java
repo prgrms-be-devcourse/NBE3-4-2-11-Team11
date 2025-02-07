@@ -1,7 +1,6 @@
 package com.pofo.backend.domain.resume.experience.service;
 
 import com.pofo.backend.domain.resume.experience.dto.ExperienceRequest;
-import com.pofo.backend.domain.resume.experience.dto.ExperienceResponse;
 import com.pofo.backend.domain.resume.experience.entity.Experience;
 import com.pofo.backend.domain.resume.experience.repository.ExperienceRepository;
 import com.pofo.backend.domain.resume.resume.entity.Resume;
@@ -43,19 +42,19 @@ public class ExperienceService {
         addExperiences(resumeId, experienceRequests);
     }
 
-    public List<ExperienceResponse> getExperiencesByResumeId(Long resumeId) {
-        return experienceRepository.findByResumeId(resumeId).stream()
-            .map(experience -> {
-                ExperienceResponse response = new ExperienceResponse();
-                response.setName(experience.getName());
-                response.setDepartment(experience.getDepartment());
-                response.setPosition(experience.getPosition());
-                response.setResponsibility(experience.getResponsibility());
-                response.setStartDate(experience.getStartDate());
-                response.setEndDate(experience.getEndDate());
-                return response;
-            })
-            .collect(Collectors.toList());
-    }
+//    public List<ExperienceResponse> getExperiencesByResumeId(Long resumeId) {
+//        return experienceRepository.findByResumeId(resumeId).stream()
+//            .map(experience -> {
+//                ExperienceResponse response = new ExperienceResponse();
+//                response.setName(experience.getName());
+//                response.setDepartment(experience.getDepartment());
+//                response.setPosition(experience.getPosition());
+//                response.setResponsibility(experience.getResponsibility());
+//                response.setStartDate(experience.getStartDate());
+//                response.setEndDate(experience.getEndDate());
+//                return response;
+//            })
+//            .collect(Collectors.toList());
+//    }
 
 }
