@@ -23,6 +23,12 @@ public class BoardController {
         return ResponseEntity.ok(boardService.getAllPosts(page, size));
     }
 
+    // 게시글 상세 조회 (GET /api/v1/user/boards/{id})
+    @GetMapping("/{id}")
+    public ResponseEntity<RsData<BoardResponseDto>> getPostById(@PathVariable Long id) {
+        return ResponseEntity.ok(boardService.getPostById(id));
+    }
+
     // 게시글 작성 (POST /api/v1/user/boards)
     @PostMapping
     public ResponseEntity<RsData<BoardResponseDto>> createPost(@Valid @RequestBody BoardRequestDto requestDto)  {
