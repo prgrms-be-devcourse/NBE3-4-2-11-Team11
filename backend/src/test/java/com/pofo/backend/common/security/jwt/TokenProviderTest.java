@@ -1,71 +1,95 @@
 package com.pofo.backend.common.security.jwt;
 
-import com.pofo.backend.common.security.dto.TokenDto;
-import org.junit.jupiter.api.BeforeAll;
+import com.pofo.backend.common.security.AdminDetailsService;
+import com.pofo.backend.common.security.CustomUserDetails;
+import com.pofo.backend.domain.user.join.entity.User;
+import com.pofo.backend.domain.user.join.repository.UsersRepository;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.Collections;
+import java.util.Base64;
+import java.util.Date;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
 
-class TokenProviderTest {
+@ExtendWith(MockitoExtension.class)
+public class TokenProviderTest {
 
-    private static TokenProvider tokenProvider;
+    @InjectMocks
+    private TokenProvider tokenProvider;
 
-    @BeforeAll
-    static void setUp() {
-        // TokenProvider는 생성자에서 .env 파일을 로드합니다.
-        // 테스트를 위해 프로젝트 루트에 .env 파일을 준비하거나,
-        // 시스템 환경 변수를 설정하세요.
-        tokenProvider = new TokenProvider();
+    @Mock
+    private UsersRepository usersRepository;
+
+    @Mock
+    private AdminDetailsService adminDetailsService;
+
+    @Mock
+    private UserDetailsService userDetailsService;
+
+    // 테스트에 사용할 프로퍼티 값
+    private final String secret = Base64.getEncoder().encodeToString("YxGFS1/HFxZejbF1UZkExiRnq30YiWa75ljM6aNzruym5mFjd7yM1kdbtbu5mf53NPGMVTMWOBn4bOyTGarKMQ".getBytes());
+    private final Long validationTime = 3600000L; // 1시간
+    private final Long refreshTokenValidationTime = 7200000L; // 2시간
+    private final String AUTHORIZATION_KEY = "auth";
+
+    @BeforeEach
+    public void setUp() {
+        ReflectionTestUtils.setField(tokenProvider, "secret", secret);
+        ReflectionTestUtils.setField(tokenProvider, "validationTime", validationTime);
+        ReflectionTestUtils.setField(tokenProvider, "refreshTokenValidationTime", refreshTokenValidationTime);
+        ReflectionTestUtils.setField(tokenProvider, "AUTHORIZATION_KEY", AUTHORIZATION_KEY);
+
+        // 추가: usersRepository와 adminDetailsService 주입
+        ReflectionTestUtils.setField(tokenProvider, "usersRepository", usersRepository);
+        ReflectionTestUtils.setField(tokenProvider, "adminDetailsService", adminDetailsService);
+
+        tokenProvider.init();
     }
+
 
     @Test
-    void testCreateAndValidateToken() {
-        String username = "testUser";
-        Authentication authentication = new UsernamePasswordAuthenticationToken(
-                username,
-                "dummyPassword",
-                Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
-        );
+    public void testGetAuthentication_User() {
+        // Arrange
+        String email = "user@example.com";
+        // User 엔티티를 빌더 패턴을 이용하여 생성 (빌더가 없는 경우, 공개 생성자나 팩토리 메서드를 사용)
+        User user = User.builder()
+                .email(email)
+                // 필요한 다른 필드도 설정
+                .build();
 
-        TokenDto tokenDto = tokenProvider.createToken(authentication);
-        assertNotNull(tokenDto);
-        System.out.println("Generated Access Token: " + tokenDto.getAccessToken());
+        // UsersRepository가 이메일로 User를 반환하도록 설정
+        when(usersRepository.findByEmail(email)).thenReturn(Optional.of(user));
 
-        boolean isValid = tokenProvider.validateToken(tokenDto.getAccessToken());
-        assertTrue(isValid);
-        System.out.println("Token is valid: " + isValid);
+        // JWT 토큰 생성 (subject: 이메일, 권한: ROLE_USER)
+        long now = System.currentTimeMillis();
+        String token = Jwts.builder()
+                .setSubject(email)
+                .setExpiration(new Date(now + validationTime))
+                .claim(AUTHORIZATION_KEY, "ROLE_USER")
+                .signWith(tokenProvider.getKey(), SignatureAlgorithm.HS512)
+                .compact();
 
-        Authentication authFromToken = tokenProvider.getAuthentication(tokenDto.getAccessToken());
-        assertNotNull(authFromToken);
-        System.out.println("Username from Token: " + authFromToken.getName());
+        // Act
+        Authentication authentication = tokenProvider.getAuthentication(token);
+
+        // Assert
+        assertNotNull(authentication, "Authentication 객체는 null이면 안됩니다.");
+        assertTrue(authentication.getPrincipal() instanceof CustomUserDetails, "Principal은 CustomUserDetails 타입이어야 합니다.");
+
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        assertEquals(email, userDetails.getUsername(), "토큰의 subject와 UserDetails의 username이 동일해야 합니다.");
+        assertEquals(user, userDetails.getUser(), "내부의 도메인 User 객체가 일치해야 합니다.");
     }
-
-
-    @Test
-    void testGetExpiration() {
-        String username = "testUser";
-        Authentication authentication = new UsernamePasswordAuthenticationToken(
-                username,
-                "dummyPassword",
-                Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
-        );
-
-        // 토큰 생성
-        TokenDto tokenDto = tokenProvider.createToken(authentication);
-        assertNotNull(tokenDto);
-        System.out.println("Generated Access Token: " + tokenDto.getAccessToken());
-
-        // 남은 만료 시간 검증
-        Long remainingTime = tokenProvider.getExpiration(tokenDto.getAccessToken());
-        assertNotNull(remainingTime);
-        System.out.println("Remaining Time (ms): " + remainingTime);
-
-        assertTrue(remainingTime > 0, "Remaining time should be greater than 0");
-    }
-
 }
