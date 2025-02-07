@@ -19,7 +19,7 @@ public class JwtSecurityConfig extends SecurityConfigurerAdapter<DefaultSecurity
     private final TokenBlacklistService tokenBlacklistService; // 추가
 
     public void configure(HttpSecurity http) throws Exception {
-//        http.addFilterBefore(new JwtFilter("Authorization", tokenProvider, redisTemplate), UsernamePasswordAuthenticationFilter.class);
+//        http.addFilterBefore(new JwtFilter("Authorization", tokenProvider, tokenBlacklistService), UsernamePasswordAuthenticationFilter.class);
         http.addFilterBefore(new JwtFilter("Authorization", tokenProvider, tokenBlacklistService), UsernamePasswordAuthenticationFilter.class);
 
     }
