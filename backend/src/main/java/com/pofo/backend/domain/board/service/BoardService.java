@@ -83,6 +83,6 @@ public class BoardService {
 
     // 공통 메서드: 엔티티 조회 & 예외 처리 (중복 코드 제거) 에러 400으로 고정
     private <T> T findEntityOrThrow(Optional<T> entity, String errorMessage) {
-        return entity.orElseThrow(() -> new RuntimeException(new RsData<>("400", errorMessage).getMsg()));
+        return entity.orElseThrow(() -> new RuntimeException("400: " + errorMessage));
     }
 }
