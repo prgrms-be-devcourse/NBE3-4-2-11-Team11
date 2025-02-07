@@ -13,6 +13,7 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -25,6 +26,7 @@ import java.util.List;
 import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
+@EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -93,6 +95,10 @@ public class SecurityConfig {
                                 "/api/v1/user/kakao/login",
                                 "/api/v1/user/kakao/login/kakao/callback",
                                 "/api/v1/user/kakao/login/process",
+                                "/api/v1/user/google/login",
+                                "/api/v1/user/google/login/google/callback",
+                                "/api/v1/user/google/login/process",
+                                "/api/v1/user/logout",
                                 "/api/v1/user/oauth2/**"
                         ).permitAll()
                         .anyRequest().authenticated()

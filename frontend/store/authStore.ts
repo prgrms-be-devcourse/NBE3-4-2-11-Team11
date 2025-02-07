@@ -19,11 +19,43 @@ export const useAuthStore = create<AuthState>()(
                 set({ isLoggedIn: true });
             },
 
-            logout: () => {
-                if (typeof window !== "undefined") {
-                    localStorage.removeItem("accessToken");
+            logout: async () => {
+                if (typeof window === "undefined") return;
+
+                const accessToken = localStorage.getItem("accessToken");
+                if (!accessToken) {
+                    console.warn("❌ 로그아웃 요청 실패: 저장된 accessToken 없음");
+                    set({ isLoggedIn: false });
+                    return;
                 }
-                set({ isLoggedIn: false });
+
+                try {
+                    // ✅ 백엔드 로그아웃 API 호출 (토큰을 블랙리스트에 등록)
+                    const response = await fetch("/api/v1/user/logout", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${accessToken}`,
+                        },
+                        body: JSON.stringify({ token: accessToken })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error("❌ 로그아웃 API 요청 실패");
+                    }
+
+                    console.log("✅ 로그아웃 성공: 백엔드 블랙리스트 등록 완료");
+
+                    // ✅ Local Storage에서 토큰 삭제
+                    localStorage.removeItem("accessToken");
+                    localStorage.removeItem("refreshToken");
+
+                    // ✅ 로그인 상태 변경
+                    set({ isLoggedIn: false });
+
+                } catch (error) {
+                    console.error("❌ 로그아웃 실패:", error);
+                }
             },
         }),
         {

@@ -5,7 +5,7 @@ import com.pofo.backend.common.security.AdminDetailsService;
 import com.pofo.backend.common.security.CustomUserDetails;
 import com.pofo.backend.common.security.dto.TokenDto;
 import com.pofo.backend.domain.user.join.entity.User;
-import com.pofo.backend.domain.user.join.repository.UsersRepository;
+import com.pofo.backend.domain.user.join.repository.UserRepository;
 import io.jsonwebtoken.*;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -48,7 +48,7 @@ public class TokenProvider {
     private final AdminDetailsService adminDetailsService;
     private final UserDetailsService userDetailsService;
 
-    private final UsersRepository usersRepository;
+    private final UserRepository userRepository;
 
     @PostConstruct
     public void init() {
@@ -155,7 +155,7 @@ public class TokenProvider {
             return new UsernamePasswordAuthenticationToken(adminDetails, token, adminDetails.getAuthorities());
         } else {
             // 일반 사용자의 경우, 도메인 User 엔티티를 조회하여 CustomUserDetails로 감싼다.
-            User domainUser = usersRepository.findByEmail(subject)
+            User domainUser = userRepository.findByEmail(subject)
                     .orElseThrow(() -> new RuntimeException("User not found with email: " + subject));
             CustomUserDetails customUserDetails = new CustomUserDetails(domainUser);
             return new UsernamePasswordAuthenticationToken(customUserDetails, token, customUserDetails.getAuthorities());

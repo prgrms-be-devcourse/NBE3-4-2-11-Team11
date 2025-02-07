@@ -1,5 +1,16 @@
 package com.pofo.backend.domain.inquiry.controller;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.handler;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pofo.backend.common.TestSecurityConfig;
@@ -11,7 +22,9 @@ import com.pofo.backend.domain.inquiry.repository.InquiryRepository;
 import com.pofo.backend.domain.inquiry.service.InquiryService;
 import com.pofo.backend.domain.notice.exception.NoticeException;
 import com.pofo.backend.domain.user.join.entity.User;
-import com.pofo.backend.domain.user.join.repository.UsersRepository;
+import com.pofo.backend.domain.user.join.repository.UserRepository;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -26,15 +39,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
-
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
 @SpringBootTest
 @Transactional
 @AutoConfigureMockMvc
@@ -48,7 +52,7 @@ public class InquiryControllerTest {
     private InquiryRepository inquiryRepository;
 
     @Autowired
-    private UsersRepository usersRepository;
+    private UserRepository usersRepository;
 
     @Autowired
     private MockMvc mockMvc;
