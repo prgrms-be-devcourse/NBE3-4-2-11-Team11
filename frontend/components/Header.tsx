@@ -28,8 +28,19 @@ const Header = () => {
             <li>
               <Link href="/notice" className="hover:text-gray-400">공지사항</Link>
             </li>
-            <li>
+            <li className="relative group">
               <Link href="/mypage" className="hover:text-gray-400">마이페이지</Link>
+              <ul className="absolute left-0 mt-2 w-32 bg-gray-800 text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                <li className="px-4 py-2 hover:bg-gray-700">
+                  <Link href="/mypage/resume">이력서</Link>
+                </li>
+                <li className="px-4 py-2 hover:bg-gray-700">
+                  <Link href="/mypage/projects">프로젝트</Link>
+                </li>
+                <li className="px-4 py-2 hover:bg-gray-700">
+                  <Link href="/mypage/board">게시판</Link>
+                </li>
+              </ul>
             </li>
             <li>
               <Link href="/contact" className="hover:text-gray-400">문의하기</Link>
