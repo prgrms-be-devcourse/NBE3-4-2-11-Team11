@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-02-07T23:20:51+0900",
+    date = "2025-02-08T03:44:44+0900",
     comments = "version: 1.5.2.Final, compiler: javac, environment: Java 21.0.2 (GraalVM Community)"
 )
 @Component
@@ -20,6 +20,7 @@ public class ProjectMapperImpl implements ProjectMapper {
             return null;
         }
 
+        Long projectId = null;
         String name = null;
         LocalDate startDate = null;
         LocalDate endDate = null;
@@ -29,6 +30,7 @@ public class ProjectMapperImpl implements ProjectMapper {
         String description = null;
         String imageUrl = null;
 
+        projectId = project.getId();
         name = project.getName();
         startDate = project.getStartDate();
         endDate = project.getEndDate();
@@ -37,8 +39,6 @@ public class ProjectMapperImpl implements ProjectMapper {
         repositoryLink = project.getRepositoryLink();
         description = project.getDescription();
         imageUrl = project.getImageUrl();
-
-        Long projectId = null;
 
         ProjectDetailResponse projectDetailResponse = new ProjectDetailResponse( projectId, name, startDate, endDate, memberCount, position, repositoryLink, description, imageUrl );
 
