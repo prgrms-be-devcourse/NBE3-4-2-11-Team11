@@ -54,3 +54,5 @@ coverage/
 
 # frontend/.gitignore
 ../backend/*
+
+../node_modules/
