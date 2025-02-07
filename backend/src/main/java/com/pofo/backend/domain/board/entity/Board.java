@@ -11,12 +11,8 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "board")
+@Table(name = "boards")
 public class Board extends BaseTime {
-
-    @Id    // PK auto_increment 적용
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // auto_increment 적용
-    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY) //(, cascade = CascadeType.REMOVE)  유저 삭제 시 해당 유저 게시글 자동 삭제
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false) // FK 컬럼 명시
