@@ -46,6 +46,9 @@ public class InquiryControllerTest {
     private InquiryRepository inquiryRepository;
 
     @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
     private MockMvc mockMvc;
 
     private Long inquiryId;
@@ -61,6 +64,7 @@ public class InquiryControllerTest {
                 .nickname("닉네임")
                 .age(2000, 1, 1)
                 .build();
+        this.userRepository.save(user);
 
         InquiryCreateRequest inquiryCreateRequest = new InquiryCreateRequest("문의사항 테스트", "문의사항 테스트입니다.");
         this.inquiryId = this.inquiryService.create(inquiryCreateRequest, user).getId();
