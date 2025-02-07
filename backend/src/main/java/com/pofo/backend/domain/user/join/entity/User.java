@@ -1,7 +1,9 @@
 package com.pofo.backend.domain.user.join.entity;
 
 import com.pofo.backend.common.jpa.entity.BaseEntity;
-//import com.pofo.backend.domain.resume.resume.entity.Resume;
+
+import com.pofo.backend.domain.resume.resume.entity.Resume;
+
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -51,6 +53,6 @@ public class User extends BaseEntity {
         FEMALE;
     }
 
-//    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-//    private List<Resume> resumes = new ArrayList<>();
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Resume> resumes = new ArrayList<>();
 }

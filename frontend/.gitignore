@@ -49,7 +49,3 @@ coverage/
 
 # ✅ 기타 로그 파일
 *.log
-
-
-# ✅ 백엔드 폴더 무시 (Git 저장소의 루트에 있는 backend 폴더만 무시)
-/backend/
