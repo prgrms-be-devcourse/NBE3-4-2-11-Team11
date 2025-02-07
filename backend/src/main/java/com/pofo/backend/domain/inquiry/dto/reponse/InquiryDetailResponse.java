@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class InquiryDetailResponse {
 
-    //    private Long userId;
+    private Long userId;
     private Long id;
     private String subject;
     private String content;
@@ -22,6 +22,7 @@ public class InquiryDetailResponse {
 
     public static InquiryDetailResponse from(Inquiry inquiry, Reply reply) {
         return new InquiryDetailResponse(
+                inquiry.getUser().getId(),
                 inquiry.getId(),
                 inquiry.getSubject(),
                 inquiry.getContent(),
