@@ -24,7 +24,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.test.annotation.Rollback;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,27 +57,54 @@ public class ReplyControllerTest {
     private InquiryRepository inquiryRepository;
 
     @Autowired
+    private AdminRepository adminRepository;
+
+    @Autowired
     private MockMvc mockMvc;
+
+    private Admin admin;
+
+    private User user;
 
     private Long inquiryId;
 
     private Long replyId;
 
+
     @BeforeEach
     void initData() throws Exception {
+
+        admin = Admin.builder()
+                .username("admin")
+                .password(passwordEncoder.encode("password"))
+                .status(Admin.Status.ACTIVE)
+                .failureCount(0)
+                .build();
+        this.adminRepository.save(admin);
+
+        user = User.builder()
+                .email("dev@dev.com")
+                .name("user")
+                .sex(User.Sex.MALE)
+                .nickname("닉네임")
+                .age(2000, 1, 1)
+                .build();
+        this.userRepository.save(user);
+
         InquiryCreateRequest inquiryCreateRequest = new InquiryCreateRequest("문의사항 테스트", "문의사항 테스트입니다.");
-        inquiryId = this.inquiryService.create(inquiryCreateRequest).getId();
+        inquiryId = this.inquiryService.create(inquiryCreateRequest, user).getId();
 
         ReplyCreateRequest replyCreateRequest = new ReplyCreateRequest("답변 테스트");
-        replyId = this.replyService.create(inquiryId, replyCreateRequest).getId();
+        replyId = this.replyService.create(inquiryId, replyCreateRequest, admin).getId();
     }
 
     @Test
     @DisplayName("답변 생성 테스트")
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
     void t1() throws Exception {
 
         InquiryCreateRequest inquiryCreateRequest = new InquiryCreateRequest("문의사항 테스트", "문의사항 테스트입니다.");
-        inquiryId = this.inquiryService.create(inquiryCreateRequest).getId();
+        inquiryId = this.inquiryService.create(inquiryCreateRequest, user).getId();
 
         ResultActions resultActions = mockMvc.perform(
                         post("/api/v1/admin/inquiries/{id}/reply", inquiryId)
@@ -114,7 +142,7 @@ public class ReplyControllerTest {
 
     @Test
     @DisplayName("답변 수정 테스트")
-    @Rollback(false)
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
     void t2() throws Exception {
 
         ResultActions resultActions = mockMvc.perform(
@@ -145,6 +173,7 @@ public class ReplyControllerTest {
 
     @Test
     @DisplayName("답변 삭제 테스트")
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
     void t3() throws Exception {
 
         ResultActions resultActions = mockMvc.perform(
