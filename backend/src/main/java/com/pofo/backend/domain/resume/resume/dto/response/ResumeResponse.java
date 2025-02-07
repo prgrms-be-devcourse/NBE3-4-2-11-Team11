@@ -6,14 +6,14 @@ import com.pofo.backend.domain.resume.education.dto.EducationResponse;
 import com.pofo.backend.domain.resume.experience.dto.ExperienceResponse;
 import com.pofo.backend.domain.resume.language.dto.LanguageResponse;
 import com.pofo.backend.domain.resume.license.dto.LicenseResponse;
-import com.pofo.backend.domain.resume.resume.entity.Resume;
 import java.time.LocalDate;
-import java.util.List;
+import java.util.Set;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
-@AllArgsConstructor
+@Builder
 @Getter
 @Setter
 public class ResumeResponse {
@@ -24,10 +24,10 @@ public class ResumeResponse {
     private String address;
     private String gitAddress;
     private String blogAddress;
-    private List<ActivityResponse> activities;
-    private List<CourseResponse> courses;
-    private List<ExperienceResponse> experiences;
-    private List<EducationResponse> educations;
-    private List<LicenseResponse> licenses;
-    private List<LanguageResponse> languages;
+    private Set<ActivityResponse> activities;
+    private Set<CourseResponse> courses;
+    private Set<ExperienceResponse> experiences;
+    private Set<EducationResponse> educations;
+    private Set<LicenseResponse> licenses;
+    private Set<LanguageResponse> languages;
 }
