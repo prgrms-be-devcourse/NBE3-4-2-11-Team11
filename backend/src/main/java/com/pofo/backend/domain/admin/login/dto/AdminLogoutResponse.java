@@ -5,10 +5,10 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+@AllArgsConstructor
+@NoArgsConstructor
 @Getter
 @Builder
-@AllArgsConstructor  // 모든 필드를 포함하는 생성자 자동 생성
-@NoArgsConstructor   // 기본 생성자 자동 생성 (필수는 아님)
-public class AdminLoginResponse {
+public class AdminLogoutResponse {
     private String message;
 }

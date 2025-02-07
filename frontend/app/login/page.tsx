@@ -18,12 +18,15 @@ export default function LoginPage() {
     const handleLogin = (provider: string) => {
         setLoading(true);
 
-        if(provider === "NAVER") {
+        if (provider === "NAVER") {
             window.location.href = NAVER_AUTH_URL;
+        } else if (provider === "ADMIN") {
+            window.location.href = "/api/v1/admin/login"; // ✅ 관리자 로그인 요청을 보낼 URL
         } else {
-            window.location.href = `/api/v1/user/${provider}/login`; // 백엔드 OAuth 로그인 요청
+            window.location.href = `/api/v1/user/${provider}/login`; // 일반 OAuth 로그인 요청
         }
     };
+
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
@@ -61,6 +64,14 @@ export default function LoginPage() {
             >
                 {loading ? "로그인 중..." : "카카오 로그인"}
             </button>
+
+
+             <button
+                 onClick={() => window.location.href = "/admin/login"}
+                 className="bg-blue-500 text-white px-6 py-3 rounded-lg shadow-md hover:bg-blue-600 mt-6 w-64"
+             >
+                 관리자 로그인
+             </button>
 
             <p className="mt-6 text-gray-600">
                 <Link href="/" className="text-blue-500 hover:underline">

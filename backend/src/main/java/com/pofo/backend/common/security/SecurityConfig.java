@@ -22,6 +22,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
+import static org.springframework.security.config.Customizer.withDefaults;
+
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
@@ -52,16 +54,19 @@ public class SecurityConfig {
         http
                 // '/api/v1/admin/**' 경로에만 적용
                 .securityMatcher("/api/v1/admin/**")
+                .cors(withDefaults())  // ✅ CORS 활성화 추가
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // 관리자 로그인은 인증 없이 접근 가능하도록 허용 (필요 시)
-                        .requestMatchers("/api/v1/admin/login").permitAll()
+                        .requestMatchers("/api/v1/admin/login","/api/v1/admin/refresh-token").permitAll()
+                        .requestMatchers("/api/v1/admin/me").authenticated() // ✅ 관리자 정보 조회는 인증 필요
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider()); // 관리자 전용 provider 사용
+
         return http.build();
     }
+
 
     /**
      * 유저용 SecurityFilterChain
@@ -122,6 +127,8 @@ public class SecurityConfig {
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowCredentials(true);
         configuration.setAllowedHeaders(List.of("*"));
+
+        configuration.setExposedHeaders(List.of("Authorization", "Refresh-Token"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
