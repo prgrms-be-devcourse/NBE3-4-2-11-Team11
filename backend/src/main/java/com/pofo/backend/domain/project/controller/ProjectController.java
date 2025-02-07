@@ -1,10 +1,10 @@
 package com.pofo.backend.domain.project.controller;
 
+import com.pofo.backend.common.base.Empty;
 import com.pofo.backend.common.rsData.RsData;
 import com.pofo.backend.domain.project.dto.request.ProjectCreateRequest;
 import com.pofo.backend.domain.project.dto.request.ProjectUpdateRequest;
 import com.pofo.backend.domain.project.dto.response.ProjectCreateResponse;
-import com.pofo.backend.domain.project.dto.response.ProjectDeleteResponse;
 import com.pofo.backend.domain.project.dto.response.ProjectDetailResponse;
 import com.pofo.backend.domain.project.dto.response.ProjectUpdateResponse;
 import com.pofo.backend.domain.project.exception.ProjectCreationException;
@@ -27,6 +27,7 @@ public class ProjectController {
 
     private final ProjectService projectService;
     private final UserRepository userRepository;
+
     //프로젝트 등록
     @PostMapping("/project")
     public ResponseEntity<RsData<ProjectCreateResponse>> createProject(
@@ -36,7 +37,8 @@ public class ProjectController {
         User u = userRepository.findById(null).orElseThrow(()->new ProjectCreationException("404",""));
         ProjectCreateResponse response = projectService.createProject(projectRequest, u);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(new RsData<>("201", "프로젝트 등록이 완료되었습니다.", response));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new RsData<>("201", "프로젝트 등록이 완료되었습니다.", response));
     }
 
     //프로젝트 전체 조회
@@ -81,15 +83,16 @@ public class ProjectController {
 
     //프로젝트 삭제
     @DeleteMapping("/projects/{projectId}")
-    public ResponseEntity<RsData<ProjectDeleteResponse>> deleteProject(
+    public ResponseEntity<RsData<Empty>> deleteProject(
             @PathVariable Long projectId,
             @AuthenticationPrincipal User user
     ){
         //인증로직이 없어서 임시조치
         User u = userRepository.findById(null).orElseThrow(()->new ProjectCreationException("404",""));
-        ProjectDeleteResponse response = projectService.deleteProject(projectId, u);
 
-        return ResponseEntity.status(HttpStatus.OK).body(new RsData<>("200", "프로젝트 삭제가 완료되었습니다.", response));
+        projectService.deleteProject(projectId, u);
+
+        return ResponseEntity.status(HttpStatus.OK).body(new RsData<>("200", "프로젝트 삭제가 완료되었습니다.", new Empty()));
     }
 
 }

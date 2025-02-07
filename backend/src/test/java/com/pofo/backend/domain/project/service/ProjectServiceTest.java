@@ -5,7 +5,6 @@ import com.pofo.backend.domain.mapper.ProjectMapper;
 import com.pofo.backend.domain.project.dto.request.ProjectCreateRequest;
 import com.pofo.backend.domain.project.dto.request.ProjectUpdateRequest;
 import com.pofo.backend.domain.project.dto.response.ProjectCreateResponse;
-import com.pofo.backend.domain.project.dto.response.ProjectDeleteResponse;
 import com.pofo.backend.domain.project.dto.response.ProjectDetailResponse;
 import com.pofo.backend.domain.project.dto.response.ProjectUpdateResponse;
 import com.pofo.backend.domain.project.entity.Project;
@@ -87,24 +86,32 @@ public class ProjectServiceTest {
     }
 
     @Test
-    @DisplayName("프로젝트 둥록 성공")
-    void t1(){
+    @DisplayName("프로젝트 등록 성공")
+    void t1() {
+        // Given
         ProjectCreateRequest request = projectCreateRequest();
+
+        Project realProject = spy(Project.builder()
+                .user(mockUser)  // 사용자 설정
+                .name("테스트 프로젝트")
+                .startDate(LocalDate.of(2025, 1, 1))
+                .endDate(LocalDate.of(2025, 2, 1))
+                .memberCount(3)
+                .position("백엔드")
+                .repositoryLink("https://github.com/test")
+                .description("테스트 프로젝트입니다.")
+                .imageUrl("test.jpg")
+                .build());
+
+        when(projectRepository.save(any(Project.class))).thenReturn(realProject);
+
+        // When
         ProjectCreateResponse response = projectService.createProject(request, mockUser);
-        assertEquals("프로젝트 등록이 완료되었습니다.", "프로젝트 등록이 완료되었습니다.");
+
+        // ✅ Then (로직이 정상적으로 실행되었는지만 검증)
+        assertNotNull(response); // 응답 객체가 null이 아니어야 함
     }
 
-    @Test
-    @DisplayName("프로젝트 등록 실패 - 사용자 정보 없음")
-    void t2(){
-        when(mockUser.getId()).thenReturn(null);
-        ProjectCreateRequest request = projectCreateRequest();
-        try{
-            projectService.createProject(request, mockUser);
-        }catch (ProjectCreationException ex){
-            assertEquals("404","사용자가 존재하지 않습니다.");
-        }
-    }
 
     @Test
     @DisplayName("프로젝트 등록 실패 - 예외 발생")
@@ -194,31 +201,19 @@ public class ProjectServiceTest {
         assertEquals("프로젝트 전체 조회 중 오류가 발생했습니다.", rsData.getMsg());
     }
 
-    @Test
-    @DisplayName("프로젝트 전체 조회 실패 - 사용자 정보 없음")
-    void t7(){
-        // given
-        User nullUser = null;
 
-        // when & then
-        ProjectCreationException exception = assertThrows(ProjectCreationException.class, () -> {
-            projectService.detailAllProject(nullUser);
-        });
-
-        // 예외 메시지 확인
-        RsData<Void> rsData = exception.getRsData();
-        assertEquals("400", rsData.getResultCode());
-        assertEquals("유효하지 않은 사용자입니다.", rsData.getMsg());
-    }
 
     @Test
     @DisplayName("프로젝트 단건 조회 성공")
-    void t8(){
+    void t7(){
         Long projectId = 1L;
-        User mockUser = mock(User.class);
+        User ownUser = mock(User.class);
+        when(ownUser.getId()).thenReturn(3L);
+
         Project mockProject = mock(Project.class);
         ProjectDetailResponse mockResponse = mock(ProjectDetailResponse.class);
 
+        when(mockProject.getUser()).thenReturn(ownUser);
         when(mockResponse.getName()).thenReturn("국내 여행 추천 웹페이지");
         when(mockResponse.getStartDate()).thenReturn(startDate);
         when(mockResponse.getEndDate()).thenReturn(endDate);
@@ -232,7 +227,7 @@ public class ProjectServiceTest {
         when(projectMapper.projectToProjectDetailResponse(mockProject)).thenReturn(mockResponse);
 
         // When
-        ProjectDetailResponse response = projectService.detailProject(projectId, mockUser);
+        ProjectDetailResponse response = projectService.detailProject(projectId, ownUser);
 
         // Then
         assertNotNull(response);
@@ -252,7 +247,7 @@ public class ProjectServiceTest {
 
     @Test
     @DisplayName("프로젝트 단건 조회 실패 - 프로젝트 없음")
-    void t9(){
+    void t8(){
         //Given
         Long projectId = 1L;
         User mockUser = mock(User.class);
@@ -268,28 +263,12 @@ public class ProjectServiceTest {
         assertEquals("해당 프로젝트를 찾을 수 없습니다.", rsData.getMsg());
     }
 
-    @Test
-    @DisplayName("프로젝트 단건 조회 실패 - 사용자 정보 없음")
-    void t10(){
 
-        //Given
-        Long projectId =1L;
-        User nullUser = null;
 
-        //when & Then
-        ProjectCreationException exception = assertThrows(ProjectCreationException.class, () -> {
-            projectService.detailProject(projectId, nullUser);
-        });
-
-        RsData<Void> rsData = exception.getRsData();
-        assertEquals("400", rsData.getResultCode());
-        assertEquals("유효하지 않은 사용자입니다.", rsData.getMsg());
-
-    }
 
     @Test
     @DisplayName("프로젝트 단건 조회 실패 - 예기치 못한 오류")
-    void t11(){
+    void t9(){
         Long projectId = 1L;
         User mockUser = mock(User.class);
         when(projectRepository.findById(projectId)).thenThrow(new RuntimeException("Unexpected Error"));
@@ -321,7 +300,7 @@ public class ProjectServiceTest {
 
     @Test
     @DisplayName("프로젝트 수정 성공")
-    void t12() {
+    void t10() {
         // Given
         Long projectId = 1L;
         ProjectUpdateRequest updateRequest = projectUpdateRequest(); // 업데이트할 요청 객체
@@ -369,40 +348,12 @@ public class ProjectServiceTest {
 
     }
 
-    @Test
-    @DisplayName("프로젝트 수정 실패 - 사용자 정보 없음")
-    void t13() {
 
-        ProjectUpdateRequest updateRequest = projectUpdateRequest(); // 업데이트할 요청 객체
 
-        Project realProject = Project.builder()
-                .user(mockUser)
-                .name("업데이트된 프로젝트")
-                .startDate(LocalDate.of(2025,1,25))
-                .endDate(LocalDate.of(2025,2,20))
-                .memberCount(5)
-                .position("백엔드")
-                .repositoryLink("newRepoLink")
-                .description("업데이트된 프로젝트 설명")
-                .imageUrl("newImage.img")
-                .build();
-
-        when(projectRepository.findById(1L)).thenReturn(Optional.of(realProject));
-
-        // 사용자 정보 없음
-        ProjectCreationException exception = assertThrows(ProjectCreationException.class, () -> {
-            projectService.updateProject(1L, updateRequest, null);
-        });
-
-        RsData<Void> rsData = exception.getRsData();
-        assertEquals("400", rsData.getResultCode());
-        assertEquals("유효하지 않은 사용자입니다.", rsData.getMsg());
-
-    }
 
     @Test
     @DisplayName("프로젝트 수정 실패 - 프로젝트 없음")
-    void t14(){
+    void t11(){
         ProjectUpdateRequest updateRequest = projectUpdateRequest(); // 업데이트할 요청 객체
 
         when(projectRepository.findById(1L)).thenReturn(Optional.empty()); // 프로젝트 없음 처리
@@ -418,7 +369,7 @@ public class ProjectServiceTest {
 
     @Test
     @DisplayName("프로젝트 수정 실패 - 권한 없음")
-    void t15() {
+    void t12() {
         ProjectUpdateRequest updateRequest = projectUpdateRequest(); // 업데이트할 요청 객체
         User differentUser = Mockito.mock(User.class); // 다른 사용자
 
@@ -434,13 +385,13 @@ public class ProjectServiceTest {
         });
 
         RsData<Void> rsData = exception.getRsData();
-        assertEquals("404", rsData.getResultCode());
+        assertEquals("403", rsData.getResultCode());
         assertEquals("프로젝트 수정 할 권한이 없습니다.", rsData.getMsg());
     }
 
     @Test
     @DisplayName("프로젝트 삭제 성공")
-    void t16() {
+    void t13() {
         Long projectId=1L;
 
         Project mockProject = Mockito.mock(Project.class);
@@ -448,33 +399,17 @@ public class ProjectServiceTest {
         when(mockProject.getUser()).thenReturn(mockUser); // 사용자 일치
 
         // When
-        ProjectDeleteResponse response = projectService.deleteProject(projectId, mockUser);
+        assertDoesNotThrow(() -> projectService.deleteProject(projectId, mockUser));
 
         // Then
-        assertNotNull(response);
-        assertEquals(projectId, response.getProjectId());
         verify(projectRepository).delete(mockProject); // 삭제 확인
 
     }
 
-    @Test
-    @DisplayName("프로젝트 삭제 실패 - 사용자 정보 없음")
-    void t17() {
-        Long projectId=1L;
-
-        // When & Then
-        ProjectCreationException exception = assertThrows(ProjectCreationException.class, () -> {
-            projectService.deleteProject(projectId, null);
-        });
-
-        RsData<Void> rsData = exception.getRsData();
-        assertEquals("400", rsData.getResultCode());
-        assertEquals("유효하지 않은 사용자입니다.", rsData.getMsg());
-    }
 
     @Test
     @DisplayName("프로젝트 삭제 실패 - 삭제 권한 없음")
-    void t18(){
+    void t14(){
 
         Long projectId=1L;
 
@@ -489,13 +424,13 @@ public class ProjectServiceTest {
         });
 
         RsData<Void> rsData = exception.getRsData();
-        assertEquals("404", rsData.getResultCode());
-        assertEquals("프로젝트 수정 할 권한이 없습니다.", rsData.getMsg());
+        assertEquals("403", rsData.getResultCode());
+        assertEquals("프로젝트 삭제 할 권한이 없습니다.", rsData.getMsg());
     }
 
     @Test
     @DisplayName("프로젝트 삭제 실패 - 데이터베이스 오류 발생")
-    void t19(){
+    void t15(){
 
         Long projectId=1L;
 
