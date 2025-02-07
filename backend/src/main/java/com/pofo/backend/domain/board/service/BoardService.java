@@ -1,25 +1,30 @@
 package com.pofo.backend.domain.board.service;
 
 import com.pofo.backend.common.rsData.RsData;
-import com.pofo.backend.domain.board.dto.*;
+import com.pofo.backend.domain.board.dto.BoardDeleteResponseDto;
+import com.pofo.backend.domain.board.dto.BoardListResponseDto;
+import com.pofo.backend.domain.board.dto.BoardRequestDto;
+import com.pofo.backend.domain.board.dto.BoardResponseDto;
 import com.pofo.backend.domain.board.entity.Board;
 import com.pofo.backend.domain.board.repository.BoardRepository;
 import com.pofo.backend.domain.user.join.entity.User;
-import com.pofo.backend.domain.user.join.repository.UsersRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.*;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
+import com.pofo.backend.domain.user.join.repository.UserRepository;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 public class BoardService {
     private final BoardRepository boardRepository;
-    private final UsersRepository usersRepository;
+    private final UserRepository usersRepository;
 
     // 게시글 목록 조회 (페이징)
     public RsData<BoardListResponseDto> getAllPosts(int page, int size) {
