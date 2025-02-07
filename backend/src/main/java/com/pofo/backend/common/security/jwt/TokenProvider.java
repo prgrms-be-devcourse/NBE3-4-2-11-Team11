@@ -47,7 +47,7 @@ public class TokenProvider {
     private final AdminDetailsService adminDetailsService;
     private final UserDetailsService userDetailsService;
 
-    UsersRepository usersRepository;
+    private final UsersRepository usersRepository;
 
     @PostConstruct
     public void init() {
@@ -73,18 +73,21 @@ public class TokenProvider {
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","));
 
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        String email = userDetails.getUsername();
+
         String accessToken = Jwts.builder()
-                .setSubject(authentication.getName())
-                .setExpiration(new Date(now + validationTime))
-                .claim(AUTHORIZATION_KEY, authorities)
-                .signWith(this.key, SignatureAlgorithm.HS512)
-                .compact();
+            .setSubject(email)
+            .setExpiration(new Date(now + validationTime))
+            .claim(AUTHORIZATION_KEY, authorities)
+            .signWith(this.key, SignatureAlgorithm.HS512)
+            .compact();
 
         String refreshToken = Jwts.builder()
-                .setSubject(authentication.getName())
-                .setExpiration(new Date(now + refreshTokenValidationTime))
-                .signWith(this.key, SignatureAlgorithm.HS512)
-                .compact();
+            .setSubject(email)
+            .setExpiration(new Date(now + refreshTokenValidationTime))
+            .signWith(this.key, SignatureAlgorithm.HS512)
+            .compact();
 
         log.info("Access Token 생성 완료");
         log.info("Refresh Token 생성 완료");
