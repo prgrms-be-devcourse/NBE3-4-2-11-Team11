@@ -39,16 +39,21 @@ public class ResumeService {
     }
 
     @Transactional
-    public Resume updateResume(Long resumeId, ResumeCreateRequest request, User user) {
-        Resume resume = findResumeByIdAndCheckOwnership(resumeId, user);
+    public Resume updateResume(ResumeCreateRequest request, User user) {
+        Resume resume = resumeRepository.findByUser(user)
+            .orElseThrow(() -> new ResumeCreationException("이력서를 찾을 수 없습니다."));
         updateResumeFields(resume, request);
         return saveResumeAndRelatedEntities(resume, request);
     }
 
     @Transactional
-    public void deleteResume(Long resumeId, User user) {
-        Resume resume = findResumeByIdAndCheckOwnership(resumeId, user);
+    public void deleteResume(User user) {
+        // user를 기준으로 이력서 찾기
+        Resume resume = resumeRepository.findByUser(user)
+            .orElseThrow(() -> new ResumeCreationException("이력서를 찾을 수 없습니다."));
+
         try {
+            // 해당 이력서 삭제
             resumeRepository.delete(resume);
         } catch (DataAccessException e) {
             throw new ResumeCreationException("이력서 삭제 중 데이터베이스 오류가 발생했습니다.");
