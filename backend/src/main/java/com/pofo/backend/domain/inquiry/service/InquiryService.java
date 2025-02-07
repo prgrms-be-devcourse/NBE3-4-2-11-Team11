@@ -1,5 +1,6 @@
 package com.pofo.backend.domain.inquiry.service;
 
+import com.pofo.backend.domain.admin.login.entitiy.Admin;
 import com.pofo.backend.domain.inquiry.dto.reponse.InquiryCreateResponse;
 import com.pofo.backend.domain.inquiry.dto.reponse.InquiryDetailResponse;
 import com.pofo.backend.domain.inquiry.dto.reponse.InquiryUpdateResponse;
@@ -10,6 +11,8 @@ import com.pofo.backend.domain.inquiry.exception.InquiryException;
 import com.pofo.backend.domain.inquiry.repository.InquiryRepository;
 import com.pofo.backend.domain.reply.entity.Reply;
 import com.pofo.backend.domain.reply.repository.ReplyRepository;
+import com.pofo.backend.domain.resume.resume.exception.UnauthorizedActionException;
+import com.pofo.backend.domain.user.join.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

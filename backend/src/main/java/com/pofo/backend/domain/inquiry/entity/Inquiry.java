@@ -1,6 +1,7 @@
 package com.pofo.backend.domain.inquiry.entity;
 
 import com.pofo.backend.common.jpa.entity.BaseTime;
+import com.pofo.backend.domain.user.join.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 

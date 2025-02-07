@@ -1,16 +1,16 @@
 package com.pofo.backend.domain.inquiry.controller;
 
 import com.pofo.backend.common.rsData.RsData;
+import com.pofo.backend.domain.admin.login.entitiy.Admin;
 import com.pofo.backend.domain.inquiry.dto.reponse.InquiryCreateResponse;
-import com.pofo.backend.domain.inquiry.dto.reponse.InquiryDeleteResponse;
 import com.pofo.backend.domain.inquiry.dto.reponse.InquiryDetailResponse;
 import com.pofo.backend.domain.inquiry.dto.reponse.InquiryUpdateResponse;
 import com.pofo.backend.domain.inquiry.dto.request.InquiryCreateRequest;
 import com.pofo.backend.domain.inquiry.dto.request.InquiryUpdateRequest;
 import com.pofo.backend.domain.inquiry.service.InquiryService;
+import com.pofo.backend.domain.user.join.entity.User;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.apache.catalina.User;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
