@@ -55,8 +55,8 @@ public class NoticeAdminControllerTest {
     void initData() throws Exception {
 
         Admin admin = Admin.builder()
-                .username(adminUsername)
-                .password(passwordEncoder.encode(adminPassword))
+                .username("admin")
+                .password(passwordEncoder.encode("password"))
                 .status(Admin.Status.ACTIVE)
                 .failureCount(0)
                 .build();
