@@ -18,4 +18,5 @@ public class BaseEntity {
 	@Setter(AccessLevel.PROTECTED)
 	@EqualsAndHashCode.Include
 	private Long id;
+
 }
