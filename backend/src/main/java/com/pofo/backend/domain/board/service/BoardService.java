@@ -9,16 +9,14 @@ import com.pofo.backend.domain.board.entity.Board;
 import com.pofo.backend.domain.board.repository.BoardRepository;
 import com.pofo.backend.domain.user.join.entity.User;
 import com.pofo.backend.domain.user.join.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.*;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -52,7 +50,7 @@ public class BoardService {
     // 게시글 작성
     @Transactional
     public RsData<BoardResponseDto> createPost(BoardRequestDto requestDto) {
-        User user = findEntityOrThrow(usersRepository.findById(requestDto.getId()),  "사용자를 찾을 수 없습니다.");
+        User user = findEntityOrThrow(userRepository.findById(requestDto.getId()),  "사용자를 찾을 수 없습니다.");
 
         Board board = Board.builder()
                 .user(user)
