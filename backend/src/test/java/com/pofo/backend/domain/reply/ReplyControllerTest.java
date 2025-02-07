@@ -3,6 +3,8 @@ package com.pofo.backend.domain.reply;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pofo.backend.common.TestSecurityConfig;
+import com.pofo.backend.domain.admin.login.entitiy.Admin;
+import com.pofo.backend.domain.admin.login.repository.AdminRepository;
 import com.pofo.backend.domain.inquiry.dto.request.InquiryCreateRequest;
 import com.pofo.backend.domain.inquiry.entity.Inquiry;
 import com.pofo.backend.domain.inquiry.repository.InquiryRepository;
@@ -15,6 +17,8 @@ import com.pofo.backend.domain.reply.entity.Reply;
 import com.pofo.backend.domain.reply.exception.ReplyException;
 import com.pofo.backend.domain.reply.repository.ReplyRepository;
 import com.pofo.backend.domain.reply.service.ReplyService;
+import com.pofo.backend.domain.user.join.entity.User;
+import com.pofo.backend.domain.user.join.repository.UsersRepository;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -24,13 +28,14 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.userdetails.User;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -60,6 +65,9 @@ public class ReplyControllerTest {
     private AdminRepository adminRepository;
 
     @Autowired
+    private UsersRepository usersRepository;
+
+    @Autowired
     private MockMvc mockMvc;
 
     private Admin admin;
@@ -69,6 +77,9 @@ public class ReplyControllerTest {
     private Long inquiryId;
 
     private Long replyId;
+
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
 
 
     @BeforeEach
@@ -87,9 +98,9 @@ public class ReplyControllerTest {
                 .name("user")
                 .sex(User.Sex.MALE)
                 .nickname("닉네임")
-                .age(2000, 1, 1)
+                .age(LocalDate.of(2000, 1, 1))
                 .build();
-        this.userRepository.save(user);
+        this.usersRepository.save(user);
 
         InquiryCreateRequest inquiryCreateRequest = new InquiryCreateRequest("문의사항 테스트", "문의사항 테스트입니다.");
         inquiryId = this.inquiryService.create(inquiryCreateRequest, user).getId();

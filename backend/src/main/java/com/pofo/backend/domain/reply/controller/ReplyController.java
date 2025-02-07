@@ -1,6 +1,7 @@
 package com.pofo.backend.domain.reply.controller;
 
 import com.pofo.backend.common.rsData.RsData;
+import com.pofo.backend.domain.admin.login.entitiy.Admin;
 import com.pofo.backend.domain.reply.dto.request.ReplyCreateRequest;
 import com.pofo.backend.domain.reply.dto.request.ReplyUpdateRequest;
 import com.pofo.backend.domain.reply.dto.response.ReplyCreateResponse;
@@ -32,7 +33,7 @@ public class ReplyController {
     }
 
     @DeleteMapping("{inquiryId}/reply/{replyId}")
-    public ResponseEntity<RsData<Void>> deleteReply(@PathVariable Long inquiryId, @PathVariable Long replyId) {
+    public ResponseEntity<RsData<Void>> deleteReply(@PathVariable Long inquiryId, @PathVariable Long replyId, @AuthenticationPrincipal Admin admin) {
         this.replyService.delete(inquiryId, replyId, admin);
         return ResponseEntity.ok(new RsData<>("200", "답변 삭제가 완료되었습니다."));
     }
