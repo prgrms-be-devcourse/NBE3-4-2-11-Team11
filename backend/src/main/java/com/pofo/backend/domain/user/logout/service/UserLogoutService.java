@@ -2,15 +2,16 @@ package com.pofo.backend.domain.user.logout.service;
 
 import com.pofo.backend.common.security.jwt.TokenProvider;
 import com.pofo.backend.common.service.TokenBlacklistService;
-import com.pofo.backend.domain.user.login.dto.UserLoginResponseDto;
 import com.pofo.backend.domain.user.logout.dto.UserLogoutResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserLogoutService {
 
     private final TokenProvider tokenProvider;
@@ -22,6 +23,8 @@ public class UserLogoutService {
             HttpServletRequest request,
             HttpServletResponse response
     ) {
+        log.info("UserLogoutService.logout({}, {})", token, request);
+
         //  로그아웃 처리 (클라이언트에 적재된 토큰 삭제)
         if (tokenProvider.validateToken(token)) {
             long expirationTime = tokenProvider.getTokenExpirationTime(token);

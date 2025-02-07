@@ -23,7 +23,6 @@ public class UserLogoutController {
     @PostMapping("/logout")
     public ResponseEntity<RsData<UserLogoutResponseDto>> logout(
             @RequestHeader("Authorization") String authorization,
-            @RequestBody UserLogoutRequestDto request,
             HttpServletRequest httpServletRequest,
             HttpServletResponse httpServletResponse
     ) {
