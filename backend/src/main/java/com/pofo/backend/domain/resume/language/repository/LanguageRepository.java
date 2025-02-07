@@ -5,6 +5,5 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface LanguageRepository extends JpaRepository<Language, Long> {
-    List<Language> findByResumeId(Long resumeId);
     void deleteByResumeId(Long resumeId);
 }

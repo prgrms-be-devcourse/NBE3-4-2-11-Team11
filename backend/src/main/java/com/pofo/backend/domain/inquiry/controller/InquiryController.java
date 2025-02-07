@@ -1,6 +1,7 @@
 package com.pofo.backend.domain.inquiry.controller;
 
 import com.pofo.backend.common.rsData.RsData;
+import com.pofo.backend.common.security.CustomUserDetails;
 import com.pofo.backend.domain.admin.login.entitiy.Admin;
 import com.pofo.backend.domain.inquiry.dto.reponse.InquiryCreateResponse;
 import com.pofo.backend.domain.inquiry.dto.reponse.InquiryDetailResponse;
@@ -25,13 +26,15 @@ public class InquiryController {
     private final InquiryService inquiryService;
 
     @PostMapping("/user/inquiry")
-    public ResponseEntity<RsData<InquiryCreateResponse>> createInquiry(@Valid @RequestBody InquiryCreateRequest inquiryCreateRequest, @AuthenticationPrincipal User user) {
+    public ResponseEntity<RsData<InquiryCreateResponse>> createInquiry(@Valid @RequestBody InquiryCreateRequest inquiryCreateRequest, @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        User user = customUserDetails.getUser();
         InquiryCreateResponse inquiryCreateResponse = this.inquiryService.create(inquiryCreateRequest, user);
         return ResponseEntity.ok(new RsData<>("200", "문의사항 생성이 완료되었습니다.", inquiryCreateResponse));
     }
 
     @PatchMapping("/user/inquiries/{id}")
-    public ResponseEntity<RsData<InquiryUpdateResponse>> updateInquiry(@PathVariable Long id, @Valid @RequestBody InquiryUpdateRequest inquiryUpdateRequest, @AuthenticationPrincipal User user) {
+    public ResponseEntity<RsData<InquiryUpdateResponse>> updateInquiry(@PathVariable Long id, @Valid @RequestBody InquiryUpdateRequest inquiryUpdateRequest, @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        User user = customUserDetails.getUser();
         InquiryUpdateResponse inquiryUpdateResponse = this.inquiryService.update(id, inquiryUpdateRequest, user);
         return ResponseEntity.ok(new RsData<>("200", "문의사항 수정이 완료되었습니다.", inquiryUpdateResponse));
     }

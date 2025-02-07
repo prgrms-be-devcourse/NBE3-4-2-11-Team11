@@ -1,7 +1,6 @@
 package com.pofo.backend.domain.resume.education.service;
 
 import com.pofo.backend.domain.resume.education.dto.EducationRequest;
-import com.pofo.backend.domain.resume.education.dto.EducationResponse;
 import com.pofo.backend.domain.resume.education.entity.Education;
 import com.pofo.backend.domain.resume.education.repository.EducationRepository;
 import com.pofo.backend.domain.resume.resume.entity.Resume;
@@ -40,20 +39,6 @@ public class EducationService {
     public void updateEducations(Long resumeId, List<EducationRequest> educationRequests) {
         educationRepository.deleteByResumeId(resumeId);
         addEducations(resumeId, educationRequests);
-    }
-
-    public List<EducationResponse> getEducationsByResumeId(Long resumeId) {
-        return educationRepository.findByResumeId(resumeId).stream()
-            .map(education -> {
-                EducationResponse response = new EducationResponse();
-                response.setName(education.getName());
-                response.setMajor(education.getMajor());
-                response.setStartDate(education.getStartDate());
-                response.setEndDate(education.getEndDate());
-                response.setStatus(education.getStatus());
-                return response;
-            })
-            .collect(Collectors.toList());
     }
 
 }

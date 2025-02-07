@@ -1,13 +1,13 @@
 package com.pofo.backend.common.security;
 
 import com.pofo.backend.domain.admin.login.entitiy.Admin;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+
 import java.util.Collection;
 import java.util.Collections;
-
-import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class AdminDetails implements UserDetails {
@@ -47,5 +47,9 @@ public class AdminDetails implements UserDetails {
     @Override
     public boolean isEnabled() {
         return admin.getStatus() == Admin.Status.ACTIVE;
+    }
+
+    public Admin getAdmin() {
+        return this.admin;
     }
 }

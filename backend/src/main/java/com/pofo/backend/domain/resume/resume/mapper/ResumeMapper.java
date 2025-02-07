@@ -18,11 +18,11 @@ import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring")
 public interface ResumeMapper {
-    ResumeResponse toResponse(Resume resume);
-    ActivityResponse toResponse(Activity activity);
-    CourseResponse toResponse(Course course);
-    ExperienceResponse toResponse(Experience experience);
-    EducationResponse toResponse(Education education);
-    LicenseResponse toResponse(License license);
-    LanguageResponse toResponse(Language language);
+    ResumeResponse resumeToResumeResponse(Resume resume);
+    ActivityResponse activityToActivityResponse(Activity activity);
+    CourseResponse courseToCourseResponse(Course course);
+    ExperienceResponse experienceToExperienceResponse(Experience experience);
+    EducationResponse educationToEducationResponse(Education education);
+    LicenseResponse licenseToLicenseResponse(License license);
+    LanguageResponse languageToLanguageResponse(Language language);
 }
