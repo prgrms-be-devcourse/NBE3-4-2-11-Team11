@@ -227,6 +227,30 @@ public class TokenProvider {
             return null;
         }
     }
+    /**
+     * Refresh Token을 기반으로 새로운 Access Token(및 Refresh Token)을 발급하는 메소드입니다.
+     *
+     * @param refreshToken 기존에 발급된 Refresh Token 문자열
+     * @return 새로운 TokenDto 객체 (Access Token 및 Refresh Token 포함)
+     */
+
+    public TokenDto refreshAccessToken(String refreshToken) {
+        // refresh token의 유효성 검증: 만료되었거나 위변조된 토큰이면 예외 발생
+        if (!validateToken(refreshToken)) {
+            log.error("refreshAccessToken: 유효하지 않은 refresh token");
+            throw new RuntimeException("Refresh token is invalid or expired");
+        }
+
+        // refresh token으로부터 Authentication 객체 복원
+        Authentication authentication = getAuthenticationFromRefreshToken(refreshToken);
+
+        // 복원된 인증 정보를 기반으로 새로운 Access Token 및 Refresh Token 생성
+        TokenDto newTokenDto = createToken(authentication);
+
+        log.info("새로운 Access Token 및 Refresh Token 발급 완료");
+
+        return newTokenDto;
+    }
 
     /**
      * 주어진 Access Token의 남은 유효 시간을 밀리초 단위로 반환합니다.
