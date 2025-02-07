@@ -32,6 +32,9 @@ import java.util.Optional;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willDoNothing;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -246,5 +249,26 @@ public class ProjectControllerTest {
                 .andExpect(jsonPath("$.data.repositoryLink").value(updateRequest.getRepositoryLink()))
                 .andExpect(jsonPath("$.data.description").value(updateRequest.getDescription()))
                 .andExpect(jsonPath("$.data.imageUrl").value(updateRequest.getImageUrl()));
+    }
+
+    @Test
+    @WithMockUser(username = "testUser", roles = {"USER"})
+    @DisplayName("프로젝트 삭제 테스트")
+    void t5() throws Exception{
+        //Given
+        Long projectId = 1L;
+
+        willDoNothing().given(projectService).deleteProject(eq(projectId), any(User.class));
+
+        //when & Then
+        mvc.perform(delete("/api/v1/user/projects/{projectId}", projectId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.resultCode").value("200"))
+                .andExpect(jsonPath("$.msg").value("프로젝트 삭제가 완료되었습니다."))
+                .andExpect(jsonPath("$.data").isMap()); // data 가 JSON 객체(Empty)인지 확인
+
+        verify(projectService, times(1)).deleteProject(eq(projectId), any(User.class));
     }
 }

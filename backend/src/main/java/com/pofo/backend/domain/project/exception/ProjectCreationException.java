@@ -18,11 +18,8 @@ public class ProjectCreationException extends RuntimeException{
 
     // 404 오류 생성
     public static ProjectCreationException notFound(String msg) {
-        return new ProjectCreationException("404", msg);
-    }
 
-    public static ProjectCreationException invalidUser() {
-        return new ProjectCreationException("400", "유효하지 않은 사용자입니다.");
+        return new ProjectCreationException("404", msg);
     }
 
     // 400 오류 생성
@@ -35,9 +32,9 @@ public class ProjectCreationException extends RuntimeException{
         return new ProjectCreationException("500", msg);
     }
 
-
     //권한 없음
     public static ProjectCreationException forbidden(String msg){
-        return new ProjectCreationException("404", msg);
+
+        return new ProjectCreationException("403", msg);
     }
 }

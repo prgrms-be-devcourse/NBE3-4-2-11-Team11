@@ -28,6 +28,7 @@ public class ProjectService {
     public ProjectCreateResponse createProject(ProjectCreateRequest projectRequest, User user) {
 
         try{
+
             Project project = Project.builder()
                     .user(user)
                     .name(projectRequest.getName())
@@ -42,16 +43,15 @@ public class ProjectService {
 
             return new ProjectCreateResponse(project.getId());
 
+        }catch (ProjectCreationException ex) {
+            throw ex;  // 이미 정의된 예외는 다시 던진다.
         }catch (Exception ex){
-            throw ProjectCreationException.invalidUser();
+            throw ProjectCreationException.badRequest("프로젝트 등록 중 오류가 발생했습니다.");
         }
     }
 
     public List<ProjectDetailResponse> detailAllProject(User user){
 
-        if(user==null){
-            throw ProjectCreationException.invalidUser();
-        }
         try{
             List<Project> projects = projectRepository.findAllByOrderByIdDesc();
 
@@ -60,12 +60,22 @@ public class ProjectService {
                 throw ProjectCreationException.notFound("프로젝트가 존재하지 않습니다.");
             }
 
-            return projects.stream()
+            // 사용자가 접근할 수 있는 프로젝트만 필터링 (본인 소유 또는 관리자)
+            List<Project> accessibleProjects = projects.stream()
+                    .filter(project -> project.getUser().equals(user))
+                    .collect(Collectors.toList());
+
+            // 사용자가 접근할 수 있는 프로젝트가 없으면 예외 발생
+            if (accessibleProjects.isEmpty()) {
+                throw ProjectCreationException.forbidden("프로젝트 전체 조회 할 권한이 없습니다.");
+            }
+
+            return accessibleProjects.stream()
                     .map(projectMapper::projectToProjectDetailResponse)
                     .collect(Collectors.toList());
 
         }catch (DataAccessException ex){
-            throw ProjectCreationException.serverError("프로젝트 조회 중 데이터베이스 오류가 발생했습니다.");
+            throw ProjectCreationException.serverError("프로젝트 전체 조회 중 데이터베이스 오류가 발생했습니다.");
         }catch (ProjectCreationException ex) {
             throw ex;  // 이미 정의된 예외는 다시 던진다.
         }catch (Exception ex){
@@ -75,18 +85,18 @@ public class ProjectService {
 
     public ProjectDetailResponse detailProject(Long projectId, User user) {
 
-        if(user==null){
-            throw ProjectCreationException.invalidUser();
-        }
-
         try{
             Project project = projectRepository.findById(projectId)
                     .orElseThrow(() -> ProjectCreationException.notFound("해당 프로젝트를 찾을 수 없습니다."));
 
+            if(!project.getUser().equals(user)){
+                throw ProjectCreationException.forbidden("프로젝트 단건 조회 할 권한이 없습니다.");
+            }
+
             return projectMapper.projectToProjectDetailResponse(project);
 
         }catch (DataAccessException ex){
-            throw ProjectCreationException.serverError("프로젝트 조회 중 데이터베이스 오류가 발생했습니다.");
+            throw ProjectCreationException.serverError("프로젝트 단건 조회 중 데이터베이스 오류가 발생했습니다.");
         }catch (ProjectCreationException ex) {
             throw ex;  // 이미 정의된 예외는 다시 던진다.
         }catch (Exception ex){
@@ -101,10 +111,6 @@ public class ProjectService {
                 .orElseThrow(() -> ProjectCreationException.notFound("해당 프로젝트를 찾을 수 없습니다."));
 
         try {
-            // 프로젝트 사용자 정보가 없는 경우 예외 처리
-            if (user == null) {
-                throw ProjectCreationException.invalidUser();
-            }
 
             if(!project.getUser().equals(user)){
                 throw ProjectCreationException.forbidden("프로젝트 수정 할 권한이 없습니다.");
@@ -143,6 +149,30 @@ public class ProjectService {
                 project.getDescription(),
                 project.getImageUrl()
         );
+    }
+
+    @Transactional
+    public void deleteProject(Long projectId, User user) {
+
+        try {
+
+            Project project = projectRepository.findById(projectId)
+                    .orElseThrow(() -> ProjectCreationException.notFound("해당 프로젝트를 찾을 수 없습니다."));
+
+            if (!project.getUser().equals(user)) {
+                throw ProjectCreationException.forbidden("프로젝트 삭제 할 권한이 없습니다.");
+            }
+
+            projectRepository.delete(project);
+
+        } catch (DataAccessException ex) {
+            throw ProjectCreationException.serverError("프로젝트 삭제 중 데이터베이스 오류가 발생했습니다.");
+        } catch (ProjectCreationException ex) {
+            throw ex;  // 이미 정의된 예외는 다시 던진다.
+        } catch (Exception ex) {
+            throw ProjectCreationException.badRequest("프로젝트 삭제 중 오류가 발생했습니다.");
+        }
+
     }
 
 }

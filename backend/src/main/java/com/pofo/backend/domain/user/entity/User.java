@@ -16,11 +16,11 @@ import java.util.List;
 import java.util.Objects;
 
 @Entity
+@Setter
 @Table(name="users")
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Setter
 public class User extends BaseEntity {
 
     String name;
@@ -36,4 +36,5 @@ public class User extends BaseEntity {
         }
         return super.equals(o);
     }
+
 }
