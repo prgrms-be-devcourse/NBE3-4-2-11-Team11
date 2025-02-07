@@ -1,6 +1,7 @@
 package com.pofo.backend.domain.user.login.service;
 
 import com.pofo.backend.common.exception.SocialLoginException;
+import com.pofo.backend.common.security.CustomUserDetails;
 import com.pofo.backend.common.security.dto.TokenDto;
 import com.pofo.backend.common.security.jwt.TokenProvider;
 import com.pofo.backend.domain.user.join.entity.Oauth;
@@ -483,10 +484,14 @@ public class UserLoginService {
 
 
     private TokenDto authenticateUser(User userInfo) {
+        // User 객체를 CustomUserDetails로 감싸기
+        CustomUserDetails customUserDetails = new CustomUserDetails(userInfo);
+
         // Spring Security 사용 시 SecurityContext에 인증 정보 설정
         List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
         UsernamePasswordAuthenticationToken authentication =
-                new UsernamePasswordAuthenticationToken(userInfo, null, authorities);
+            new UsernamePasswordAuthenticationToken(customUserDetails, null, authorities);
+
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
