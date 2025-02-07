@@ -17,7 +17,6 @@ public class JwtSecurityConfig extends SecurityConfigurerAdapter<DefaultSecurity
     private final RedisTemplate<String, String> redisTemplate;
 
     public void configure(HttpSecurity http) throws Exception {
-        // JwtFilter를 UsernamePasswordAuthenticationFilter 앞에 추가
         http.addFilterBefore(new JwtFilter("Authorization", tokenProvider, redisTemplate), UsernamePasswordAuthenticationFilter.class);
     }
 }

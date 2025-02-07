@@ -28,21 +28,14 @@ public class JwtFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
         String tokenValue = parseHeader(request);
-        System.out.println("[JwtFilter] Parsed Token: " + tokenValue);
 
         if (StringUtils.hasText(tokenValue) && tokenProvider.validateToken(tokenValue)) {
             String logOut = redisTemplate.opsForValue().get(tokenValue);
-            System.out.println("[JwtFilter] Redis logout value for token: " + logOut);
 
             if (ObjectUtils.isEmpty(logOut)) {
                 Authentication authentication = tokenProvider.getAuthentication(tokenValue);
-                System.out.println("[JwtFilter] Authentication set: " + authentication);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-            } else {
-                System.out.println("[JwtFilter] Token is marked as logout in Redis.");
             }
-        } else {
-            System.out.println("[JwtFilter] Token is missing or invalid.");
         }
         filterChain.doFilter(request, response);
     }
