@@ -8,7 +8,7 @@ import com.pofo.backend.domain.project.dto.response.ProjectCreateResponse;
 import com.pofo.backend.domain.project.dto.response.ProjectDetailResponse;
 import com.pofo.backend.domain.project.dto.response.ProjectUpdateResponse;
 import com.pofo.backend.domain.project.service.ProjectService;
-import com.pofo.backend.domain.user.entity.User;
+import com.pofo.backend.domain.user.join.entity.User;
 import com.pofo.backend.domain.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
