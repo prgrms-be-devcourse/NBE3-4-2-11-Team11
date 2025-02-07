@@ -1,8 +1,6 @@
 package com.pofo.backend.domain.user.logout.controller;
 
 import com.pofo.backend.common.rsData.RsData;
-import com.pofo.backend.domain.user.login.dto.UserLoginResponseDto;
-import com.pofo.backend.domain.user.logout.dto.UserLogoutRequestDto;
 import com.pofo.backend.domain.user.logout.dto.UserLogoutResponseDto;
 import com.pofo.backend.domain.user.logout.service.UserLogoutService;
 import jakarta.servlet.http.HttpServletRequest;
