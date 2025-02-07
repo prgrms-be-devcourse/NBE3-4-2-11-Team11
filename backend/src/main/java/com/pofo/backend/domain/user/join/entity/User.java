@@ -1,7 +1,9 @@
 package com.pofo.backend.domain.user.join.entity;
 
 import com.pofo.backend.common.jpa.entity.BaseEntity;
+
 import com.pofo.backend.domain.resume.resume.entity.Resume;
+
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;

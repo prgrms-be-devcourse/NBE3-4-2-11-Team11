@@ -1,9 +1,8 @@
 package com.pofo.backend.domain.notice.entity;
 
 import com.pofo.backend.common.jpa.entity.BaseTime;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import com.pofo.backend.domain.admin.login.entitiy.Admin;
+import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
@@ -14,9 +13,9 @@ import lombok.*;
 @Table(name = "notices")
 public class Notice extends BaseTime {
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "admin_id", nullable = true)
-//    private Admin admin;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "admin_id", nullable = true)
+    private Admin admin;
 
     @Column(length = 100, nullable = false)
     private String subject;

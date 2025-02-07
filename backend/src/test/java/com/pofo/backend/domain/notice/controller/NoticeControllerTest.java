@@ -1,6 +1,8 @@
 package com.pofo.backend.domain.notice.controller;
 
 import com.pofo.backend.common.TestSecurityConfig;
+import com.pofo.backend.domain.admin.login.entitiy.Admin;
+import com.pofo.backend.domain.admin.login.repository.AdminRepository;
 import com.pofo.backend.domain.notice.dto.reponse.NoticeDetailResponse;
 import com.pofo.backend.domain.notice.dto.request.NoticeCreateRequest;
 import com.pofo.backend.domain.notice.service.NoticeService;
@@ -12,6 +14,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,16 +35,31 @@ public class NoticeControllerTest {
     private NoticeService noticeService;
 
     @Autowired
+    private AdminRepository adminsRepository;
+
+    @Autowired
     private MockMvc mockMvc;
 
     private Long noticeId;
 
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
+
+
     @BeforeEach
     @Transactional
     void initData() throws Exception {
-        NoticeCreateRequest noticeCreateRequest = new NoticeCreateRequest("공지사항 테스트", "공지사항 테스트입니다.");
 
-        this.noticeId = this.noticeService.create(noticeCreateRequest).getId();
+        Admin admin = Admin.builder()
+                .username("adminUsername")
+                .password(passwordEncoder.encode("adminPassword"))
+                .status(Admin.Status.ACTIVE)
+                .failureCount(0)
+                .build();
+        this.adminsRepository.save(admin);
+
+        NoticeCreateRequest noticeCreateRequest = new NoticeCreateRequest("공지사항 테스트", "공지사항 테스트입니다.");
+        this.noticeId = this.noticeService.create(noticeCreateRequest, admin).getId();
     }
 
     @Test

@@ -1,6 +1,10 @@
 package com.pofo.backend.common.security.jwt;
 
+import com.pofo.backend.common.security.AdminDetailsService;
+import com.pofo.backend.common.security.CustomUserDetails;
 import com.pofo.backend.common.security.dto.TokenDto;
+import com.pofo.backend.domain.user.join.entity.User;
+import com.pofo.backend.domain.user.join.repository.UsersRepository;
 import io.jsonwebtoken.*;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -10,7 +14,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
@@ -41,8 +44,10 @@ public class TokenProvider {
     private Long refreshTokenValidationTime;
 
     private SecretKey key;
-
+    private final AdminDetailsService adminDetailsService;
     private final UserDetailsService userDetailsService;
+
+    UsersRepository usersRepository;
 
     @PostConstruct
     public void init() {
@@ -109,11 +114,34 @@ public class TokenProvider {
      * @param token JWT 토큰 문자열
      * @return Authentication 객체
      */
+//    public Authentication getAuthentication(String token) {
+//        Claims claims = parseData(token);
+//        if (claims == null) {
+//            throw new IllegalArgumentException("Cannot parse token claims");
+//        }
+//        String authClaim = claims.get(AUTHORIZATION_KEY, String.class);
+//        List<SimpleGrantedAuthority> authorities = (authClaim != null && !authClaim.isEmpty())
+//                ? Arrays.stream(authClaim.split(","))
+//                .map(SimpleGrantedAuthority::new)
+//                .collect(Collectors.toList())
+//                : Collections.emptyList();
+//
+//        String subject = claims.getSubject();
+//        if (subject == null || subject.trim().isEmpty()) {
+//            log.error("getAuthentication: Subject is null or empty for token: {}", token);
+//            throw new IllegalArgumentException("Cannot create User with null subject");
+//        }
+//        User principal = new User(subject, "", authorities);
+//        return new UsernamePasswordAuthenticationToken(principal, "", authorities);
+//    }
+
     public Authentication getAuthentication(String token) {
         Claims claims = parseData(token);
         if (claims == null) {
             throw new IllegalArgumentException("Cannot parse token claims");
         }
+
+        // 권한 정보(claim) 읽기
         String authClaim = claims.get(AUTHORIZATION_KEY, String.class);
         List<SimpleGrantedAuthority> authorities = (authClaim != null && !authClaim.isEmpty())
                 ? Arrays.stream(authClaim.split(","))
@@ -126,9 +154,21 @@ public class TokenProvider {
             log.error("getAuthentication: Subject is null or empty for token: {}", token);
             throw new IllegalArgumentException("Cannot create User with null subject");
         }
-        User principal = new User(subject, "", authorities);
-        return new UsernamePasswordAuthenticationToken(principal, "", authorities);
+
+        // 만약 권한 목록에 ROLE_ADMIN이 포함되어 있다면, 관리자용 Authentication을 생성
+        if (authorities.contains(new SimpleGrantedAuthority("ROLE_ADMIN"))) {
+            // 관리자 전용 UserDetailsService(adminDetailsService)를 사용하여 관리자 정보를 조회
+            UserDetails adminDetails = adminDetailsService.loadUserByUsername(subject);
+            return new UsernamePasswordAuthenticationToken(adminDetails, token, adminDetails.getAuthorities());
+        } else {
+            // 일반 사용자의 경우, 도메인 User 엔티티를 조회하여 CustomUserDetails로 감싼다.
+            User domainUser = usersRepository.findByEmail(subject)
+                    .orElseThrow(() -> new RuntimeException("User not found with email: " + subject));
+            CustomUserDetails customUserDetails = new CustomUserDetails(domainUser);
+            return new UsernamePasswordAuthenticationToken(customUserDetails, token, customUserDetails.getAuthorities());
+        }
     }
+
 
     /**
      * Refresh Token을 기반으로 DB에서 사용자 정보를 조회하여 올바른 권한을 포함한 Authentication 객체를 생성합니다.
