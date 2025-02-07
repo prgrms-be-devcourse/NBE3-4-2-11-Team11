@@ -1,5 +1,19 @@
 package com.pofo.backend.domain.project.controller;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willDoNothing;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.pofo.backend.domain.project.dto.request.ProjectCreateRequest;
@@ -9,7 +23,11 @@ import com.pofo.backend.domain.project.dto.response.ProjectDetailResponse;
 import com.pofo.backend.domain.project.dto.response.ProjectUpdateResponse;
 import com.pofo.backend.domain.project.service.ProjectService;
 import com.pofo.backend.domain.user.join.entity.User;
-import com.pofo.backend.domain.user.repository.UserRepository;
+import com.pofo.backend.domain.user.join.repository.UserRepository;
+import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -23,22 +41,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.willDoNothing;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -66,10 +68,13 @@ public class ProjectControllerTest {
         // userRepository도 mock객체로 생성
         userRepository.deleteAll();  // 기존 데이터 삭제
 
-        // 사용자 객체 생성
-        testUser = new User();
-        testUser.setName("testUser");
-        testUser.setEmail("test@example.com");
+        User user = User.builder()
+            .email("dev@dev.com")
+            .name("user")
+            .sex(User.Sex.MALE)
+            .nickname("닉네임")
+            .age(LocalDate.of(2000, 1, 1))
+            .build();
         given(userRepository.findById(null)).willReturn(Optional.of(testUser));
         // 사용자 DB에 저장
 //        testUser = userRepository.save(testUser);
