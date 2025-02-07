@@ -61,10 +61,11 @@ public class ProjectController {
     @GetMapping("/projects/{projectId}")
     public ResponseEntity<RsData<ProjectDetailResponse>> detailProject(
             @PathVariable Long projectId,
-            @AuthenticationPrincipal User user){
+            @AuthenticationPrincipal CustomUserDetails customUserDetails){
 
-        User u = userRepository.findById(null).orElseThrow(()->new ProjectCreationException("404",""));
-        ProjectDetailResponse response = projectService.detailProject(projectId, u);
+        User user = customUserDetails.getUser();
+        userRepository.findById(user.getId());
+        ProjectDetailResponse response = projectService.detailProject(projectId, user);
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new RsData<>("200","프로젝트 단건 조회가 완료되었습니다." , response));
