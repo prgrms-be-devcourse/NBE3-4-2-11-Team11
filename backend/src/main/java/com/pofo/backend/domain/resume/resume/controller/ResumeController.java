@@ -1,6 +1,7 @@
 package com.pofo.backend.domain.resume.resume.controller;
 
 import com.pofo.backend.common.rsData.RsData;
+import com.pofo.backend.common.security.CustomUserDetails;
 import com.pofo.backend.domain.resume.resume.dto.request.ResumeCreateRequest;
 import com.pofo.backend.domain.resume.resume.dto.response.ResumeIdResponse;
 import com.pofo.backend.domain.resume.resume.dto.response.ResumeResponse;
@@ -25,7 +26,9 @@ public class ResumeController {
     @PostMapping("")
     public ResponseEntity<RsData<ResumeIdResponse>> createResume(
         @Valid @RequestBody ResumeCreateRequest resumeCreateRequest,
-        @AuthenticationPrincipal User user) {
+        @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+
+        User user = customUserDetails.getUser();
         Resume resume = resumeService.createResume(resumeCreateRequest, user);
         ResumeIdResponse response = new ResumeIdResponse(resume.getId());
         return ResponseEntity.ok(new RsData<>("200", "이력서 생성이 완료되었습니다.", response));
@@ -34,7 +37,9 @@ public class ResumeController {
     @PutMapping("/{resumeId}")
     public ResponseEntity<RsData<ResumeIdResponse>> updateResume(@PathVariable Long resumeId,
         @Valid @RequestBody ResumeCreateRequest resumeCreateRequest,
-        @AuthenticationPrincipal User user) {
+        @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+
+        User user = customUserDetails.getUser();
         Resume resume = resumeService.updateResume(resumeId, resumeCreateRequest, user);
         ResumeIdResponse response = new ResumeIdResponse(resume.getId());
         return ResponseEntity.ok(new RsData<>("200", "이력서 수정이 완료되었습니다.", response));
@@ -42,13 +47,16 @@ public class ResumeController {
 
     @DeleteMapping("/{resumeId}")
     public ResponseEntity<RsData<Object>> deleteResume(@PathVariable Long resumeId,
-        @AuthenticationPrincipal User user) {
+        @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+
+        User user = customUserDetails.getUser();
         resumeService.deleteResume(resumeId, user);
         return ResponseEntity.ok(new RsData<>("200", "이력서 삭제가 완료되었습니다."));
     }
 
     @GetMapping("")
-    public ResponseEntity<RsData<ResumeResponse>> getResume(@AuthenticationPrincipal User user) {
+    public ResponseEntity<RsData<ResumeResponse>> getResume(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        User user = customUserDetails.getUser();
         Resume resume = resumeService.getResumeByUser(user);
         ResumeResponse resumeResponse = resumeMapper.toResponse(resume);
         return ResponseEntity.ok(new RsData<>("200", "이력서 조회 성공", resumeResponse));
