@@ -58,6 +58,7 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
 }
 
+
 tasks.named('test') {
 	useJUnitPlatform()
 }
