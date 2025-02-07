@@ -1,7 +1,6 @@
 package com.pofo.backend.domain.inquiry.service;
 
 import com.pofo.backend.domain.inquiry.dto.reponse.InquiryCreateResponse;
-import com.pofo.backend.domain.inquiry.dto.reponse.InquiryDeleteResponse;
 import com.pofo.backend.domain.inquiry.dto.reponse.InquiryDetailResponse;
 import com.pofo.backend.domain.inquiry.dto.reponse.InquiryUpdateResponse;
 import com.pofo.backend.domain.inquiry.dto.request.InquiryCreateRequest;
@@ -27,19 +26,20 @@ public class InquiryService {
     private final ReplyRepository replyRepository;
 
     @Transactional
-    public InquiryCreateResponse create(InquiryCreateRequest inquiryCreateRequest) {
+    public InquiryCreateResponse create(InquiryCreateRequest inquiryCreateRequest, User user) {
 
-//        if (user == null) {
-//            throw new InquiryException("사용자 정보가 유효하지 않습니다.");
-//        }
+        if (user == null) {
+            throw new InquiryException("사용자 정보가 유효하지 않습니다.");
+        }
+
         try {
             Inquiry inquiry = Inquiry.builder()
-//                    .user(user)
+                    .user(user)
                     .subject(inquiryCreateRequest.getSubject())
                     .content(inquiryCreateRequest.getContent())
                     .build();
 
-            inquiryRepository.save(inquiry);
+            this.inquiryRepository.save(inquiry);
             return new InquiryCreateResponse(inquiry.getId());
         } catch (Exception e) {
             throw new InquiryException("문의사항 생성 중 오류가 발생했습니다. 원인: " + e.getMessage());
@@ -47,10 +47,14 @@ public class InquiryService {
     }
 
     @Transactional
-    public InquiryUpdateResponse update(Long id, InquiryUpdateRequest updateRequest) {
+    public InquiryUpdateResponse update(Long id, InquiryUpdateRequest updateRequest, User user) {
 
         Inquiry inquiry = this.inquiryRepository.findById(id)
                 .orElseThrow(() -> new InquiryException("해당 문의사항을 찾을 수 없습니다."));
+
+        if (!inquiry.getUser().equals(user)) {
+            throw new UnauthorizedActionException("문의사항을 수정할 권한이 없습니다.");
+        }
 
         try {
             inquiry.update(updateRequest.getSubject(), updateRequest.getContent());
@@ -61,16 +65,20 @@ public class InquiryService {
     }
 
     @Transactional
-    public InquiryDeleteResponse delete(Long id) {
+    public void delete(Long id, User user, Admin admin) {
 
         Inquiry inquiry = this.inquiryRepository.findById(id)
                 .orElseThrow(() -> new InquiryException("해당 문의사항을 찾을 수 없습니다."));
 
-        try {
-            this.inquiryRepository.delete(inquiry);
-            return new InquiryDeleteResponse();
-        } catch (Exception e) {
-            throw new InquiryException("문의사항 삭제 중 오류가 발생했습니다. 원인: " + e.getMessage());
+
+        if ((user != null && inquiry.getUser().equals(user)) || admin != null) {
+            try {
+                this.inquiryRepository.delete(inquiry);
+            } catch (Exception e) {
+                throw new InquiryException("문의사항 삭제 중 오류가 발생했습니다. 원인: " + e.getMessage());
+            }
+        } else {
+            throw new UnauthorizedActionException("문의사항을 삭제할 권한이 없습니다.");
         }
     }
 
@@ -80,6 +88,7 @@ public class InquiryService {
         Inquiry inquiry = this.inquiryRepository.findById(id)
                 .orElseThrow(() -> new InquiryException("해당 문의사항을 찾을 수 없습니다."));
 
+        // 문의글 조회 시 답변도 함께 조회
         Reply reply = this.replyRepository.findByInquiryId(id).orElse(null);
 
         return InquiryDetailResponse.from(inquiry, reply);
