@@ -9,6 +9,11 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
+
+//게시글 생성, 수정시 사용되는 dto
+// POST /api/v1/user/boards -> 게시글 생성
+//PATCH /api/v1/user/boards/{id} → 게시글 수정
+
 public class BoardRequestDto {
 
     @NotNull(message = "사용자 ID는 필수 입력값입니다.") //  user ID 필수 입력

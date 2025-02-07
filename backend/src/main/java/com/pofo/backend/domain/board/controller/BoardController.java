@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.pofo.backend.domain.user.join.entity.Users;
+@CrossOrigin("*") // 모든 도메인에서 요청 허용 (Next.js 연동 가능)
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/user/boards")
@@ -23,8 +23,8 @@ public class BoardController {
         return ResponseEntity.ok(boardService.getAllPosts(page, size));
     }
 
-    // 게시글 작성 (POST /api/v1/user/board)
-    @PostMapping("/board")
+    // 게시글 작성 (POST /api/v1/user/boards)
+    @PostMapping
     public ResponseEntity<RsData<BoardResponseDto>> createPost(@Valid @RequestBody BoardRequestDto requestDto)  {
         return ResponseEntity.status(201).body(boardService.createPost(requestDto));
     }
@@ -39,8 +39,7 @@ public class BoardController {
 
     // 게시글 삭제 (DELETE /api/v1/user/boards/{id})
     @DeleteMapping("/{id}")
-    public ResponseEntity<RsData<String>> deletePost(@PathVariable Long id) {
-        RsData<BoardDeleteResponseDto> response = boardService.deletePost(id);
-        return ResponseEntity.ok(new RsData<>("200", "삭제 성공", response.getData().getMessage()));
+    public ResponseEntity<RsData<BoardDeleteResponseDto>> deletePost(@PathVariable Long id) {
+        return ResponseEntity.ok(boardService.deletePost(id));
     }
 }
