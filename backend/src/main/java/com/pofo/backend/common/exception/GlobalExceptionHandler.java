@@ -3,6 +3,7 @@ package com.pofo.backend.common.exception;
 import com.pofo.backend.common.rsData.RsData;
 import com.pofo.backend.domain.inquiry.exception.InquiryException;
 import com.pofo.backend.domain.notice.exception.NoticeException;
+import com.pofo.backend.domain.reply.exception.ReplyException;
 import com.pofo.backend.domain.resume.resume.exception.ResumeCreationException;
 import com.pofo.backend.domain.resume.resume.exception.UnauthorizedActionException;
 import org.springframework.dao.DataAccessException;
