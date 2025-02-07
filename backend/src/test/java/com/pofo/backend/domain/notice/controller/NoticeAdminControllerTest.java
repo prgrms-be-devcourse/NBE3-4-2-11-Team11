@@ -17,6 +17,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,6 +43,9 @@ public class NoticeAdminControllerTest {
     private NoticeRepository noticeRepository;
 
     @Autowired
+    private AdminRepository adminRepository;
+
+    @Autowired
     private MockMvc mockMvc;
 
     private Long noticeId;
@@ -49,12 +53,22 @@ public class NoticeAdminControllerTest {
     @BeforeEach
     @Transactional
     void initData() throws Exception {
+
+        Admin admin = Admin.builder()
+                .username("admin")
+                .password(passwordEncoder.encode("password"))
+                .status(Admin.Status.ACTIVE)
+                .failureCount(0)
+                .build();
+        this.adminRepository.save(admin);
+
         NoticeCreateRequest noticeCreateRequest = new NoticeCreateRequest("공지사항 테스트", "공지사항 테스트입니다.");
-        this.noticeId = this.noticeService.create(noticeCreateRequest).getId();
+        this.noticeId = this.noticeService.create(noticeCreateRequest, admin).getId();
     }
 
     @Test
     @DisplayName("공지 생성 테스트")
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
     void t1() throws Exception {
 
         ResultActions resultActions = mockMvc.perform(
@@ -91,6 +105,7 @@ public class NoticeAdminControllerTest {
 
     @Test
     @DisplayName("공지 수정 테스트")
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
     void t2() throws Exception {
 
         ResultActions resultActions = mockMvc.perform(
@@ -123,6 +138,7 @@ public class NoticeAdminControllerTest {
 
     @Test
     @DisplayName("공지 삭제 테스트")
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
     void t3() throws Exception {
 
         ResultActions resultActions = mockMvc.perform(

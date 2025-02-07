@@ -19,6 +19,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,6 +44,10 @@ public class InquiryControllerTest {
 
     @Autowired
     private InquiryRepository inquiryRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -50,12 +56,23 @@ public class InquiryControllerTest {
     @BeforeEach
     @Transactional
     void initData() throws Exception {
+
+        User user = User.builder()
+                .email("dev@dev.com")
+                .name("user")
+                .sex(User.Sex.MALE)
+                .nickname("닉네임")
+                .age(2000, 1, 1)
+                .build();
+        this.userRepository.save(user);
+
         InquiryCreateRequest inquiryCreateRequest = new InquiryCreateRequest("문의사항 테스트", "문의사항 테스트입니다.");
-        this.inquiryId = this.inquiryService.create(inquiryCreateRequest).getId();
+        this.inquiryId = this.inquiryService.create(inquiryCreateRequest, user).getId();
     }
 
     @Test
     @DisplayName("문의 생성 테스트")
+    @WithMockUser(username = "user", roles = {"USER"})
     void t1() throws Exception {
 
         ResultActions resultActions = mockMvc.perform(
@@ -92,6 +109,7 @@ public class InquiryControllerTest {
 
     @Test
     @DisplayName("문의 수정 테스트")
+    @WithMockUser(username = "user", roles = {"USER"})
     void t2() throws Exception {
 
         ResultActions resultActions = mockMvc.perform(
@@ -124,6 +142,7 @@ public class InquiryControllerTest {
 
     @Test
     @DisplayName("문의 삭제 테스트")
+    @WithMockUser(username = "user", roles = {"USER"})
     void t3() throws Exception {
 
         ResultActions resultActions = mockMvc.perform(
@@ -145,7 +164,7 @@ public class InquiryControllerTest {
     void t4() throws Exception {
 
         ResultActions resultActions = mockMvc.perform(
-                        get("/api/v1/common/inquiries/{id}", inquiryId)
+                        get("/api/v1/common/inquiries/{id}", 168L) // 테스트 용이를 위해 답변이 존재하는 문의글 get
                                 .contentType(new MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8)
                                 )
                 )
@@ -158,7 +177,8 @@ public class InquiryControllerTest {
                 .andExpect(jsonPath("$.data.id").exists())
                 .andExpect(jsonPath("$.data.id").isNumber())
                 .andExpect(jsonPath("$.data.subject").value("문의사항 테스트"))
-                .andExpect(jsonPath("$.data.content").value("문의사항 테스트입니다."));
+                .andExpect(jsonPath("$.data.content").value("문의사항 테스트입니다."))
+                .andExpect(jsonPath("$.data.reply").exists()); // 답변 존재하는지 확인
     }
 
     @Test

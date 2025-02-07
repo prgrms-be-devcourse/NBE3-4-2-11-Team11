@@ -23,32 +23,35 @@ public class NoticeService {
     private final NoticeRepository noticeRepository;
 
     @Transactional
-    public NoticeCreateResponse create(NoticeCreateRequest noticeCreateRequest) {
+    public NoticeCreateResponse create(NoticeCreateRequest noticeCreateRequest, Admin admin) {
 
-//        if (admin == null) {
-//            throw new NoticeException("관리자 정보가 유효하지 않습니다.");
-//        }
+        if (admin == null) {
+            throw new UnauthorizedActionException("관리자 정보가 유효하지 않습니다.");
+        }
 
         try {
             Notice notice = Notice.builder()
-//                    .admin(admin)
+                    .admin(admin)
                     .subject(noticeCreateRequest.getSubject())
                     .content(noticeCreateRequest.getContent())
                     .build();
 
-            noticeRepository.save(notice);
+            this.noticeRepository.save(notice);
             return new NoticeCreateResponse(notice.getId());
         } catch (Exception e) {
             throw new NoticeException("공지사항 생성 중 오류가 발생했습니다. 원인: " + e.getMessage());
         }
-
     }
 
     @Transactional
-    public NoticeUpdateResponse update(Long id, NoticeUpdateRequest noticeUpdateRequest) {
+    public NoticeUpdateResponse update(Long id, NoticeUpdateRequest noticeUpdateRequest, Admin admin) {
 
         Notice notice = this.noticeRepository.findById(id)
                 .orElseThrow(() -> new NoticeException("해당 공지사항을 찾을 수 없습니다."));
+
+        if (!notice.getAdmin().equals(admin)) {
+            throw new UnauthorizedActionException("공지사항을 수정할 권한이 없습니다.");
+        }
 
         try {
             notice.update(noticeUpdateRequest.getSubject(), noticeUpdateRequest.getContent());
@@ -59,16 +62,19 @@ public class NoticeService {
     }
 
     @Transactional
-    public NoticeDeleteResponse delete(Long id) {
+    public void delete(Long id, Admin admin) {
 
         Notice notice = this.noticeRepository.findById(id)
                 .orElseThrow(() -> new NoticeException("해당 공지사항을 찾을 수 없습니다."));
 
-        try {
-            this.noticeRepository.delete(notice);
-            return new NoticeDeleteResponse();
-        } catch (Exception e) {
-            throw new NoticeException("공지사항 삭제 중 오류가 발생했습니다. 원인: " + e.getMessage());
+        if (!notice.getAdmin().equals(admin)) {
+            throw new UnauthorizedActionException("공지사항을 삭제할 권한이 없습니다.");
+
+            try {
+                this.noticeRepository.delete(notice);
+            } catch (Exception e) {
+                throw new NoticeException("공지사항 삭제 중 오류가 발생했습니다. 원인: " + e.getMessage());
+            }
         }
     }
 

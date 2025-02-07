@@ -1,6 +1,7 @@
-package com.pofo.backend.domain.notice.entity;
+package com.pofo.backend.domain.reply.entity;
 
 import com.pofo.backend.common.jpa.entity.BaseTime;
+import com.pofo.backend.domain.inquiry.entity.Inquiry;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -9,21 +10,21 @@ import lombok.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-@Table(name = "notices")
-public class Notice extends BaseTime {
+@Table(name = "replies")
+public class Reply extends BaseTime {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "admin_id", nullable = true)
+    @JoinColumn(name = "admin_id", nullable = false)
     private Admin admin;
 
-    @Column(length = 100, nullable = false)
-    private String subject;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "inquiry_id", nullable = false)
+    private Inquiry inquiry;
 
     @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
 
-    public void update(String subject, String content) {
-        this.subject = subject;
+    public void update(String content) {
         this.content = content;
     }
 }

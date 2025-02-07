@@ -1,9 +1,7 @@
 package com.pofo.backend.domain.inquiry.entity;
 
 import com.pofo.backend.common.jpa.entity.BaseTime;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
@@ -14,9 +12,9 @@ import lombok.*;
 @Table(name = "inquiries")
 public class Inquiry extends BaseTime {
 
-	// @ManyToOne(fetch = FetchType.LAZY)
-	// @JoinColumn(name = "user_id", nullable = false)
-	// private User user;
+	 @ManyToOne(fetch = FetchType.LAZY)
+	 @JoinColumn(name = "user_id", nullable = false)
+	 private User user;
 
 	@Column(length = 100, nullable = false)
 	private String subject;
@@ -30,5 +28,9 @@ public class Inquiry extends BaseTime {
 	public void update(String subject, String content) {
 		this.subject = subject;
 		this.content = content;
+	}
+
+	public void updateResponse(boolean response) {
+		this.response = response ? 1 : 0;
 	}
 }
