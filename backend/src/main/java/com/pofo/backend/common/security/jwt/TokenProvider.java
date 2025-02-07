@@ -209,4 +209,9 @@ public class TokenProvider {
     public SecretKey getKey() {
         return key;
     }
+
+    public long getTokenExpirationTime(String token) {
+        Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
+        return claims.getExpiration().getTime() - System.currentTimeMillis();
+    }
 }
