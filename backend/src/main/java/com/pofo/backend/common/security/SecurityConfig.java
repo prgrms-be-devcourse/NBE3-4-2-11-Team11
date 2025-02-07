@@ -90,6 +90,9 @@ public class SecurityConfig {
                                 "/api/v1/user/naver/login",
                                 "/api/v1/user/naver/login/naver/callback",
                                 "/api/v1/user/naver/login/process",
+                                "/api/v1/user/kakao/login",
+                                "/api/v1/user/kakao/login/kakao/callback",
+                                "/api/v1/user/kakao/login/process",
                                 "/api/v1/user/oauth2/**"
                         ).permitAll()
                         .anyRequest().authenticated()
