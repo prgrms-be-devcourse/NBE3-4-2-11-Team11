@@ -3,22 +3,28 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import api from "../../../utils/api"; // 실제 경로에 맞게 수정
+import { useAuthStore } from "@/store/authStore"; // Zustand 스토어 사용
 
 export default function AdminDashboard() {
   const [adminName, setAdminName] = useState<string | null>(null);
   const [error, setError] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const router = useRouter();
+  const { isLoggedIn, login, logout } = useAuthStore();
 
   useEffect(() => {
+    // 클라이언트 사이드에서만 localStorage 접근
     const token = localStorage.getItem("accessToken");
-    if (!token) {
+    if (token && !isLoggedIn) {
+      // 토큰은 있는데 스토어에 반영되지 않은 경우 업데이트
+      login(token);
+    } else if (!token) {
       setError("로그인이 필요합니다.");
       router.push("/admin/login");
-    } else {
-      fetchAdminData();
+      return;
     }
-  }, [router]);
+    fetchAdminData();
+  }, [router, isLoggedIn, login]);
 
   const fetchAdminData = async () => {
     try {
@@ -40,6 +46,7 @@ export default function AdminDashboard() {
     } finally {
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");
+      logout();
       router.push("/admin/login");
     }
   };

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/store/authStore"; // 제공된 Zustand 스토어 사용
 
 export default function AdminLoginPage() {
   const [username, setUsername] = useState("");
@@ -9,6 +10,7 @@ export default function AdminLoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
+  const { login } = useAuthStore();
 
   const handleAdminLogin = async () => {
     setLoading(true);
@@ -39,6 +41,9 @@ export default function AdminLoginPage() {
       // 로컬 스토리지에 토큰 저장
       localStorage.setItem("accessToken", accessToken);
       localStorage.setItem("refreshToken", refreshToken);
+
+      // Zustand 스토어에 로그인 상태 반영
+      login(accessToken);
 
       // 대시보드 페이지로 이동
       router.push("/admin/dashboard");
