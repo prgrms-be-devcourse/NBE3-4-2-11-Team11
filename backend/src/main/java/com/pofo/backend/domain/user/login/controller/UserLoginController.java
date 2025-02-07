@@ -78,8 +78,9 @@ public class UserLoginController {
             throw new SocialLoginException("잘못된 접근입니다.");
         }
 
-        //  f/e의 NaverCallback 페이지로 리디렉트
-        String redirectUrl = "http://localhost:3000/login/naver/naverCallback?code=" + code + "&state=" + state;
+        //  f/e의 callback 페이지로 리디렉트
+        String redirectUrl = "http://localhost:3000/login/callback?provider=NAVER&code=" + code + "&state=" + state;
+
 
         return ResponseEntity.status(HttpStatus.FOUND)
                 .header(HttpHeaders.LOCATION,redirectUrl)
@@ -132,7 +133,7 @@ public class UserLoginController {
         }
 
         //  f/e의 KakaoCallback 페이지로 리디렉트
-        String redirectUrl = "http://localhost:3000/login/kakao/kakaoCallback?code=" + code + "&state=" + state;
+        String redirectUrl = "http://localhost:3000/login/callback?provider=KAKAO&code=" + code + "&state=" + state;
 
         return ResponseEntity.status(HttpStatus.FOUND)
                 .header(HttpHeaders.LOCATION,redirectUrl)

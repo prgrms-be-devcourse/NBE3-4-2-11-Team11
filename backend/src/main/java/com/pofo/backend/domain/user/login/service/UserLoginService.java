@@ -247,17 +247,16 @@ public class UserLoginService {
         // ✅ 카카오 응답 데이터 구조 확인 후 파싱
         Map<String, Object> responseMap = userInfoResponse.getBody();
 
-        if (responseMap == null || !responseMap.containsKey("email")) {
-            throw new SocialLoginException("소셜 카카오 실패 : 사용자 ID 없음.");
-        }
-
         String identify = responseMap.get("id").toString(); // 카카오 유저 고유 ID
 
         // ✅ email 정보는 "kakao_account" 내부에 존재함.
         Map<String, Object> kakaoAccount = (Map<String, Object>) responseMap.get("kakao_account");
+
+
         if (kakaoAccount == null || !kakaoAccount.containsKey("email")) {
             throw new SocialLoginException("소셜 로그인 실패 : 카카오, 사유 : email 정보 없음");
         }
+
 
         String email = kakaoAccount.get("email").toString();
 
