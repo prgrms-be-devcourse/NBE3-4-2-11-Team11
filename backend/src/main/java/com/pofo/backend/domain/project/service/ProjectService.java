@@ -25,9 +25,12 @@ public class ProjectService {
     private final ProjectRepository projectRepository;
     private final ProjectMapper projectMapper;
 
+    @Transactional
     public ProjectCreateResponse createProject(ProjectCreateRequest projectRequest, User user) {
 
         try{
+
+            System.out.println(user.getId());
 
             Project project = Project.builder()
                     .user(user)
@@ -41,10 +44,10 @@ public class ProjectService {
                     .imageUrl(projectRequest.getImageUrl())
                     .build();
 
+            projectRepository.save(project);
+
             return new ProjectCreateResponse(project.getId());
 
-        }catch (ProjectCreationException ex) {
-            throw ex;  // 이미 정의된 예외는 다시 던진다.
         }catch (Exception ex){
             throw ProjectCreationException.badRequest("프로젝트 등록 중 오류가 발생했습니다.");
         }
