@@ -32,16 +32,39 @@ dependencies {
 	testImplementation 'org.springframework.security:spring-security-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
+	// Spring security
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	testImplementation 'org.springframework.security:spring-security-test'
+
+//JWT
+	implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
+	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+
+	implementation 'io.github.cdimascio:dotenv-java:3.0.0'
+
+
+	//implementation 'org.springframework.data:spring-data-redis:2.7.5'
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+	// https://mvnrepository.com/artifact/io.lettuce/lettuce-core
+	implementation 'io.lettuce:lettuce-core:6.3.1.RELEASE'
+
+	// Tomcat이 이미 필요한 서블릿 API를 제공하기 때문에 불필요.
+	//  compileOnly 'jakarta.servlet:jakarta.servlet-api:5.0.0'
+
 	implementation 'org.mapstruct:mapstruct:1.5.2.Final'
 	annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.2.Final'
-
-    testImplementation("org.assertj:assertj-core:3.26.3")
-
-	// Jackson for JSON processing
+	annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
 	implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.16.1'
 	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 }
 
+
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+tasks.withType(Test).configureEach {
+	systemProperty 'file.encoding', 'UTF-8'
 }
