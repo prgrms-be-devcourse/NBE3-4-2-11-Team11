@@ -42,28 +42,25 @@ public class ResumeService {
     public Resume updateResume(ResumeCreateRequest request, User user) {
         Resume resume = resumeRepository.findByUser(user)
             .orElseThrow(() -> new ResumeCreationException("이력서를 찾을 수 없습니다."));
+
+        if (resume.getId() != null && !resume.getUser().equals(user)) {
+            throw new UnauthorizedActionException("다른 사용자의 이력서를 수정할 수 없습니다.");
+        }
+
         updateResumeFields(resume, request);
         return saveResumeAndRelatedEntities(resume, request);
     }
 
     @Transactional
     public void deleteResume(User user) {
-        // user를 기준으로 이력서 찾기
         Resume resume = resumeRepository.findByUser(user)
             .orElseThrow(() -> new ResumeCreationException("이력서를 찾을 수 없습니다."));
 
         try {
-            // 해당 이력서 삭제
             resumeRepository.delete(resume);
         } catch (DataAccessException e) {
             throw new ResumeCreationException("이력서 삭제 중 데이터베이스 오류가 발생했습니다.");
         }
-    }
-
-    @Transactional(readOnly = true)
-    public Resume getResumeByUser(User user) {
-        return resumeRepository.findResumeWithDetails(user)
-            .orElseThrow(() -> new ResumeCreationException("이력서가 존재하지 않습니다."));
     }
 
     private Resume buildResume(ResumeCreateRequest request, User user) {
@@ -122,21 +119,11 @@ public class ResumeService {
             .build();
     }
 
-    private Resume findResumeByIdAndCheckOwnership(Long resumeId, User user) {
-        Resume resume = resumeRepository.findById(resumeId)
-            .orElseThrow(() -> new ResumeCreationException("이력서가 존재하지 않습니다."));
-        if (!resume.getUser().equals(user)) {
-            throw new UnauthorizedActionException("이력서를 수정할 권한이 없습니다.");
-        }
-        return resume;
-    }
-
     @Transactional(readOnly = true)
     public ResumeResponse getResumeResponse(User user) {
         Resume resume = resumeRepository.findByUser(user)
-            .orElseThrow(() -> new IllegalArgumentException("이력서를 찾을 수 없습니다."));
+            .orElseThrow(() -> new ResumeCreationException("이력서를 찾을 수 없습니다."));
 
         return resumeMapper.resumeToResumeResponse(resume);
     }
-
 }
