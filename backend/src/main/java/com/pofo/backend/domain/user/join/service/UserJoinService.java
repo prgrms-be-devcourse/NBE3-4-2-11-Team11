@@ -25,6 +25,11 @@ public class UserJoinService {
     @Transactional
     public UserJoinResponseDto registerUser(UserJoinRequestDto userJoinRequestDto) {
 
+        System.out.println("Debug - identify: " + userJoinRequestDto.getIdentify());
+        System.out.println("Debug - name: " + userJoinRequestDto.getName());
+        System.out.println("Debug - nickname: " + userJoinRequestDto.getNickname());
+        System.out.println("Debug - sex: " + userJoinRequestDto.getSex());
+
         //  1.  oauth테이블의 provider, identify 항목 취득 : 2025-01-31 반영
         Optional<Oauth> existingOauths = oauthsRepository.findByProviderAndIdentify(
                 userJoinRequestDto.getProvider(),
