@@ -38,16 +38,4 @@ public class LicenseService {
         licenseRepository.deleteByResumeId(resumeId);
         addLicenses(resumeId, licenses);
     }
-
-//    public List<LicenseResponse> getLicensesByResumeId(Long resumeId) {
-//        return licenseRepository.findByResumeId(resumeId).stream()
-//            .map(license -> {
-//                LicenseResponse response = new LicenseResponse();
-//                response.setName(license.getName());
-//                response.setInstitution(license.getInstitution());
-//                response.setCertifiedDate(license.getCertifiedDate());
-//                return response;
-//            })
-//            .collect(Collectors.toList());
-//    }
 }

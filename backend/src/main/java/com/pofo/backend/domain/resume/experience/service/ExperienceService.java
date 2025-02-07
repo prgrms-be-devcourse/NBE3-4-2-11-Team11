@@ -42,19 +42,4 @@ public class ExperienceService {
         addExperiences(resumeId, experienceRequests);
     }
 
-//    public List<ExperienceResponse> getExperiencesByResumeId(Long resumeId) {
-//        return experienceRepository.findByResumeId(resumeId).stream()
-//            .map(experience -> {
-//                ExperienceResponse response = new ExperienceResponse();
-//                response.setName(experience.getName());
-//                response.setDepartment(experience.getDepartment());
-//                response.setPosition(experience.getPosition());
-//                response.setResponsibility(experience.getResponsibility());
-//                response.setStartDate(experience.getStartDate());
-//                response.setEndDate(experience.getEndDate());
-//                return response;
-//            })
-//            .collect(Collectors.toList());
-//    }
-
 }

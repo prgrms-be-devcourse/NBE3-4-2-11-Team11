@@ -3,7 +3,6 @@ package com.pofo.backend.domain.resume.resume.controller;
 import com.pofo.backend.common.rsData.RsData;
 import com.pofo.backend.common.security.CustomUserDetails;
 import com.pofo.backend.domain.resume.resume.dto.request.ResumeCreateRequest;
-import com.pofo.backend.domain.resume.resume.dto.response.ResumeIdResponse;
 import com.pofo.backend.domain.resume.resume.dto.response.ResumeResponse;
 import com.pofo.backend.domain.resume.resume.service.ResumeService;
 import com.pofo.backend.domain.user.join.entity.User;
@@ -27,7 +26,7 @@ public class ResumeController {
     private final ResumeService resumeService;
 
     @PostMapping("")
-    public ResponseEntity<RsData<ResumeIdResponse>> createResume(
+    public ResponseEntity<RsData<Object>> createResume(
         @Valid @RequestBody ResumeCreateRequest resumeCreateRequest,
         @AuthenticationPrincipal CustomUserDetails customUserDetails) {
 
@@ -37,7 +36,7 @@ public class ResumeController {
     }
 
     @PutMapping("")
-    public ResponseEntity<RsData<ResumeIdResponse>> updateResume(
+    public ResponseEntity<RsData<Object>> updateResume(
         @Valid @RequestBody ResumeCreateRequest resumeCreateRequest,
         @AuthenticationPrincipal CustomUserDetails customUserDetails) {
 

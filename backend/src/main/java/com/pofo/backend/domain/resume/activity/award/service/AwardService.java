@@ -3,7 +3,6 @@ package com.pofo.backend.domain.resume.activity.award.service;
 import com.pofo.backend.domain.resume.activity.activity.entity.Activity;
 import com.pofo.backend.domain.resume.activity.activity.repository.ActivityRepository;
 import com.pofo.backend.domain.resume.activity.award.dto.AwardRequest;
-import com.pofo.backend.domain.resume.activity.award.dto.AwardResponse;
 import com.pofo.backend.domain.resume.activity.award.entity.Award;
 import com.pofo.backend.domain.resume.activity.award.repository.AwardRepository;
 import com.pofo.backend.domain.resume.resume.exception.ResumeCreationException;
@@ -33,20 +32,5 @@ public class AwardService {
             .collect(Collectors.toList());
 
         awardRepository.saveAll(awardEntities);
-    }
-
-    public void updateAwards(Long activityId, List<AwardRequest> awards) {
-        awardRepository.deleteByActivityId(activityId);
-        addAwards(activityId, awards);
-    }
-
-    public List<AwardResponse> getAwardsByActivityId(Long activityId) {
-        return awardRepository.findByActivityId(activityId).stream()
-            .map(award -> AwardResponse.builder()
-                .name(award.getName())
-                .institution(award.getInstitution())
-                .awardDate(award.getAwardDate())
-                .build())
-            .collect(Collectors.toList());
     }
 }

@@ -40,16 +40,4 @@ public class LanguageService {
         addLanguages(resumeId, languages);
     }
 
-//    public List<LanguageResponse> getLanguagesByResumeId(Long resumeId) {
-//        return languageRepository.findByResumeId(resumeId).stream()
-//            .map(language -> {
-//                LanguageResponse response = new LanguageResponse();
-//                response.setLanguage(language.getLanguage());
-//                response.setName(language.getName());
-//                response.setResult(language.getResult());
-//                response.setCertifiedDate(language.getCertifiedDate());
-//                return response;
-//            })
-//            .collect(Collectors.toList());
-//    }
 }
