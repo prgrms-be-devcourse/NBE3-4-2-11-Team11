@@ -38,6 +38,12 @@ public class BoardService {
         ));
     }
 
+    // 게시글 상세 조회
+    public RsData<BoardResponseDto> getPostById(Long id) {
+        Board board = findEntityOrThrow(boardRepository.findById(id), "게시글을 찾을 수 없습니다.");
+        return new RsData<>("200", "게시글 조회 성공", new BoardResponseDto(board));
+    }
+
     // 게시글 작성
     @Transactional
     public RsData<BoardResponseDto> createPost(BoardRequestDto requestDto) {
