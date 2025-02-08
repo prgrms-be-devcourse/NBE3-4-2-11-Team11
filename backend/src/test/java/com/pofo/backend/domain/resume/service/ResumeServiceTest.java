@@ -10,17 +10,24 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.pofo.backend.domain.resume.activity.activity.service.ActivityService;
+import com.pofo.backend.domain.resume.course.service.CourseService;
 import com.pofo.backend.domain.resume.education.entity.Education;
+import com.pofo.backend.domain.resume.education.service.EducationService;
+import com.pofo.backend.domain.resume.experience.entity.Experience;
+import com.pofo.backend.domain.resume.experience.service.ExperienceService;
+import com.pofo.backend.domain.resume.language.entity.Language;
+import com.pofo.backend.domain.resume.language.service.LanguageService;
+import com.pofo.backend.domain.resume.license.service.LicenseService;
 import com.pofo.backend.domain.resume.resume.dto.request.ResumeCreateRequest;
+import com.pofo.backend.domain.resume.resume.dto.response.ResumeResponse;
 import com.pofo.backend.domain.resume.resume.entity.Resume;
 import com.pofo.backend.domain.resume.resume.exception.ResumeCreationException;
-import com.pofo.backend.domain.resume.resume.exception.UnauthorizedActionException;
 import com.pofo.backend.domain.resume.resume.repository.ResumeRepository;
 import com.pofo.backend.domain.resume.resume.service.ResumeService;
 import com.pofo.backend.domain.user.join.entity.User;
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -41,6 +48,16 @@ class ResumeServiceTest {
     private ResumeRepository resumeRepository;
     @Mock
     private ActivityService activityService;
+    @Mock
+    private CourseService courseService;
+    @Mock
+    private ExperienceService experienceService;
+    @Mock
+    private EducationService educationService;
+    @Mock
+    private LicenseService licenseService;
+    @Mock
+    private LanguageService languageService;
 
     @Mock
     private User mockUser;
@@ -72,25 +89,25 @@ class ResumeServiceTest {
     @Test
     @DisplayName("이력서 조회 성공")
     void getResumeByUser_success() {
-        when(resumeRepository.findResumeWithDetails(mockUser)).thenReturn(Optional.of(mockResume));
+        when(resumeRepository.findByUser(mockUser)).thenReturn(Optional.of(mockResume));
 
-        Resume result = resumeService.getResumeByUser(mockUser);
+        ResumeResponse result = resumeService.getResumeResponse(mockUser);
 
         assertEquals("김상진", result.getName());
         assertEquals("prgrms@naver.com", result.getEmail());
-        verify(resumeRepository).findResumeWithDetails(mockUser);
+        verify(resumeRepository).findByUser(mockUser);
     }
 
     @Test
     @DisplayName("이력서 조회 실패 - 이력서 없음")
     void getResumeByUser_notFound() {
-        when(resumeRepository.findResumeWithDetails(mockUser)).thenReturn(Optional.empty());
+        when(resumeRepository.findByUser(mockUser)).thenReturn(Optional.empty());
 
         assertThrows(ResumeCreationException.class, () -> {
-            resumeService.getResumeByUser(mockUser);
+            resumeService.getResumeResponse(mockUser);
         });
 
-        verify(resumeRepository).findResumeWithDetails(mockUser);
+        verify(resumeRepository).findByUser(mockUser);
     }
 
     @Test
@@ -103,64 +120,80 @@ class ResumeServiceTest {
 
         assertNotNull(result);
         verify(resumeRepository).save(any(Resume.class));
-        verify(activityService, times(0)).updateActivities(any(), any());  // request.getActivities()가 null이므로
+        verify(activityService, times(0)).updateActivities(any(), any());
+        verify(courseService, times(0)).updateCourses(any(), any());
+        verify(experienceService, times(0)).updateExperiences(any(), any());
+        verify(educationService, times(0)).updateEducations(any(), any());
+        verify(licenseService, times(0)).updateLicenses(any(), any());
+        verify(languageService, times(0)).updateLanguages(any(), any());
     }
 
     @Test
     @DisplayName("이력서 수정 성공")
     void updateResume_success() {
+        User mockUser = mock(User.class);
+        Resume mockResume = mock(Resume.class);
+
         ResumeCreateRequest request = createResumeRequest();
-        when(resumeRepository.findById(1L)).thenReturn(Optional.of(mockResume));
+
+        when(resumeRepository.findByUser(mockUser)).thenReturn(Optional.of(mockResume));
         when(resumeRepository.save(any(Resume.class))).thenReturn(mockResume);
         when(mockResume.getUser()).thenReturn(mockUser);
 
-        Resume result = resumeService.updateResume(1L, request, mockUser);
+        Resume result = resumeService.updateResume(request, mockUser);
 
         assertNotNull(result);
-        verify(resumeRepository).findById(1L);
+        verify(resumeRepository).findByUser(mockUser);
         verify(resumeRepository).save(any(Resume.class));
+        verify(activityService, times(0)).updateActivities(any(), any());
+        verify(courseService, times(0)).updateCourses(any(), any());
+        verify(experienceService, times(0)).updateExperiences(any(), any());
+        verify(educationService, times(0)).updateEducations(any(), any());
+        verify(licenseService, times(0)).updateLicenses(any(), any());
+        verify(languageService, times(0)).updateLanguages(any(), any());
     }
 
+
+
     @Test
-    @DisplayName("이력서 수정 실패 - 권한 없음")
+    @DisplayName("이력서 수정 실패")
     void updateResume_noPermission() {
         ResumeCreateRequest request = createResumeRequest();
         User differentUser = mock(User.class);
-        when(resumeRepository.findById(1L)).thenReturn(Optional.of(mockResume));
-        when(mockResume.getUser()).thenReturn(differentUser);
+        when(resumeRepository.findByUser(differentUser)).thenReturn(Optional.of(mockResume));
 
-        assertThrows(UnauthorizedActionException.class, () -> {
-            resumeService.updateResume(1L, request, mockUser);
+        assertThrows(ResumeCreationException.class, () -> {
+            resumeService.updateResume(request, mockUser);
         });
     }
 
     @Test
     @DisplayName("이력서 삭제 성공")
     void deleteResume_success() {
-        when(resumeRepository.findById(1L)).thenReturn(Optional.of(mockResume));
+        when(resumeRepository.findByUser(mockUser)).thenReturn(Optional.of(mockResume));
         when(mockResume.getUser()).thenReturn(mockUser);
 
-        resumeService.deleteResume(1L, mockUser);
+        resumeService.deleteResume(mockUser);
 
         verify(resumeRepository).delete(mockResume);
     }
 
     @Test
-    @DisplayName("이력서 삭제 실패 - 권한 없음")
+    @DisplayName("이력서 삭제 실패")
     void deleteResume_noPermission() {
         User differentUser = mock(User.class);
-        when(resumeRepository.findById(1L)).thenReturn(Optional.of(mockResume));
+        when(resumeRepository.findByUser(differentUser)).thenReturn(Optional.of(mockResume));
         when(mockResume.getUser()).thenReturn(differentUser);
 
-        assertThrows(UnauthorizedActionException.class, () -> {
-            resumeService.deleteResume(1L, mockUser);
+        assertThrows(ResumeCreationException.class, () -> {
+            resumeService.deleteResume(mockUser);
         });
     }
 
     @Test
-    @DisplayName("이력서 조회 성공 - 교육 정보 포함")
-    void getResumeByUser_withEducations() {
-        List<Education> educations = List.of(
+    @DisplayName("이력서 조회 성공 - 교육, 언어, 경력 정보 포함")
+    void getResumeByUser_withEducations_languages_and_experiences() {
+        Set<Education> educations = Set.of(
             Education.builder()
                 .name("서울대학교")
                 .major("컴퓨터 공학")
@@ -171,20 +204,40 @@ class ResumeServiceTest {
                 .build()
         );
 
+        Set<Language> languages = Set.of(
+            Language.builder()
+                .language("영어")
+                .result("TOEIC 900")
+                .certifiedDate(LocalDate.of(2020, 5, 20))
+                .resume(mockResume)
+                .build()
+        );
+
+        Set<Experience> experiences = Set.of(
+            Experience.builder()
+                .name("Google")
+                .department("Engineering")
+                .position("Software Engineer")
+                .responsibility("Developed backend services")
+                .startDate(LocalDate.of(2020, 5, 1))
+                .endDate(LocalDate.of(2022, 5, 1))
+                .resume(mockResume)
+                .build()
+        );
+
+
         when(mockResume.getEducations()).thenReturn(educations);
-        when(resumeRepository.findResumeWithDetails(mockUser)).thenReturn(Optional.of(mockResume));
+        when(mockResume.getLanguages()).thenReturn(languages);
+        when(mockResume.getExperiences()).thenReturn(experiences);
+        when(resumeRepository.findByUser(mockUser)).thenReturn(Optional.of(mockResume));
 
-        Resume result = resumeService.getResumeByUser(mockUser);
+        ResumeResponse result = resumeService.getResumeResponse(mockUser);
 
-        assertEquals("김상진", result.getName());
-        assertEquals("prgrms@naver.com", result.getEmail());
+        assertNotNull(result);
         assertEquals(1, result.getEducations().size());
-        assertEquals("서울대학교", result.getEducations().get(0).getName());
-        assertEquals("컴퓨터 공학", result.getEducations().get(0).getMajor());
-        assertEquals(Education.Status.GRADUATED, result.getEducations().get(0).getStatus());
-
-        verify(resumeRepository).findResumeWithDetails(mockUser);
+        assertEquals("서울대학교", result.getEducations().iterator().next().getName());
+        assertEquals("영어", result.getLanguages().iterator().next().getLanguage());
+        assertEquals("Google", result.getExperiences().iterator().next().getName());
     }
-
 
 }

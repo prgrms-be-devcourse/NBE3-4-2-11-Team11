@@ -1,11 +1,19 @@
 package com.pofo.backend.common.security.jwt;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
+
 import com.pofo.backend.common.security.AdminDetailsService;
 import com.pofo.backend.common.security.CustomUserDetails;
 import com.pofo.backend.domain.user.join.entity.User;
-import com.pofo.backend.domain.user.join.repository.UsersRepository;
+import com.pofo.backend.domain.user.join.repository.UserRepository;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import java.util.Base64;
+import java.util.Date;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,13 +24,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.Base64;
-import java.util.Date;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
-
 @ExtendWith(MockitoExtension.class)
 public class TokenProviderTest {
 
@@ -30,7 +31,7 @@ public class TokenProviderTest {
     private TokenProvider tokenProvider;
 
     @Mock
-    private UsersRepository usersRepository;
+    private UserRepository usersRepository;
 
     @Mock
     private AdminDetailsService adminDetailsService;

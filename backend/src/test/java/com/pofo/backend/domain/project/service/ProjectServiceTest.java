@@ -120,11 +120,15 @@ public class ProjectServiceTest {
                 .when(mockUser).getId();
         ProjectCreateRequest request = projectCreateRequest();
 
-        try{
+        // when & then
+        ProjectCreationException exception = assertThrows(ProjectCreationException.class, () -> {
             projectService.createProject(request, mockUser);
-        }catch (RuntimeException ex){
-            assertEquals("400","프로젝트 등록 중 오류가 발생했습니다.");
-        }
+        });
+
+        // RsData 확인
+        RsData<Void> rsData = exception.getRsData();
+        assertEquals("400", rsData.getResultCode());
+        assertEquals("프로젝트 등록 중 오류가 발생했습니다.", rsData.getMessage());
     }
 
     @Test
@@ -181,7 +185,7 @@ public class ProjectServiceTest {
         // 예외 메시지 확인
         RsData<Void> rsData = exception.getRsData();
         assertEquals("404", rsData.getResultCode());
-        assertEquals("프로젝트가 존재하지 않습니다.", rsData.getMsg());
+        assertEquals("프로젝트가 존재하지 않습니다.", rsData.getMessage());
     }
 
     @Test
@@ -198,7 +202,7 @@ public class ProjectServiceTest {
         // 예외 메시지 확인
         RsData<Void> rsData = exception.getRsData();
         assertEquals("400", rsData.getResultCode());
-        assertEquals("프로젝트 전체 조회 중 오류가 발생했습니다.", rsData.getMsg());
+        assertEquals("프로젝트 전체 조회 중 오류가 발생했습니다.", rsData.getMessage());
     }
 
 
@@ -260,7 +264,7 @@ public class ProjectServiceTest {
 
         RsData<Void> rsData = exception.getRsData();
         assertEquals("404", rsData.getResultCode());
-        assertEquals("해당 프로젝트를 찾을 수 없습니다.", rsData.getMsg());
+        assertEquals("해당 프로젝트를 찾을 수 없습니다.", rsData.getMessage());
     }
 
 
@@ -280,7 +284,7 @@ public class ProjectServiceTest {
 
         RsData<Void> rsData = exception.getRsData();
         assertEquals("400", rsData.getResultCode());
-        assertEquals("프로젝트 단건 조회 중 오류가 발생했습니다.", rsData.getMsg());
+        assertEquals("프로젝트 단건 조회 중 오류가 발생했습니다.", rsData.getMessage());
 
 
     }
@@ -364,7 +368,7 @@ public class ProjectServiceTest {
 
         RsData<Void> rsData = exception.getRsData();
         assertEquals("404", rsData.getResultCode());
-        assertEquals("해당 프로젝트를 찾을 수 없습니다.", rsData.getMsg());
+        assertEquals("해당 프로젝트를 찾을 수 없습니다.", rsData.getMessage());
     }
 
     @Test
@@ -386,7 +390,7 @@ public class ProjectServiceTest {
 
         RsData<Void> rsData = exception.getRsData();
         assertEquals("403", rsData.getResultCode());
-        assertEquals("프로젝트 수정 할 권한이 없습니다.", rsData.getMsg());
+        assertEquals("프로젝트 수정 할 권한이 없습니다.", rsData.getMessage());
     }
 
     @Test
@@ -425,7 +429,7 @@ public class ProjectServiceTest {
 
         RsData<Void> rsData = exception.getRsData();
         assertEquals("403", rsData.getResultCode());
-        assertEquals("프로젝트 삭제 할 권한이 없습니다.", rsData.getMsg());
+        assertEquals("프로젝트 삭제 할 권한이 없습니다.", rsData.getMessage());
     }
 
     @Test
@@ -447,7 +451,7 @@ public class ProjectServiceTest {
 
         RsData<Void> rsData = exception.getRsData();
         assertEquals("500", rsData.getResultCode());
-        assertEquals("프로젝트 삭제 중 데이터베이스 오류가 발생했습니다.", rsData.getMsg());
+        assertEquals("프로젝트 삭제 중 데이터베이스 오류가 발생했습니다.", rsData.getMessage());
 
     }
 }

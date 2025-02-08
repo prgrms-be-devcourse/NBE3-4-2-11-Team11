@@ -7,12 +7,14 @@ import com.pofo.backend.domain.resume.experience.service.ExperienceService;
 import com.pofo.backend.domain.resume.language.service.LanguageService;
 import com.pofo.backend.domain.resume.license.service.LicenseService;
 import com.pofo.backend.domain.resume.resume.dto.request.ResumeCreateRequest;
+import com.pofo.backend.domain.resume.resume.dto.response.ResumeResponse;
 import com.pofo.backend.domain.resume.resume.entity.Resume;
 import com.pofo.backend.domain.resume.resume.exception.ResumeCreationException;
 import com.pofo.backend.domain.resume.resume.exception.UnauthorizedActionException;
+import com.pofo.backend.domain.resume.resume.mapper.ResumeMapper;
 import com.pofo.backend.domain.resume.resume.repository.ResumeRepository;
-import lombok.RequiredArgsConstructor;
 import com.pofo.backend.domain.user.join.entity.User;
+import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +30,7 @@ public class ResumeService {
     private final EducationService educationService;
     private final LicenseService licenseService;
     private final LanguageService languageService;
+    private final ResumeMapper resumeMapper;
 
     @Transactional
     public Resume createResume(ResumeCreateRequest request, User user) {
@@ -36,26 +39,28 @@ public class ResumeService {
     }
 
     @Transactional
-    public Resume updateResume(Long resumeId, ResumeCreateRequest request, User user) {
-        Resume resume = findResumeByIdAndCheckOwnership(resumeId, user);
+    public Resume updateResume(ResumeCreateRequest request, User user) {
+        Resume resume = resumeRepository.findByUser(user)
+            .orElseThrow(() -> new ResumeCreationException("이력서를 찾을 수 없습니다."));
+
+        if (resume.getId() != null && !resume.getUser().equals(user)) {
+            throw new UnauthorizedActionException("다른 사용자의 이력서를 수정할 수 없습니다.");
+        }
+
         updateResumeFields(resume, request);
         return saveResumeAndRelatedEntities(resume, request);
     }
 
     @Transactional
-    public void deleteResume(Long resumeId, User user) {
-        Resume resume = findResumeByIdAndCheckOwnership(resumeId, user);
+    public void deleteResume(User user) {
+        Resume resume = resumeRepository.findByUser(user)
+            .orElseThrow(() -> new ResumeCreationException("이력서를 찾을 수 없습니다."));
+
         try {
             resumeRepository.delete(resume);
         } catch (DataAccessException e) {
             throw new ResumeCreationException("이력서 삭제 중 데이터베이스 오류가 발생했습니다.");
         }
-    }
-
-    @Transactional(readOnly = true)
-    public Resume getResumeByUser(User user) {
-        return resumeRepository.findResumeWithDetails(user)
-            .orElseThrow(() -> new ResumeCreationException("이력서가 존재하지 않습니다."));
     }
 
     private Resume buildResume(ResumeCreateRequest request, User user) {
@@ -114,12 +119,11 @@ public class ResumeService {
             .build();
     }
 
-    private Resume findResumeByIdAndCheckOwnership(Long resumeId, User user) {
-        Resume resume = resumeRepository.findById(resumeId)
-            .orElseThrow(() -> new ResumeCreationException("이력서가 존재하지 않습니다."));
-        if (!resume.getUser().equals(user)) {
-            throw new UnauthorizedActionException("이력서를 수정할 권한이 없습니다.");
-        }
-        return resume;
+    @Transactional(readOnly = true)
+    public ResumeResponse getResumeResponse(User user) {
+        Resume resume = resumeRepository.findByUser(user)
+            .orElseThrow(() -> new ResumeCreationException("이력서를 찾을 수 없습니다."));
+
+        return resumeMapper.resumeToResumeResponse(resume);
     }
 }
