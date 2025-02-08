@@ -9,6 +9,7 @@ public class UserLoginResponseDto {
     private final String message;
     private final String resultCode;
     private final String token;
+    private final String refreshToken;
     private final String provide;
     private final String identify;
     private final String username;

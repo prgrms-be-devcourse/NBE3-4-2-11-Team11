@@ -237,6 +237,7 @@ public class UserLoginService {
                     .email(email)
                     .username(nowUser.name)
                     .token(jwtToken.getAccessToken())
+                    .refreshToken(jwtToken.getRefreshToken())
                     .build();
         } else {
             //  네이버 계정을 통한 로그인을 최초로 진행하는 경우
@@ -349,6 +350,7 @@ public class UserLoginService {
                     .email(email)
                     .username(nowUser.name)
                     .token(jwtToken.getAccessToken())
+                    .refreshToken(jwtToken.getRefreshToken())
                     .build();
         } else {
             //  카카오 계정을 통한 로그인을 최초로 진행하는 경우
@@ -467,6 +469,7 @@ public class UserLoginService {
                     .email(email)
                     .username(nowUser.getName())
                     .token(jwtToken.getAccessToken())
+                    .refreshToken(jwtToken.getRefreshToken())
                     .build();
         } else {
             // ✅ 5. 신규 회원 → 추가 정보 입력 필요

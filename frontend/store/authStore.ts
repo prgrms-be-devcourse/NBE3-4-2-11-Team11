@@ -1,68 +1,77 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
+import { getAccessToken, getRefreshToken,  setTokens, removeTokens } from "../utils/token"; // ✅ 토큰 유틸 함수 가져오기
 
 type AuthState = {
     isLoggedIn: boolean;
-    login: (token: string) => void;
+    accessToken: string | null;
+    refreshToken: string | null;
+    login: (accessToken: string, refreshToken: string) => void;
     logout: () => void;
+    refreshAccessToken: () => Promise<boolean>;
 };
 
 export const useAuthStore = create<AuthState>()(
     persist(
-        (set) => ({
+        (set, get) => ({
             isLoggedIn: false,
+            accessToken: getAccessToken(),
+            refreshToken: getRefreshToken(),
 
-            login: (token) => {
-                if (typeof window !== "undefined") {
-                    localStorage.setItem("accessToken", token);
-                }
-                set({ isLoggedIn: true });
+            login: (accessToken, refreshToken) => {
+                setTokens(accessToken,refreshToken); // ✅ 유틸 함수 사용
+                set({ isLoggedIn: true, accessToken, refreshToken });
             },
 
             logout: async () => {
                 if (typeof window === "undefined") return;
 
-                const accessToken = localStorage.getItem("accessToken");
-                if (!accessToken) {
-                    console.warn("❌ 로그아웃 요청 실패: 저장된 accessToken 없음");
-                    set({ isLoggedIn: false });
-                    return;
+                removeTokens(); // ✅ 유틸 함수 사용
+                set({ isLoggedIn: false, accessToken: null, refreshToken: null });
+            },
+
+            refreshAccessToken: async () => {
+                const refreshToken = getRefreshToken();
+                if (!refreshToken) {
+                    console.warn("❌ Refresh Token 없음, 로그아웃 진행 필요");
+                    get().logout();
+                    return false;
                 }
 
                 try {
-                    // ✅ 백엔드 로그아웃 API 호출 (토큰을 블랙리스트에 등록)
-                    const response = await fetch("/api/v1/user/logout", {
+                    const response = await fetch("/api/v1/user/refresh", {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json",
-                            Authorization: `Bearer ${accessToken}`,
                         },
-                        body: JSON.stringify({ token: accessToken })
+                        body: JSON.stringify({ refreshToken }),
                     });
 
                     if (!response.ok) {
-                        throw new Error("❌ 로그아웃 API 요청 실패");
+                        console.warn("❌ Refresh Token이 만료됨, 로그아웃 진행");
+                        get().logout();
+                        return false;
                     }
 
-                    console.log("✅ 로그아웃 성공: 백엔드 블랙리스트 등록 완료");
+                    const data = await response.json();
+                    console.log("✅ Access Token 갱신 완료:", data.accessToken);
 
-                    // ✅ Local Storage에서 토큰 삭제
-                    localStorage.removeItem("accessToken");
-                    localStorage.removeItem("refreshToken");
+                    setTokens(data.data.accessToken,data.data.refreshToken); // ✅ 유틸 함수 사용
+                    set({ accessToken: data.accessToken });
 
-                    // ✅ 로그인 상태 변경
-                    set({ isLoggedIn: false });
-
+                    return true;
                 } catch (error) {
-                    console.error("❌ 로그아웃 실패:", error);
+                    console.error("❌ Access Token 갱신 실패:", error);
+                    get().logout();
+                    return false;
                 }
             },
         }),
         {
-            name: "auth-storage", // localStorage에 저장될 키 이름
+            name: "auth-storage",
             storage: typeof window !== "undefined"
                 ? createJSONStorage(() => localStorage)
-                : undefined, // 서버 환경에서는 localStorage 사용 X
+                : undefined,
         }
     )
 );
