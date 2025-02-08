@@ -16,61 +16,46 @@ import com.pofo.backend.domain.resume.license.dto.LicenseResponse;
 import com.pofo.backend.domain.resume.license.entity.License;
 import com.pofo.backend.domain.resume.resume.dto.response.ResumeResponse;
 import com.pofo.backend.domain.resume.resume.entity.Resume;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import javax.annotation.processing.Generated;
 import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-02-08T00:58:53+0900",
+    date = "2025-02-08T16:02:11+0900",
     comments = "version: 1.5.2.Final, compiler: javac, environment: Java 21.0.5 (Oracle Corporation)"
 )
 @Component
 public class ResumeMapperImpl implements ResumeMapper {
 
     @Override
-    public ResumeResponse toResponse(Resume resume) {
+    public ResumeResponse resumeToResumeResponse(Resume resume) {
         if ( resume == null ) {
             return null;
         }
 
-        String name = null;
-        LocalDate birth = null;
-        String number = null;
-        String email = null;
-        String address = null;
-        String gitAddress = null;
-        String blogAddress = null;
-        List<ActivityResponse> activities = null;
-        List<CourseResponse> courses = null;
-        List<ExperienceResponse> experiences = null;
-        List<EducationResponse> educations = null;
-        List<LicenseResponse> licenses = null;
-        List<LanguageResponse> languages = null;
+        ResumeResponse.ResumeResponseBuilder resumeResponse = ResumeResponse.builder();
 
-        name = resume.getName();
-        birth = resume.getBirth();
-        number = resume.getNumber();
-        email = resume.getEmail();
-        address = resume.getAddress();
-        gitAddress = resume.getGitAddress();
-        blogAddress = resume.getBlogAddress();
-        activities = activityListToActivityResponseList( resume.getActivities() );
-        courses = courseListToCourseResponseList( resume.getCourses() );
-        experiences = experienceListToExperienceResponseList( resume.getExperiences() );
-        educations = educationListToEducationResponseList( resume.getEducations() );
-        licenses = licenseListToLicenseResponseList( resume.getLicenses() );
-        languages = languageListToLanguageResponseList( resume.getLanguages() );
+        resumeResponse.name( resume.getName() );
+        resumeResponse.birth( resume.getBirth() );
+        resumeResponse.number( resume.getNumber() );
+        resumeResponse.email( resume.getEmail() );
+        resumeResponse.address( resume.getAddress() );
+        resumeResponse.gitAddress( resume.getGitAddress() );
+        resumeResponse.blogAddress( resume.getBlogAddress() );
+        resumeResponse.activities( activitySetToActivityResponseSet( resume.getActivities() ) );
+        resumeResponse.courses( courseSetToCourseResponseSet( resume.getCourses() ) );
+        resumeResponse.experiences( experienceSetToExperienceResponseSet( resume.getExperiences() ) );
+        resumeResponse.educations( educationSetToEducationResponseSet( resume.getEducations() ) );
+        resumeResponse.licenses( licenseSetToLicenseResponseSet( resume.getLicenses() ) );
+        resumeResponse.languages( languageSetToLanguageResponseSet( resume.getLanguages() ) );
 
-        ResumeResponse resumeResponse = new ResumeResponse( name, birth, number, email, address, gitAddress, blogAddress, activities, courses, experiences, educations, licenses, languages );
-
-        return resumeResponse;
+        return resumeResponse.build();
     }
 
     @Override
-    public ActivityResponse toResponse(Activity activity) {
+    public ActivityResponse activityToActivityResponse(Activity activity) {
         if ( activity == null ) {
             return null;
         }
@@ -81,13 +66,13 @@ public class ResumeMapperImpl implements ResumeMapper {
         activityResponse.history( activity.getHistory() );
         activityResponse.startDate( activity.getStartDate() );
         activityResponse.endDate( activity.getEndDate() );
-        activityResponse.awards( awardListToAwardResponseList( activity.getAwards() ) );
+        activityResponse.awards( awardSetToAwardResponseSet( activity.getAwards() ) );
 
         return activityResponse.build();
     }
 
     @Override
-    public CourseResponse toResponse(Course course) {
+    public CourseResponse courseToCourseResponse(Course course) {
         if ( course == null ) {
             return null;
         }
@@ -103,147 +88,147 @@ public class ResumeMapperImpl implements ResumeMapper {
     }
 
     @Override
-    public ExperienceResponse toResponse(Experience experience) {
+    public ExperienceResponse experienceToExperienceResponse(Experience experience) {
         if ( experience == null ) {
             return null;
         }
 
-        ExperienceResponse experienceResponse = new ExperienceResponse();
+        ExperienceResponse.ExperienceResponseBuilder experienceResponse = ExperienceResponse.builder();
 
-        experienceResponse.setName( experience.getName() );
-        experienceResponse.setDepartment( experience.getDepartment() );
-        experienceResponse.setPosition( experience.getPosition() );
-        experienceResponse.setResponsibility( experience.getResponsibility() );
-        experienceResponse.setStartDate( experience.getStartDate() );
-        experienceResponse.setEndDate( experience.getEndDate() );
+        experienceResponse.name( experience.getName() );
+        experienceResponse.department( experience.getDepartment() );
+        experienceResponse.position( experience.getPosition() );
+        experienceResponse.responsibility( experience.getResponsibility() );
+        experienceResponse.startDate( experience.getStartDate() );
+        experienceResponse.endDate( experience.getEndDate() );
 
-        return experienceResponse;
+        return experienceResponse.build();
     }
 
     @Override
-    public EducationResponse toResponse(Education education) {
+    public EducationResponse educationToEducationResponse(Education education) {
         if ( education == null ) {
             return null;
         }
 
-        EducationResponse educationResponse = new EducationResponse();
+        EducationResponse.EducationResponseBuilder educationResponse = EducationResponse.builder();
 
-        educationResponse.setName( education.getName() );
-        educationResponse.setMajor( education.getMajor() );
-        educationResponse.setStartDate( education.getStartDate() );
-        educationResponse.setEndDate( education.getEndDate() );
-        educationResponse.setStatus( education.getStatus() );
+        educationResponse.name( education.getName() );
+        educationResponse.major( education.getMajor() );
+        educationResponse.startDate( education.getStartDate() );
+        educationResponse.endDate( education.getEndDate() );
+        educationResponse.status( education.getStatus() );
 
-        return educationResponse;
+        return educationResponse.build();
     }
 
     @Override
-    public LicenseResponse toResponse(License license) {
+    public LicenseResponse licenseToLicenseResponse(License license) {
         if ( license == null ) {
             return null;
         }
 
-        LicenseResponse licenseResponse = new LicenseResponse();
+        LicenseResponse.LicenseResponseBuilder licenseResponse = LicenseResponse.builder();
 
-        licenseResponse.setName( license.getName() );
-        licenseResponse.setInstitution( license.getInstitution() );
-        licenseResponse.setCertifiedDate( license.getCertifiedDate() );
+        licenseResponse.name( license.getName() );
+        licenseResponse.institution( license.getInstitution() );
+        licenseResponse.certifiedDate( license.getCertifiedDate() );
 
-        return licenseResponse;
+        return licenseResponse.build();
     }
 
     @Override
-    public LanguageResponse toResponse(Language language) {
+    public LanguageResponse languageToLanguageResponse(Language language) {
         if ( language == null ) {
             return null;
         }
 
-        LanguageResponse languageResponse = new LanguageResponse();
+        LanguageResponse.LanguageResponseBuilder languageResponse = LanguageResponse.builder();
 
-        languageResponse.setLanguage( language.getLanguage() );
-        languageResponse.setName( language.getName() );
-        languageResponse.setResult( language.getResult() );
-        languageResponse.setCertifiedDate( language.getCertifiedDate() );
+        languageResponse.language( language.getLanguage() );
+        languageResponse.name( language.getName() );
+        languageResponse.result( language.getResult() );
+        languageResponse.certifiedDate( language.getCertifiedDate() );
 
-        return languageResponse;
+        return languageResponse.build();
     }
 
-    protected List<ActivityResponse> activityListToActivityResponseList(List<Activity> list) {
-        if ( list == null ) {
+    protected Set<ActivityResponse> activitySetToActivityResponseSet(Set<Activity> set) {
+        if ( set == null ) {
             return null;
         }
 
-        List<ActivityResponse> list1 = new ArrayList<ActivityResponse>( list.size() );
-        for ( Activity activity : list ) {
-            list1.add( toResponse( activity ) );
+        Set<ActivityResponse> set1 = new LinkedHashSet<ActivityResponse>( Math.max( (int) ( set.size() / .75f ) + 1, 16 ) );
+        for ( Activity activity : set ) {
+            set1.add( activityToActivityResponse( activity ) );
         }
 
-        return list1;
+        return set1;
     }
 
-    protected List<CourseResponse> courseListToCourseResponseList(List<Course> list) {
-        if ( list == null ) {
+    protected Set<CourseResponse> courseSetToCourseResponseSet(Set<Course> set) {
+        if ( set == null ) {
             return null;
         }
 
-        List<CourseResponse> list1 = new ArrayList<CourseResponse>( list.size() );
-        for ( Course course : list ) {
-            list1.add( toResponse( course ) );
+        Set<CourseResponse> set1 = new LinkedHashSet<CourseResponse>( Math.max( (int) ( set.size() / .75f ) + 1, 16 ) );
+        for ( Course course : set ) {
+            set1.add( courseToCourseResponse( course ) );
         }
 
-        return list1;
+        return set1;
     }
 
-    protected List<ExperienceResponse> experienceListToExperienceResponseList(List<Experience> list) {
-        if ( list == null ) {
+    protected Set<ExperienceResponse> experienceSetToExperienceResponseSet(Set<Experience> set) {
+        if ( set == null ) {
             return null;
         }
 
-        List<ExperienceResponse> list1 = new ArrayList<ExperienceResponse>( list.size() );
-        for ( Experience experience : list ) {
-            list1.add( toResponse( experience ) );
+        Set<ExperienceResponse> set1 = new LinkedHashSet<ExperienceResponse>( Math.max( (int) ( set.size() / .75f ) + 1, 16 ) );
+        for ( Experience experience : set ) {
+            set1.add( experienceToExperienceResponse( experience ) );
         }
 
-        return list1;
+        return set1;
     }
 
-    protected List<EducationResponse> educationListToEducationResponseList(List<Education> list) {
-        if ( list == null ) {
+    protected Set<EducationResponse> educationSetToEducationResponseSet(Set<Education> set) {
+        if ( set == null ) {
             return null;
         }
 
-        List<EducationResponse> list1 = new ArrayList<EducationResponse>( list.size() );
-        for ( Education education : list ) {
-            list1.add( toResponse( education ) );
+        Set<EducationResponse> set1 = new LinkedHashSet<EducationResponse>( Math.max( (int) ( set.size() / .75f ) + 1, 16 ) );
+        for ( Education education : set ) {
+            set1.add( educationToEducationResponse( education ) );
         }
 
-        return list1;
+        return set1;
     }
 
-    protected List<LicenseResponse> licenseListToLicenseResponseList(List<License> list) {
-        if ( list == null ) {
+    protected Set<LicenseResponse> licenseSetToLicenseResponseSet(Set<License> set) {
+        if ( set == null ) {
             return null;
         }
 
-        List<LicenseResponse> list1 = new ArrayList<LicenseResponse>( list.size() );
-        for ( License license : list ) {
-            list1.add( toResponse( license ) );
+        Set<LicenseResponse> set1 = new LinkedHashSet<LicenseResponse>( Math.max( (int) ( set.size() / .75f ) + 1, 16 ) );
+        for ( License license : set ) {
+            set1.add( licenseToLicenseResponse( license ) );
         }
 
-        return list1;
+        return set1;
     }
 
-    protected List<LanguageResponse> languageListToLanguageResponseList(List<Language> list) {
-        if ( list == null ) {
+    protected Set<LanguageResponse> languageSetToLanguageResponseSet(Set<Language> set) {
+        if ( set == null ) {
             return null;
         }
 
-        List<LanguageResponse> list1 = new ArrayList<LanguageResponse>( list.size() );
-        for ( Language language : list ) {
-            list1.add( toResponse( language ) );
+        Set<LanguageResponse> set1 = new LinkedHashSet<LanguageResponse>( Math.max( (int) ( set.size() / .75f ) + 1, 16 ) );
+        for ( Language language : set ) {
+            set1.add( languageToLanguageResponse( language ) );
         }
 
-        return list1;
+        return set1;
     }
 
     protected AwardResponse awardToAwardResponse(Award award) {
@@ -260,16 +245,16 @@ public class ResumeMapperImpl implements ResumeMapper {
         return awardResponse.build();
     }
 
-    protected List<AwardResponse> awardListToAwardResponseList(List<Award> list) {
-        if ( list == null ) {
+    protected Set<AwardResponse> awardSetToAwardResponseSet(Set<Award> set) {
+        if ( set == null ) {
             return null;
         }
 
-        List<AwardResponse> list1 = new ArrayList<AwardResponse>( list.size() );
-        for ( Award award : list ) {
-            list1.add( awardToAwardResponse( award ) );
+        Set<AwardResponse> set1 = new LinkedHashSet<AwardResponse>( Math.max( (int) ( set.size() / .75f ) + 1, 16 ) );
+        for ( Award award : set ) {
+            set1.add( awardToAwardResponse( award ) );
         }
 
-        return list1;
+        return set1;
     }
 }

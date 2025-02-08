@@ -82,6 +82,7 @@ public class SecurityConfig {
         http
                 // '/api/v1/user/**' 경로에만 적용
                 .securityMatcher("/api/v1/user/**")
+                .cors(withDefaults())  // ✅ CORS 활성화 추가
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
@@ -89,6 +90,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/v1/user/join",
                                 "/api/v1/user/login",
+                                "/api/v1/user/refresh-token",
                                 "/api/v1/user/naver/login",
                                 "/api/v1/user/naver/login/naver/callback",
                                 "/api/v1/user/naver/login/process",

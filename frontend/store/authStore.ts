@@ -1,227 +1,77 @@
-// import { create } from "zustand";
-// import { persist, createJSONStorage } from "zustand/middleware";
-//
-// type AuthState = {
-//     isLoggedIn: boolean;
-//     login: (token: string) => void;
-//     logout: () => void;
-// };
-//
-// export const useAuthStore = create<AuthState>()(
-//     persist(
-//         (set) => ({
-//             isLoggedIn: false,
-//
-//             login: (token) => {
-//                 if (typeof window !== "undefined") {
-//                     localStorage.setItem("accessToken", token);
-//                 }
-//                 set({ isLoggedIn: true });
-//             },
-//
-//             logout: async () => {
-//                 if (typeof window === "undefined") return;
-//
-//                 const accessToken = localStorage.getItem("accessToken");
-//                 if (!accessToken) {
-//                     console.warn("❌ 로그아웃 요청 실패: 저장된 accessToken 없음");
-//                     set({ isLoggedIn: false });
-//                     return;
-//                 }
-//
-//                 try {
-//                     // ✅ 백엔드 로그아웃 API 호출 (토큰을 블랙리스트에 등록)
-//                     const response = await fetch("/api/v1/user/logout", {
-//                         method: "POST",
-//                         headers: {
-//                             "Content-Type": "application/json",
-//                             Authorization: `Bearer ${accessToken}`,
-//                         },
-//                         body: JSON.stringify({ token: accessToken })
-//                     });
-//
-//                     if (!response.ok) {
-//                         throw new Error("❌ 로그아웃 API 요청 실패");
-//                     }
-//
-//                     console.log("✅ 로그아웃 성공: 백엔드 블랙리스트 등록 완료");
-//
-//                     // ✅ Local Storage에서 토큰 삭제
-//                     localStorage.removeItem("accessToken");
-//                     localStorage.removeItem("refreshToken");
-//
-//                     // ✅ 로그인 상태 변경
-//                     set({ isLoggedIn: false });
-//
-//                 } catch (error) {
-//                     console.error("❌ 로그아웃 실패:", error);
-//                 }
-//             },
-//         }),
-//         {
-//             name: "auth-storage", // localStorage에 저장될 키 이름
-//             storage: typeof window !== "undefined"
-//                 ? createJSONStorage(() => localStorage)
-//                 : undefined, // 서버 환경에서는 localStorage 사용 X
-//         }
-//     )
-// );
-// store/authStore.ts
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
+import { getAccessToken, getRefreshToken,  setTokens, removeTokens } from "../utils/token"; // ✅ 토큰 유틸 함수 가져오기
 
 type AuthState = {
-  isLoggedIn: boolean;
-  // ✅ 현재 액세스 토큰, 리프레시 토큰
-  accessToken: string | null;
-  refreshToken: string | null;
-
-  // 로그인/로그아웃
-  login: (accessToken: string, refreshToken?: string) => void;
-  logout: () => void;
-
-  // ✅ Refresh Token을 이용해 새로운 토큰을 발급받는 함수
-  refreshTokens: () => Promise<void>;
+    isLoggedIn: boolean;
+    accessToken: string | null;
+    refreshToken: string | null;
+    login: (accessToken: string, refreshToken: string) => void;
+    logout: () => void;
+    refreshAccessToken: () => Promise<boolean>;
 };
 
 export const useAuthStore = create<AuthState>()(
-  persist(
-    (set, get) => ({
-      isLoggedIn: false,
-      accessToken: null,
-      refreshToken: null,
+    persist(
+        (set, get) => ({
+            isLoggedIn: false,
+            accessToken: getAccessToken(),
+            refreshToken: getRefreshToken(),
 
-      /**
-       * 로그인 함수
-       * - accessToken, refreshToken을 로컬 스토리지와 상태에 저장
-       */
-      login: (accessToken, refreshToken) => {
-        if (typeof window !== "undefined") {
-          localStorage.setItem("accessToken", accessToken);
-          if (refreshToken) {
-            localStorage.setItem("refreshToken", refreshToken);
-          }
-        }
-        set({
-          isLoggedIn: true,
-          accessToken,
-          refreshToken: refreshToken || null,
-        });
-      },
-
-      /**
-       * 로그아웃 함수
-       */
-      logout: async () => {
-        if (typeof window === "undefined") return;
-
-        const accessToken = localStorage.getItem("accessToken");
-        if (!accessToken) {
-          console.warn("❌ 로그아웃 요청 실패: 저장된 accessToken 없음");
-          set({ isLoggedIn: false, accessToken: null, refreshToken: null });
-          return;
-        }
-
-        try {
-          // ✅ 백엔드 로그아웃 API 호출 (토큰을 블랙리스트에 등록)
-          const response = await fetch("/api/v1/user/logout", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${accessToken}`,
+            login: (accessToken, refreshToken) => {
+                setTokens(accessToken,refreshToken); // ✅ 유틸 함수 사용
+                set({ isLoggedIn: true, accessToken, refreshToken });
             },
-            body: JSON.stringify({ token: accessToken }),
-          });
 
-          if (!response.ok) {
-            throw new Error("❌ 로그아웃 API 요청 실패");
-          }
+            logout: async () => {
+                if (typeof window === "undefined") return;
 
-          console.log("✅ 로그아웃 성공: 백엔드 블랙리스트 등록 완료");
-
-          // ✅ LocalStorage에서 토큰 삭제
-          localStorage.removeItem("accessToken");
-          localStorage.removeItem("refreshToken");
-
-          // ✅ Store 상태 초기화
-          set({ isLoggedIn: false, accessToken: null, refreshToken: null });
-
-        } catch (error) {
-          console.error("❌ 로그아웃 실패:", error);
-        }
-      },
-
-      /**
-       * ✅ Refresh Token으로 새 토큰 발급받기
-       */
-      refreshTokens: async () => {
-        if (typeof window === "undefined") return;
-
-        // 저장된 refreshToken 확인
-        const currentRefreshToken = localStorage.getItem("refreshToken");
-        if (!currentRefreshToken) {
-          console.warn("❌ refreshTokens 실패: 저장된 refreshToken이 없습니다.");
-          return;
-        }
-
-        try {
-          const response = await fetch("/api/v1/user/refresh-token", {
-            method: "POST",
-            headers: {
-              // 서버에서 @RequestHeader("Refresh-Token")로 받는다고 하셨으므로
-              "Refresh-Token": currentRefreshToken,
+                removeTokens(); // ✅ 유틸 함수 사용
+                set({ isLoggedIn: false, accessToken: null, refreshToken: null });
             },
-          });
 
-          if (!response.ok) {
-            console.error("❌ RefreshToken API 요청 실패:", response.status);
-            return;
-          }
+            refreshAccessToken: async () => {
+                const refreshToken = getRefreshToken();
+                if (!refreshToken) {
+                    console.warn("❌ Refresh Token 없음, 로그아웃 진행 필요");
+                    get().logout();
+                    return false;
+                }
 
-          /**
-           * 서버 응답 구조 예시 (RsData<TokenDto>):
-           * {
-           *   "resultCode": "200",
-           *   "message": "새로운 토큰이 발급되었습니다.",
-           *   "data": {
-           *       "accessToken": "...",
-           *       "refreshToken": "...",
-           *       "type": "Bearer",
-           *       "accessTokenValidationTime": 1800000,
-           *       "refreshTokenValidationTime": 604800000
-           *   }
-           * }
-           */
-          const result = await response.json();
-          if (result.resultCode === "200") {
-            const { accessToken, refreshToken } = result.data;
+                try {
+                    const response = await fetch("/api/v1/user/refresh", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ refreshToken }),
+                    });
 
-            // ✅ 새로운 토큰들을 로컬 스토리지와 Zustand에 저장
-            localStorage.setItem("accessToken", accessToken);
-            localStorage.setItem("refreshToken", refreshToken);
+                    if (!response.ok) {
+                        console.warn("❌ Refresh Token이 만료됨, 로그아웃 진행");
+                        get().logout();
+                        return false;
+                    }
 
-            set({
-              isLoggedIn: true,
-              accessToken,
-              refreshToken,
-            });
+                    const data = await response.json();
+                    console.log("✅ Access Token 갱신 완료:", data.accessToken);
 
-            console.log("✅ 토큰 갱신 성공:", result.data);
-          } else {
-            console.error("❌ 토큰 갱신 실패:", result);
-          }
+                    setTokens(data.data.accessToken,data.data.refreshToken); // ✅ 유틸 함수 사용
+                    set({ accessToken: data.accessToken });
 
-        } catch (error) {
-          console.error("❌ 토큰 갱신 중 에러:", error);
+                    return true;
+                } catch (error) {
+                    console.error("❌ Access Token 갱신 실패:", error);
+                    get().logout();
+                    return false;
+                }
+            },
+        }),
+        {
+            name: "auth-storage",
+            storage: typeof window !== "undefined"
+                ? createJSONStorage(() => localStorage)
+                : undefined,
         }
-      },
-    }),
-    {
-      name: "auth-storage", // localStorage에 저장될 key
-      storage:
-        typeof window !== "undefined"
-          ? createJSONStorage(() => localStorage)
-          : undefined, // 서버 환경에서는 localStorage 사용 X
-    }
-  )
+    )
 );

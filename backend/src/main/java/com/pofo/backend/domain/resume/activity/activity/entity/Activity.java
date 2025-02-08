@@ -12,8 +12,8 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -39,5 +39,5 @@ public class Activity extends BaseTime {
     @JoinColumn(name = "resume_id", nullable = false)
     private Resume resume;
     @OneToMany(mappedBy = "activity", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Award> awards = new ArrayList<>();
+    private Set<Award> awards = new HashSet<>();
 }

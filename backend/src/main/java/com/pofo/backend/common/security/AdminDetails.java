@@ -1,13 +1,13 @@
 package com.pofo.backend.common.security;
 
 import com.pofo.backend.domain.admin.login.entitiy.Admin;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+
 import java.util.Collection;
 import java.util.Collections;
-
-import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class AdminDetails implements UserDetails {
@@ -49,9 +49,6 @@ public class AdminDetails implements UserDetails {
         return admin.getStatus() == Admin.Status.ACTIVE;
     }
 
-    /**
-     * 내부의 Admin 엔티티를 반환하는 메서드입니다.
-     */
     public Admin getAdmin() {
         return this.admin;
     }

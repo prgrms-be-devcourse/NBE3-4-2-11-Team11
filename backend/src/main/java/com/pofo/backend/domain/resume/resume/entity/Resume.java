@@ -2,7 +2,6 @@ package com.pofo.backend.domain.resume.resume.entity;
 
 import com.pofo.backend.common.jpa.entity.BaseTime;
 import com.pofo.backend.domain.resume.activity.activity.entity.Activity;
-import com.pofo.backend.domain.user.join.entity.User;
 import com.pofo.backend.domain.resume.course.entity.Course;
 import com.pofo.backend.domain.resume.education.entity.Education;
 import com.pofo.backend.domain.resume.experience.entity.Experience;
@@ -18,8 +17,8 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -50,15 +49,15 @@ public class Resume extends BaseTime {
     private String gitAddress;
     private String blogAddress;
     @OneToMany(mappedBy = "resume", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Activity> activities = new ArrayList<>();
+    private Set<Activity> activities = new HashSet<>();
     @OneToMany(mappedBy = "resume", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Course> courses = new ArrayList<>();
+    private Set<Course> courses = new HashSet<>();
     @OneToMany(mappedBy = "resume", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Experience> experiences = new ArrayList<>();
+    private Set<Experience> experiences = new HashSet<>();
     @OneToMany(mappedBy = "resume", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Education> educations = new ArrayList<>();
+    private Set<Education> educations = new HashSet<>();
     @OneToMany(mappedBy = "resume", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<License> licenses = new ArrayList<>();
+    private Set<License> licenses = new HashSet<>();
     @OneToMany(mappedBy = "resume", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Language> languages = new ArrayList<>();
+    private Set<Language> languages = new HashSet<>();
 }

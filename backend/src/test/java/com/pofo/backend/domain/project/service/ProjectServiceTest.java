@@ -1,16 +1,5 @@
 package com.pofo.backend.domain.project.service;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import com.pofo.backend.common.rsData.RsData;
 import com.pofo.backend.domain.mapper.ProjectMapper;
 import com.pofo.backend.domain.project.dto.request.ProjectCreateRequest;
@@ -22,10 +11,6 @@ import com.pofo.backend.domain.project.entity.Project;
 import com.pofo.backend.domain.project.exception.ProjectCreationException;
 import com.pofo.backend.domain.project.repository.ProjectRepository;
 import com.pofo.backend.domain.user.join.entity.User;
-import java.time.LocalDate;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -34,6 +19,14 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.dao.DataAccessException;
+
+import java.time.LocalDate;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 public class ProjectServiceTest {
 
@@ -127,11 +120,15 @@ public class ProjectServiceTest {
                 .when(mockUser).getId();
         ProjectCreateRequest request = projectCreateRequest();
 
-        try{
+        // when & then
+        ProjectCreationException exception = assertThrows(ProjectCreationException.class, () -> {
             projectService.createProject(request, mockUser);
-        }catch (RuntimeException ex){
-            assertEquals("400","프로젝트 등록 중 오류가 발생했습니다.");
-        }
+        });
+
+        // RsData 확인
+        RsData<Void> rsData = exception.getRsData();
+        assertEquals("400", rsData.getResultCode());
+        assertEquals("프로젝트 등록 중 오류가 발생했습니다.", rsData.getMessage());
     }
 
     @Test

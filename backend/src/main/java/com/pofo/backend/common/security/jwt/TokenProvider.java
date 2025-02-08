@@ -175,15 +175,19 @@ public class TokenProvider {
             throw new IllegalArgumentException("Invalid token claims");
         }
         String username = claims.getSubject();
+        log.info("🔍 Refresh Token에서 추출한 사용자 이름: {}", username);
+
         // refresh token에도 포함된 권한 정보를 읽음
         String authClaim = claims.get(AUTHORIZATION_KEY, String.class);
 
         if (authClaim != null && authClaim.contains("ROLE_ADMIN")) {
             // 관리자 계정인 경우
+            log.info("🔍 관리자 인증 시도: {}", username);
             UserDetails adminDetails = adminDetailsService.loadUserByUsername(username);
             return new UsernamePasswordAuthenticationToken(adminDetails, "", adminDetails.getAuthorities());
         } else {
             // 일반 사용자 계정인 경우
+            log.info("🔍 일반 사용자 인증 시도: {}", username); // ✅ 로그 추가
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
             return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
         }

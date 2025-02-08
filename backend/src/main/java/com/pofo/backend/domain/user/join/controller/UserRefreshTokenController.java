@@ -35,7 +35,7 @@ public class UserRefreshTokenController {
     public ResponseEntity<RsData<TokenDto>> refreshToken(
             @RequestHeader(value = "Refresh-Token", required = false) String refreshToken) {
         try {
-            // 1) Refresh Token이 전달되지 않았을 경우
+            // 1) Refresh Token이 제공되지 않았을 경우
             if (refreshToken == null || refreshToken.trim().isEmpty()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body(new RsData<>("400", "Refresh Token이 제공되지 않았습니다.", null));
@@ -43,27 +43,34 @@ public class UserRefreshTokenController {
 
             // 2) Refresh Token 유효성 검사
             if (!tokenProvider.validateToken(refreshToken)) {
+                log.warn("❌ 유효하지 않은 Refresh Token: {}", refreshToken);
+                redisTemplate.delete(refreshToken); // ✅ 만료된 Refresh Token 삭제
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(new RsData<>("401", "Refresh Token이 유효하지 않습니다.", null));
+                        .body(new RsData<>("401", "Refresh Token이 유효하지 않습니다. 다시 로그인해주세요.", null));
             }
 
-            // 3) 유효하다면, TokenProvider의 refreshAccessToken()을 호출하여 새로운 토큰 쌍 발급
+            // 3) 유효하다면 새로운 Access/Refresh Token 발급
             TokenDto newTokenDto = tokenProvider.refreshAccessToken(refreshToken);
 
-            // (선택사항) 새로운 Refresh Token을 Redis에 저장 + 유효시간 설정
-            // 보통 "refreshTokenValue" -> "valid" 식으로 키/값을 넣으며, 만료시간은 refreshTokenValidationTime 밀리초로
+            // 4) 기존의 오래된 Refresh Token 삭제 (새로운 토큰으로 업데이트)
+            redisTemplate.delete(refreshToken);
+            log.info("🗑️ 기존 Refresh Token 삭제: {}", refreshToken);
+
+            // 5) 새로운 Refresh Token을 Redis에 저장 + 만료시간 설정 (초 단위 변환)
+            long expireTimeSeconds = newTokenDto.getRefreshTokenValidationTime() / 1000; // ✅ 초 단위 변환
             redisTemplate.opsForValue().set(
                     newTokenDto.getRefreshToken(),
                     "valid",
-                    newTokenDto.getRefreshTokenValidationTime(),
-                    TimeUnit.MILLISECONDS
+                    expireTimeSeconds,
+                    TimeUnit.SECONDS
             );
+            log.info("✅ 새로운 Refresh Token 저장 (TTL: {}초): {}", expireTimeSeconds, newTokenDto.getRefreshToken());
 
-            // 4) 성공적으로 발급된 토큰을 RsData 포맷으로 응답
+            // 6) 성공적으로 발급된 토큰을 응답
             return ResponseEntity.ok(new RsData<>("200", "새로운 토큰이 발급되었습니다.", newTokenDto));
 
         } catch (Exception e) {
-            log.error("Exception occurred in refreshToken: ", e);
+            log.error("🚨 Exception 발생: ", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new RsData<>("500", "서버 내부 오류가 발생했습니다.", null));
         }
