@@ -44,9 +44,9 @@ public class Project extends BaseTime {
     @Column(nullable = false)
     private String imageUrl;
 
-    @OneToMany(mappedBy = "tool", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProjectTool> projectTools = new ArrayList<>();
-    @OneToMany(mappedBy = "skill", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProjectSkill> projectSkills = new ArrayList<>();
 
     public void update(String name, LocalDate startDate, LocalDate endDate, int memberCount,
