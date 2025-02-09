@@ -1,10 +1,12 @@
 package com.pofo.backend.domain.tool.service;
 
+import com.pofo.backend.domain.project.exception.ProjectCreationException;
 import com.pofo.backend.domain.tool.entity.Tool;
 import com.pofo.backend.domain.tool.repository.ToolRepository;
-import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -42,5 +44,16 @@ public class ToolService {
             toolRepository.save(tool);
         }
 
+    }
+
+    // 특정 도구 ID로 Tool 조회
+    public Tool getToolById(Long toolId) {
+        return toolRepository.findById(toolId)
+                .orElseThrow(() -> ProjectCreationException.notFound("해당 도구를 찾을 수 없습니다."));
+    }
+
+    // 저장된 모든 도구 조회
+    public List<Tool> getAllTools() {
+        return toolRepository.findAll();
     }
 }

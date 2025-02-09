@@ -3,13 +3,13 @@ package com.pofo.backend.domain.mapper;
 import com.pofo.backend.domain.project.dto.response.ProjectDetailResponse;
 import com.pofo.backend.domain.project.entity.Project;
 import java.time.LocalDate;
+import java.util.List;
 import javax.annotation.processing.Generated;
 import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-
-    date = "2025-02-08T05:06:51+0900",
+    date = "2025-02-10T05:01:04+0900",
     comments = "version: 1.5.2.Final, compiler: javac, environment: Java 21.0.2 (GraalVM Community)"
 )
 @Component
@@ -41,7 +41,10 @@ public class ProjectMapperImpl implements ProjectMapper {
         description = project.getDescription();
         imageUrl = project.getImageUrl();
 
-        ProjectDetailResponse projectDetailResponse = new ProjectDetailResponse( projectId, name, startDate, endDate, memberCount, position, repositoryLink, description, imageUrl );
+        List<String> skills = null;
+        List<String> tools = null;
+
+        ProjectDetailResponse projectDetailResponse = new ProjectDetailResponse( projectId, name, startDate, endDate, memberCount, position, repositoryLink, description, imageUrl, skills, tools );
 
         return projectDetailResponse;
     }

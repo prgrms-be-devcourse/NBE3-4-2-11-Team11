@@ -1,10 +1,12 @@
 package com.pofo.backend.domain.skill.service;
 
+import com.pofo.backend.domain.project.exception.ProjectCreationException;
 import com.pofo.backend.domain.skill.entity.Skill;
 import com.pofo.backend.domain.skill.repository.SkillRepository;
-import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -47,6 +49,17 @@ public class SkillService {
                 .build();
             skillRepository.save(skill);
         }
+    }
+
+    // 특정 기술 ID로 Skill 조회
+    public Skill getSkillById(Long skillId) {
+        return skillRepository.findById(skillId)
+                .orElseThrow(() -> ProjectCreationException.notFound("해당 기술을 찾을 수 없습니다."));
+    }
+
+    // 저장된 모든 기술 조회
+    public List<Skill> getAllSkills() {
+        return skillRepository.findAll();
     }
 
 

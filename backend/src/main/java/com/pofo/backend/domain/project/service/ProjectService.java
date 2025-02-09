@@ -9,6 +9,10 @@ import com.pofo.backend.domain.project.dto.response.ProjectUpdateResponse;
 import com.pofo.backend.domain.project.entity.Project;
 import com.pofo.backend.domain.project.exception.ProjectCreationException;
 import com.pofo.backend.domain.project.repository.ProjectRepository;
+import com.pofo.backend.domain.skill.entity.ProjectSkill;
+import com.pofo.backend.domain.skill.service.SkillService;
+import com.pofo.backend.domain.tool.entity.ProjectTool;
+import com.pofo.backend.domain.tool.service.ToolService;
 import com.pofo.backend.domain.user.join.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataAccessException;
@@ -24,6 +28,8 @@ public class ProjectService {
 
     private final ProjectRepository projectRepository;
     private final ProjectMapper projectMapper;
+    private final SkillService skillService;
+    private final ToolService toolService;
 
     @Transactional
     public ProjectCreateResponse createProject(ProjectCreateRequest projectRequest, User user) {
@@ -45,6 +51,13 @@ public class ProjectService {
                     .build();
 
             projectRepository.save(project);
+
+            // 프로젝트와 연결된 기술 및 도구 추가
+            projectRequest.getSkillIds().forEach(skillId ->
+                    project.getProjectSkills().add(new ProjectSkill(project,skillService.getSkillById(skillId))));
+
+            projectRequest.getToolIds().forEach(toolId ->
+                    project.getProjectTools().add(new ProjectTool(project, toolService.getToolById(toolId))));
 
             return new ProjectCreateResponse(project.getId());
 
@@ -96,7 +109,28 @@ public class ProjectService {
                 throw ProjectCreationException.forbidden("프로젝트 단건 조회 할 권한이 없습니다.");
             }
 
-            return projectMapper.projectToProjectDetailResponse(project);
+            // 프로젝트 상세 조회 시 기술 및 도구 목록 포함
+            List<String> skills = project.getProjectSkills().stream()
+                    .map(ps -> ps.getSkill().getName())
+                    .collect(Collectors.toList());
+
+            List<String> tools = project.getProjectTools().stream()
+                    .map(pt -> pt.getTool().getName())
+                    .collect(Collectors.toList());
+
+            return new ProjectDetailResponse(
+                    project.getId(),
+                    project.getName(),
+                    project.getStartDate(),
+                    project.getEndDate(),
+                    project.getMemberCount(),
+                    project.getPosition(),
+                    project.getRepositoryLink(),
+                    project.getDescription(),
+                    project.getImageUrl(),
+                    skills,
+                    tools
+            );
 
         }catch (DataAccessException ex){
             throw ProjectCreationException.serverError("프로젝트 단건 조회 중 데이터베이스 오류가 발생했습니다.");
@@ -119,6 +153,14 @@ public class ProjectService {
                 throw ProjectCreationException.forbidden("프로젝트 수정 할 권한이 없습니다.");
             }
 
+            List<ProjectSkill> projectSkills = request.getSkillIds().stream()
+                    .map(skillId -> new ProjectSkill(project,  skillService.getSkillById(skillId)))
+                    .collect(Collectors.toList());
+
+            List<ProjectTool> projectTools = request.getToolIds().stream()
+                    .map(toolId -> new ProjectTool(project, toolService.getToolById(toolId)))
+                    .collect(Collectors.toList());
+
 
             // 프로젝트 정보 업데이트
             project.update(
@@ -129,7 +171,9 @@ public class ProjectService {
                     request.getPosition(),
                     request.getRepositoryLink(),
                     request.getDescription(),
-                    request.getImageUrl()
+                    request.getImageUrl(),
+                    projectSkills,
+                    projectTools
             );
 
         }catch (DataAccessException ex){
@@ -141,6 +185,15 @@ public class ProjectService {
         }
 
         // 응답 변환
+        List<String> skillNames = project.getProjectSkills().stream()
+                .map(ps -> ps.getSkill().getName())
+                .collect(Collectors.toList());
+
+        List<String> toolNames = project.getProjectTools().stream()
+                .map(pt -> pt.getTool().getName())
+                .collect(Collectors.toList());
+
+        // 응답 변환
         return new ProjectUpdateResponse(
                 project.getId(),
                 project.getName(),
@@ -150,7 +203,9 @@ public class ProjectService {
                 project.getPosition(),
                 project.getRepositoryLink(),
                 project.getDescription(),
-                project.getImageUrl()
+                project.getImageUrl(),
+                skillNames,
+                toolNames
         );
     }
 

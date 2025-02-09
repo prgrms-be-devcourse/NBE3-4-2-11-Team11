@@ -2,10 +2,12 @@ package com.pofo.backend.domain.project.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Getter
 @Setter
@@ -33,4 +35,10 @@ public class ProjectUpdateRequest {
     private String description;
     @NotBlank
     private String imageUrl;
+
+    // 기술 및 도구 목록 추가
+    @NotEmpty
+    private List<Long> skillIds;
+    @NotEmpty
+    private List<Long> toolIds;
 }
