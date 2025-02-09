@@ -51,10 +51,9 @@ public class SkillService {
         }
     }
 
-    // 특정 기술 ID로 Skill 조회
-    public Skill getSkillById(Long skillId) {
-        return skillRepository.findById(skillId)
-                .orElseThrow(() -> ProjectCreationException.notFound("해당 기술을 찾을 수 없습니다."));
+    public Skill getSkillByName(String skillName) {
+        return skillRepository.findByName(skillName)
+                .orElseThrow(() -> ProjectCreationException.notFound("해당 기술을 찾을 수 없습니다: " + skillName));
     }
 
     // 저장된 모든 기술 조회

@@ -53,11 +53,11 @@ public class ProjectService {
             projectRepository.save(project);
 
             // 프로젝트와 연결된 기술 및 도구 추가
-            projectRequest.getSkillIds().forEach(skillId ->
-                    project.getProjectSkills().add(new ProjectSkill(project,skillService.getSkillById(skillId))));
+            projectRequest.getSkillNames().forEach(skillName ->
+                    project.getProjectSkills().add(new ProjectSkill(project, skillService.getSkillByName(skillName))));
 
-            projectRequest.getToolIds().forEach(toolId ->
-                    project.getProjectTools().add(new ProjectTool(project, toolService.getToolById(toolId))));
+            projectRequest.getToolNames().forEach(toolName ->
+                    project.getProjectTools().add(new ProjectTool(project, toolService.getToolByName(toolName))));
 
             return new ProjectCreateResponse(project.getId());
 
@@ -153,12 +153,12 @@ public class ProjectService {
                 throw ProjectCreationException.forbidden("프로젝트 수정 할 권한이 없습니다.");
             }
 
-            List<ProjectSkill> projectSkills = request.getSkillIds().stream()
-                    .map(skillId -> new ProjectSkill(project,  skillService.getSkillById(skillId)))
+            List<ProjectSkill> projectSkills = request.getSkillNames().stream()
+                    .map(skillName -> new ProjectSkill(project, skillService.getSkillByName(skillName)))
                     .collect(Collectors.toList());
 
-            List<ProjectTool> projectTools = request.getToolIds().stream()
-                    .map(toolId -> new ProjectTool(project, toolService.getToolById(toolId)))
+            List<ProjectTool> projectTools = request.getToolNames().stream()
+                    .map(toolName -> new ProjectTool(project, toolService.getToolByName(toolName)))
                     .collect(Collectors.toList());
 
 

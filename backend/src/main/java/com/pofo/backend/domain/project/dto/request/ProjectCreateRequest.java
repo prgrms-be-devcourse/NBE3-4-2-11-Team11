@@ -36,9 +36,9 @@ public class ProjectCreateRequest {
 
     // 기술 및 도구 목록 추가
     @NotEmpty
-    private List<Long> skillIds;
+    private List<String> skillNames;
     @NotEmpty
-    private List<Long> toolIds;
+    private List<String> toolNames;
 
 
 }

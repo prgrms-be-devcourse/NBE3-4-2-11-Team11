@@ -23,7 +23,8 @@ public class ProjectDetailResponse {
     private String description;
     private String imageUrl;
 
-    // 프로젝트 상세 조회 응답에 기술 및 도구 목록 추가
-    private List<String> skills;
-    private List<String> tools;
+    // 기술 및 도구 목록 추가
+    private List<String> skillNames;
+    private List<String> toolNames;
+
 }

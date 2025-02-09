@@ -46,10 +46,9 @@ public class ToolService {
 
     }
 
-    // 특정 도구 ID로 Tool 조회
-    public Tool getToolById(Long toolId) {
-        return toolRepository.findById(toolId)
-                .orElseThrow(() -> ProjectCreationException.notFound("해당 도구를 찾을 수 없습니다."));
+    public Tool getToolByName(String toolName) {
+        return toolRepository.findByName(toolName)
+                .orElseThrow(() -> ProjectCreationException.notFound("해당 도구를 찾을 수 없습니다: " + toolName));
     }
 
     // 저장된 모든 도구 조회
