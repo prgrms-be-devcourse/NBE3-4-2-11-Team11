@@ -3,6 +3,8 @@ package com.pofo.backend.common.security;
 import com.pofo.backend.common.security.jwt.JwtSecurityConfig;
 import com.pofo.backend.common.security.jwt.OAuth2AuthenticationSuccessHandler;
 import com.pofo.backend.common.security.jwt.TokenProvider;
+import com.pofo.backend.common.security.provider.AuthenticationProviderConfig;
+import com.pofo.backend.common.service.CustomUserDetailsService;
 import com.pofo.backend.domain.user.login.service.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -47,9 +49,16 @@ public class SecurityConfig {
     /**
      * 관리자용 SecurityFilterChain
      * - '/api/v1/admin/**' 경로에 대해 별도의 보안 설정 적용
+     *
+     *  2025-02-09 김누리 수정 : 순환 의존성 문제를 피하기 위해 AuthenticationProviderConfig 소스를
+     *  추가 하였기 때문에, .authenticationProvider(adminAuthenticationProvider());를
+     *   .authenticationProvider(adminAuthenticationProvider);로 변경
      */
     @Bean
-    public SecurityFilterChain adminSecurityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain adminSecurityFilterChain(
+            HttpSecurity http,
+            AuthenticationProvider adminAuthenticationProvider
+    ) throws Exception {
         // JWT 필터 등 추가 설정이 필요하면 jwtSecurityConfig.configure(http) 호출 가능
         jwtSecurityConfig.configure(http);
 
@@ -64,7 +73,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/admin/me").authenticated() // ✅ 관리자 정보 조회는 인증 필요
                         .anyRequest().authenticated()
                 )
-                .authenticationProvider(authenticationProvider()); // 관리자 전용 provider 사용
+                .authenticationProvider(adminAuthenticationProvider); // 관리자 전용 provider 사용
+
 
         return http.build();
     }
@@ -99,6 +109,7 @@ public class SecurityConfig {
                                 "/api/v1/user/google/login/google/callback",
                                 "/api/v1/user/google/login/process",
                                 "/api/v1/user/logout",
+                                "/api/v1/token/refresh",
                                 "/api/v1/user/oauth2/**"
                         ).permitAll()
                         .anyRequest().authenticated()
@@ -111,9 +122,9 @@ public class SecurityConfig {
      * 관리자용 DaoAuthenticationProvider
      */
     @Bean
-    public AuthenticationProvider authenticationProvider() {
+    public AuthenticationProvider authenticationProvider(CustomUserDetailsService customUserDetailsService) {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        provider.setUserDetailsService(adminDetailsService);
+        provider.setUserDetailsService(customUserDetailsService);
         provider.setPasswordEncoder(passwordEncoder());
         return provider;
     }

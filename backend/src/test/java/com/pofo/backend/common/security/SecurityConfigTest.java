@@ -2,6 +2,7 @@ package com.pofo.backend.common.security;
 
 import com.pofo.backend.common.security.jwt.JwtSecurityConfig;
 import com.pofo.backend.common.security.jwt.TokenProvider;
+import com.pofo.backend.common.service.CustomUserDetailsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -55,6 +56,9 @@ class SecurityConfigTest {
 
     private BCryptPasswordEncoder passwordEncoder;
 
+    @MockBean
+    private CustomUserDetailsService customUserDetailsService;
+
     @BeforeEach
     void setUp() {
         passwordEncoder = securityConfig.passwordEncoder();
@@ -84,7 +88,8 @@ class SecurityConfigTest {
     @Test
     @DisplayName("AuthenticationProvider가 올바르게 설정되어야 한다")
     void authenticationProvider_ShouldReturnDaoAuthenticationProvider() {
-        AuthenticationProvider authenticationProvider = securityConfig.authenticationProvider();
+        //AuthenticationProvider authenticationProvider = securityConfig.authenticationProvider();
+        AuthenticationProvider authenticationProvider = securityConfig.authenticationProvider(customUserDetailsService);
 
         assertThat(authenticationProvider).isNotNull();
         assertThat(authenticationProvider).isInstanceOf(AuthenticationProvider.class);
