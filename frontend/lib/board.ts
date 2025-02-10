@@ -6,6 +6,7 @@ interface Post {
   id: number;
   title: string;
   content: string;
+  createdAt: string;  // 작성일자 필드 추가
 }
 
 interface PostList {
