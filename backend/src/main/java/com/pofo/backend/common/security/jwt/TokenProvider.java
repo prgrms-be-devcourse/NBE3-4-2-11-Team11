@@ -3,6 +3,7 @@ package com.pofo.backend.common.security.jwt;
 import com.pofo.backend.common.security.AdminDetailsService;
 import com.pofo.backend.common.security.CustomUserDetails;
 import com.pofo.backend.common.security.dto.TokenDto;
+import com.pofo.backend.common.service.CustomUserDetailsService;
 import com.pofo.backend.domain.user.join.entity.User;
 import com.pofo.backend.domain.user.join.repository.UserRepository;
 import io.jsonwebtoken.*;
@@ -45,7 +46,7 @@ public class TokenProvider {
 
     private SecretKey key;
     private final AdminDetailsService adminDetailsService;
-    private final UserDetailsService userDetailsService;
+    private final CustomUserDetailsService customUserDetailsService;
 
     private final UserRepository userRepository;
 
@@ -77,17 +78,17 @@ public class TokenProvider {
         String email = userDetails.getUsername();
 
         String accessToken = Jwts.builder()
-            .setSubject(email)
-            .setExpiration(new Date(now + validationTime))
-            .claim(AUTHORIZATION_KEY, authorities)
-            .signWith(this.key, SignatureAlgorithm.HS512)
-            .compact();
+                .setSubject(email)
+                .setExpiration(new Date(now + validationTime))
+                .claim(AUTHORIZATION_KEY, authorities)
+                .signWith(this.key, SignatureAlgorithm.HS512)
+                .compact();
 
         String refreshToken = Jwts.builder()
-            .setSubject(email)
-            .setExpiration(new Date(now + refreshTokenValidationTime))
-            .signWith(this.key, SignatureAlgorithm.HS512)
-            .compact();
+                .setSubject(email)
+                .setExpiration(new Date(now + refreshTokenValidationTime))
+                .signWith(this.key, SignatureAlgorithm.HS512)
+                .compact();
 
         log.info("Access Token 생성 완료");
         log.info("Refresh Token 생성 완료");
@@ -182,7 +183,7 @@ public class TokenProvider {
     public Authentication getAuthenticationFromRefreshToken(String token) {
         Claims claims = parseData(token);
         String username = claims.getSubject();
-        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
         return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
     }
 
@@ -191,10 +192,20 @@ public class TokenProvider {
      *
      * @param token JWT 토큰 문자열
      * @return 토큰이 유효하면 true, 그렇지 않으면 false
+     *
+     * 2025-02-09 김누리 수정 :
+     *   최초 accessToken 재발급을 위해 refreshToken을 Parsing 할 때는 이상이 없지만,
+     *   2번째 재발급 시도부터 parsing 과정에서 현재 시간과 만료 시간이 정확히 일치 하기 때문에,
+     *   5초 정도의 오차 시간 적용
+     *
      */
     public boolean validateToken(String token) {
         try {
-            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+            Jwts.parserBuilder()
+                    .setSigningKey(key)
+                    .setAllowedClockSkewSeconds(5) // 5초의 오차 허용
+                    .build()
+                    .parseClaimsJws(token);
             return true;
         } catch (SignatureException | SecurityException | ExpiredJwtException |
                  UnsupportedJwtException | IllegalArgumentException e) {
