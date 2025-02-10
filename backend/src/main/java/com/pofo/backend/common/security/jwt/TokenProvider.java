@@ -26,7 +26,23 @@ import java.util.stream.Collectors;
 
 /**
  * JWT 토큰 생성 및 검증을 담당하는 컴포넌트입니다.
+ *
+ * 2025-02-10 김누리 수정.
+ *  현재 @Value("${JWT_REFRESH_VALIDATION_TIME}") >> 이 부분에서 application.yml 파일의
+ *  refresh-token:
+ *     expiration-time: 1800000  # RefreshToken expired time : 30min 이 부분을 못읽는것
+ *     같은 상황이라 해당내용 살짝 변경.
+ *
+ *     변경 전 : @Value("${JWT_REFRESH_VALIDATION_TIME}")
+ *     변경 후 : @Value("${jwt.refresh-token.expiration-time}")
+ *
+ *     accessToken 부분도 동일 이유로 변경
+ *     변경 전 : @Value("${JWT_VALIDATION_TIME}")
+ *     변경 후 : @Value("${jwt.expiration.time}")
+ *
+ *
  */
+
 @Component
 @Slf4j
 @RequiredArgsConstructor
@@ -35,13 +51,13 @@ public class TokenProvider {
     @Value("${JWT_SECRET_KEY}")
     private String secret;
 
-    @Value("${JWT_VALIDATION_TIME}")
+    @Value("${jwt.expiration.time}")
     private Long validationTime;
 
     @Value("${AUTHORIZATION_KEY}")
     private String AUTHORIZATION_KEY;
 
-    @Value("${JWT_REFRESH_VALIDATION_TIME}")
+    @Value("${jwt.refresh-token.expiration-time}")
     private Long refreshTokenValidationTime;
 
     private SecretKey key;
@@ -92,6 +108,7 @@ public class TokenProvider {
 
         log.info("Access Token 생성 완료");
         log.info("Refresh Token 생성 완료");
+        log.info("✅ 생성된 Refresh Token 만료 시간: {}", new Date(now + refreshTokenValidationTime));
 
         return TokenDto.builder()
                 .accessToken(accessToken)
@@ -201,11 +218,12 @@ public class TokenProvider {
      */
     public boolean validateToken(String token) {
         try {
-            Jwts.parserBuilder()
+            Jws<Claims> claimsJws = Jwts.parserBuilder()
                     .setSigningKey(key)
                     .setAllowedClockSkewSeconds(5) // 5초의 오차 허용
                     .build()
                     .parseClaimsJws(token);
+
             return true;
         } catch (SignatureException | SecurityException | ExpiredJwtException |
                  UnsupportedJwtException | IllegalArgumentException e) {

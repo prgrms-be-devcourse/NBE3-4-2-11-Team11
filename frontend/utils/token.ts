@@ -39,8 +39,6 @@ export const isAccessTokenExpired = (): boolean => {
     const exp = payload.exp * 1000; // ✅ 만료 시간 (초 → 밀리초 변환)
     return Date.now() >= exp; // ✅ 현재 시간과 비교하여 만료 여부 확인
 
-    return Date.now() >= exp;
-
   } catch (error) {
     console.error("❌ Access Token 디코딩 실패:", error);
     return true; // ✅ 오류 발생 시 만료된 것으로 간주
