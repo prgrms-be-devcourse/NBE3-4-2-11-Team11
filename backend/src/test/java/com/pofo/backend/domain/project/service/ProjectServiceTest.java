@@ -23,6 +23,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -168,83 +169,91 @@ public class ProjectServiceTest {
         assertEquals("400", rsData.getResultCode());
         assertEquals("프로젝트 등록 중 오류가 발생했습니다.", rsData.getMessage());
     }
-//
-//    @Test
-//    @DisplayName("프로젝트 전체 조회 성공")
-//    void t4(){
-//        //Given
-//        when(mockProjectResponse.getName()).thenReturn("원두 주문 웹페이지");
-//        when(mockProjectResponse.getStartDate()).thenReturn(startDate);
-//        when(mockProjectResponse.getEndDate()).thenReturn(endDate);
-//        when(mockProjectResponse.getMemberCount()).thenReturn(6);
-//        when(mockProjectResponse.getPosition()).thenReturn("백엔드");
-//        when(mockProjectResponse.getRepositoryLink()).thenReturn("programmers@github.com");
-//        when(mockProjectResponse.getDescription()).thenReturn("커피 원두를 주문할 수 있는 웹페이지");
-//        when(mockProjectResponse.getImageUrl()).thenReturn("test.img");
-//
-//        when(projectMapper.projectToProjectDetailResponse(mockProject)).thenReturn(mockProjectResponse);
-//
-//        List<Project> mockProjectList = List.of(mockProject);
-//        when(projectRepository.findAllByOrderByIdDesc()).thenReturn(mockProjectList);
-//
-//        // When
-//        List<ProjectDetailResponse> response = projectService.detailAllProject(mockUser);
-//
-//        // Then
-//        assertEquals(1, response.size());
-//        assertEquals("원두 주문 웹페이지", response.get(0).getName());
-//        assertEquals(startDate, response.get(0).getStartDate());
-//        assertEquals(endDate, response.get(0).getEndDate());
-//        assertEquals(6, response.get(0).getMemberCount());
-//        assertEquals("백엔드", response.get(0).getPosition());
-//        assertEquals("programmers@github.com", response.get(0).getRepositoryLink());
-//        assertEquals("커피 원두를 주문할 수 있는 웹페이지", response.get(0).getDescription());
-//        assertEquals("test.img", response.get(0).getImageUrl());
-//
-//        // Verify
-//        verify(projectRepository).findAllByOrderByIdDesc();
-//        verify(projectMapper).projectToProjectDetailResponse(mockProject);
-//    }
-//
-//    @Test
-//    @DisplayName("프로젝트 전체 조회 실패 - 프로젝트 없는 경우")
-//    void t5(){
-//        // given
-//        User mockUser = mock(User.class);
-//        when(projectRepository.findAllByOrderByIdDesc()).thenReturn(Collections.emptyList());
-//        //System.out.println("mockUser: " + mockUser);
-//
-//
-//        // when & then
-//        ProjectCreationException exception = assertThrows(ProjectCreationException.class, () -> {
-//            projectService.detailAllProject(mockUser);
-//        });
-//
-//        // 예외 메시지 확인
-//        RsData<Void> rsData = exception.getRsData();
-//        assertEquals("404", rsData.getResultCode());
-//        assertEquals("프로젝트가 존재하지 않습니다.", rsData.getMessage());
-//    }
-//
-//    @Test
-//    @DisplayName("프로젝트 전체 조회 실패 - 예기치 않은 오류 발생")
-//    void t6(){
-//        //given
-//        when(projectRepository.findAllByOrderByIdDesc()).thenThrow(new RuntimeException("Unexpected error"));
-//
-//        //when & then
-//        ProjectCreationException exception = assertThrows(ProjectCreationException.class, () -> {
-//            projectService.detailAllProject(mockUser);
-//        });
-//
-//        // 예외 메시지 확인
-//        RsData<Void> rsData = exception.getRsData();
-//        assertEquals("400", rsData.getResultCode());
-//        assertEquals("프로젝트 전체 조회 중 오류가 발생했습니다.", rsData.getMessage());
-//    }
-//
-//
-//
+
+    @Test
+    @DisplayName("프로젝트 전체 조회 성공")
+    void t4(){
+        //Given
+        when(mockProjectResponse.getName()).thenReturn("원두 주문 웹페이지");
+        when(mockProjectResponse.getStartDate()).thenReturn(startDate);
+        when(mockProjectResponse.getEndDate()).thenReturn(endDate);
+        when(mockProjectResponse.getMemberCount()).thenReturn(6);
+        when(mockProjectResponse.getPosition()).thenReturn("백엔드");
+        when(mockProjectResponse.getRepositoryLink()).thenReturn("programmers@github.com");
+        when(mockProjectResponse.getDescription()).thenReturn("커피 원두를 주문할 수 있는 웹페이지");
+        when(mockProjectResponse.getImageUrl()).thenReturn("test.img");
+
+        when(mockProjectResponse.getSkillNames()).thenReturn(List.of("Java", "Spring Boot"));
+        when(mockProjectResponse.getToolNames()).thenReturn(List.of("IntelliJ IDEA", "Docker"));
+
+        when(projectMapper.projectToProjectDetailResponse(mockProject)).thenReturn(mockProjectResponse);
+
+        List<Project> mockProjectList = List.of(mockProject);
+        when(projectRepository.findAllByOrderByIdDesc()).thenReturn(mockProjectList);
+
+        // When
+        List<ProjectDetailResponse> response = projectService.detailAllProject(mockUser);
+
+        // Then
+        assertEquals(1, response.size());
+        assertEquals("원두 주문 웹페이지", response.get(0).getName());
+        assertEquals(startDate, response.get(0).getStartDate());
+        assertEquals(endDate, response.get(0).getEndDate());
+        assertEquals(6, response.get(0).getMemberCount());
+        assertEquals("백엔드", response.get(0).getPosition());
+        assertEquals("programmers@github.com", response.get(0).getRepositoryLink());
+        assertEquals("커피 원두를 주문할 수 있는 웹페이지", response.get(0).getDescription());
+        assertEquals("test.img", response.get(0).getImageUrl());
+
+        assertEquals(2, response.get(0).getSkillNames().size());
+        assertEquals(2, response.get(0).getToolNames().size());
+        assertTrue(response.get(0).getSkillNames().containsAll(List.of("Java", "Spring Boot")));
+        assertTrue(response.get(0).getToolNames().containsAll(List.of("IntelliJ IDEA", "Docker")));
+
+        // Verify
+        verify(projectRepository).findAllByOrderByIdDesc();
+        verify(projectMapper).projectToProjectDetailResponse(mockProject);
+    }
+
+    @Test
+    @DisplayName("프로젝트 전체 조회 실패 - 프로젝트 없는 경우")
+    void t5(){
+        // given
+        User mockUser = mock(User.class);
+        when(projectRepository.findAllByOrderByIdDesc()).thenReturn(Collections.emptyList());
+        //System.out.println("mockUser: " + mockUser);
+
+
+        // when & then
+        ProjectCreationException exception = assertThrows(ProjectCreationException.class, () -> {
+            projectService.detailAllProject(mockUser);
+        });
+
+        // 예외 메시지 확인
+        RsData<Void> rsData = exception.getRsData();
+        assertEquals("404", rsData.getResultCode());
+        assertEquals("프로젝트가 존재하지 않습니다.", rsData.getMessage());
+    }
+
+    @Test
+    @DisplayName("프로젝트 전체 조회 실패 - 예기치 않은 오류 발생")
+    void t6(){
+        //given
+        when(projectRepository.findAllByOrderByIdDesc()).thenThrow(new RuntimeException("Unexpected error"));
+
+        //when & then
+        ProjectCreationException exception = assertThrows(ProjectCreationException.class, () -> {
+            projectService.detailAllProject(mockUser);
+        });
+
+        // 예외 메시지 확인
+        RsData<Void> rsData = exception.getRsData();
+        assertEquals("400", rsData.getResultCode());
+        assertEquals("프로젝트 전체 조회 중 오류가 발생했습니다.", rsData.getMessage());
+    }
+
+
+
 //    @Test
 //    @DisplayName("프로젝트 단건 조회 성공")
 //    void t7(){
