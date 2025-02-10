@@ -14,11 +14,28 @@ import com.pofo.backend.domain.resume.license.dto.LicenseResponse;
 import com.pofo.backend.domain.resume.license.entity.License;
 import com.pofo.backend.domain.resume.resume.dto.response.ResumeResponse;
 import com.pofo.backend.domain.resume.resume.entity.Resume;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface ResumeMapper {
+    @Mapping(target = "skills", expression = "java(mapSkills(resume))")
+    @Mapping(target = "tools", expression = "java(mapTools(resume))")
     ResumeResponse resumeToResumeResponse(Resume resume);
+
+    default Set<String> mapSkills(Resume resume) {
+        return resume.getResumeSkills().stream()
+            .map(resumeSkill -> resumeSkill.getSkill().getName())
+            .collect(Collectors.toSet());
+    }
+
+    default Set<String> mapTools(Resume resume) {
+        return resume.getResumeTools().stream()
+            .map(resumeTool -> resumeTool.getTool().getName())
+            .collect(Collectors.toSet());
+    }
     ActivityResponse activityToActivityResponse(Activity activity);
     CourseResponse courseToCourseResponse(Course course);
     ExperienceResponse experienceToExperienceResponse(Experience experience);
