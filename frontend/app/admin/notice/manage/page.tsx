@@ -25,7 +25,18 @@ const NoticeManagePage = () => {
   const { isLoggedIn, login } = useAuthStore();
 
   useEffect(() => {
+    const token = localStorage.getItem('accessToken');
 
+    if (token) {
+      if (!isLoggedIn) {
+        // 토큰이 있지만 로그인 상태가 아닐 경우 로그인 상태 업데이트
+        login(token);
+      }
+    } else {
+      // 토큰이 없을 경우 로그인 페이지로 리다이렉트
+      router.push('/admin/login');
+      return;
+    }
 
     const fetchNotices = async () => {
       try {
