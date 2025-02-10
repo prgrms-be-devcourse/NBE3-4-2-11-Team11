@@ -9,10 +9,8 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.context.annotation.Profile;
 
 @Slf4j
-@Profile("dev")
 @Configuration
 @RequiredArgsConstructor
 public class BaseInitData {
