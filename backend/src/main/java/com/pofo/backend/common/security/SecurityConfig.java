@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -40,6 +41,8 @@ public class SecurityConfig {
 
     // 관리자 전용 UserDetailsService
     private final AdminDetailsService adminDetailsService;
+
+    private final CustomUserDetailsService customUserDetailsService;
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
@@ -132,9 +135,22 @@ public class SecurityConfig {
     /**
      * AuthenticationManager 빈이 필요한 경우 등록
      */
+//    @Bean
+//    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
+//        return configuration.getAuthenticationManager();
+//    }
+
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
-        return configuration.getAuthenticationManager();
+    public AuthenticationManager authenticationManager() {
+        DaoAuthenticationProvider adminProvider = new DaoAuthenticationProvider();
+        adminProvider.setUserDetailsService(adminDetailsService);
+        adminProvider.setPasswordEncoder(passwordEncoder());
+
+        DaoAuthenticationProvider userProvider = new DaoAuthenticationProvider();
+        userProvider.setUserDetailsService(customUserDetailsService);
+        userProvider.setPasswordEncoder(passwordEncoder());
+
+        return new ProviderManager(List.of(adminProvider, userProvider));
     }
 
     @Bean

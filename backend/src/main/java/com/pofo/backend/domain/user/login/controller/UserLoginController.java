@@ -53,7 +53,7 @@ public class UserLoginController {
     @Value("${spring.security.oauth2.client.registration.google.redirect-uri}")
     private String googleRedirectUri;
     //  Google Oauths 정보 끝
-    
+
     private final UserLoginService userLoginService;
 
     public UserLoginController(UserLoginService userLoginService) {

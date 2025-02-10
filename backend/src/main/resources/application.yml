@@ -83,25 +83,29 @@ springdoc:
 
 logging:
   level:
-    org.hibernate.SQL: DEBUG  # Hibernate SQL 로그 레벨 설정
-    org.hibernate.orm.jdbc.bind: TRACE  # Hibernate 바인딩 로그 레벨 설정
-    org.hibernate.orm.jdbc.extract: TRACE  # Hibernate JDBC 추출 로그 레벨 설정
+    org.hibernate.SQL: WARN  # Hibernate SQL 로그 레벨 설정
+    org.hibernate.orm.jdbc.bind: WARN  # Hibernate 바인딩 로그 레벨 설정
+    org.hibernate.orm.jdbc.extract: WARN  # Hibernate JDBC 추출 로그 레벨 설정
     org.springframework.data.redis: DEBUG  # Spring Data Redis 로그 레벨 추가
+    root: INFO
+    com.pofo.backend.common.security.jwt: DEBUG
 
 jwt:
   secret:
     key: ${JWT_SECRET_KEY}
   expiration:
-    time: 3600000  # AccessToken expired time : 1h(60min)
+    time: ${JWT_VALIDATION_TIME}
   refresh-token:
-    expiration-time: 1800000  # RefreshToken expired time : 30min
+    expiration-time: ${JWT_REFRESH_VALIDATION_TIME}
+
+auth:
+  key: ${AUTHORIZATION_KEY}
 
 aes:
   secret:
     key: ${AES_SECRET_KEY}
 
-auth :
-  key : ${AUTHORIZATION_KEY}
+
 
 # JWT Test Settings (commented out)
 #jwt:

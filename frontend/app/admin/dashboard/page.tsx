@@ -70,12 +70,7 @@ export default function AdminDashboard() {
         <button className="bg-yellow-500 text-white px-6 py-3 rounded-lg shadow-md hover:bg-yellow-600">
           시스템 로그 보기
         </button>
-        <button
-          className="bg-gray-500 text-white px-6 py-3 rounded-lg shadow-md hover:bg-gray-600"
-          onClick={handleLogout}
-        >
-          로그아웃
-        </button>
+
       </div>
     </div>
   );

@@ -31,45 +31,39 @@ public class TokenRefreshController {
 
     @PostMapping("/refresh")
     public ResponseEntity<RsData<TokenDto>> refreshToken(@RequestBody TokenDto request) {
-        log.info("토큰 재발급 시~작");
+        log.info("토큰 재발급 시작");
         String refreshToken = request.getRefreshToken();
 
         log.info("Refresh token 요청 : {}", refreshToken);
 
-        // ✅ Refresh Token 유효성 검사
+        // Refresh Token 유효성 검사
         if (refreshToken == null || refreshToken.isEmpty() || !tokenProvider.validateToken(refreshToken)) {
             log.warn("❌ Refresh Token이 유효하지 않음.");
             return ResponseEntity.status(401).body(
                     new RsData<>("401", "Refresh Token이 유효하지 않음",
                             TokenDto.builder()
-                                    .accessToken("")  // 빈 Access Token
-                                    .refreshToken("")  // 빈 Refresh Token
-                                    .type("Bearer")  // 기본 타입 유지
-                                    .accessTokenValidationTime(0L)  // 0L 설정
-                                    .refreshTokenValidationTime(0L)  // 0L 설정
+                                    .accessToken("")
+                                    .refreshToken("")
+                                    .type("Bearer")
+                                    .accessTokenValidationTime(0L)
+                                    .refreshTokenValidationTime(0L)
                                     .build()
                     )
-            ); // ✅ null 방지
+            );
         }
 
-        // ✅ Refresh Token에서 사용자 정보 가져오기
-        Claims claims = tokenProvider.parseData(refreshToken);
-        String email = claims.getSubject();
-
-        Optional<User> userOptional = userRepository.findByEmail(email);
-        if (userOptional.isEmpty()) {
-            log.warn("❌ 해당 이메일({})의 사용자를 찾을 수 없음.", email);
-            return ResponseEntity.status(404).body(new RsData<>("404", "사용자를 찾을 수 없음", null));
-        }
-
-        User user = userOptional.get();
+        // 토큰에서 인증 정보 획득 (관리자/일반 사용자를 구분하여 조회)
         Authentication authentication = tokenProvider.getAuthenticationFromRefreshToken(refreshToken);
+        if (authentication == null) {
+            log.warn("❌ 인증 정보를 가져올 수 없음.");
+            return ResponseEntity.status(401)
+                    .body(new RsData<>("401", "인증 정보를 가져올 수 없음", null));
+        }
 
-        // ✅ 새 Access Token 발급
+        // 새 Access Token 발급
         String newAccessToken = tokenProvider.generateAccessToken(authentication);
         log.info("✅ 새로운 Access Token 발급 완료: {}", newAccessToken);
 
-        // ✅ 새로운 토큰 정보 반환
         TokenDto newTokenResponse = TokenDto.builder()
                 .accessToken(newAccessToken)
                 .refreshToken(refreshToken) // 기존 Refresh Token 유지
