@@ -1,18 +1,11 @@
 package com.pofo.backend.domain.skill.entity;
 
 import com.pofo.backend.common.jpa.entity.BaseEntity;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import lombok.*;
+
 import java.util.ArrayList;
 import java.util.List;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 @Builder
 @Entity
@@ -28,4 +21,9 @@ public class Skill extends BaseEntity {
     private List<ResumeSkill> resumeSkills = new ArrayList<>();
     @OneToMany(mappedBy = "skill", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProjectSkill> projectSkills = new ArrayList<>();
+
+    //테스트 코드에서 사용 가능한 public한 생성자 추가
+    public Skill(String name){
+        this.name = name;
+    }
 }

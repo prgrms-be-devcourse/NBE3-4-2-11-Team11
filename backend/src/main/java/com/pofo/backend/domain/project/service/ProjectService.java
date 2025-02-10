@@ -48,16 +48,15 @@ public class ProjectService {
                     .repositoryLink(projectRequest.getRepositoryLink())
                     .description(projectRequest.getDescription())
                     .imageUrl(projectRequest.getImageUrl())
+                    .projectSkills(projectRequest.getSkillNames().stream()
+                            .map(skillName -> new ProjectSkill(null, skillService.getSkillByName(skillName)))
+                            .collect(Collectors.toList()))
+                    .projectTools(projectRequest.getToolNames().stream()
+                            .map(toolName -> new ProjectTool(null, toolService.getToolByName(toolName)))
+                            .collect(Collectors.toList()))
                     .build();
 
             projectRepository.save(project);
-
-            // 프로젝트와 연결된 기술 및 도구 추가
-            projectRequest.getSkillNames().forEach(skillName ->
-                    project.getProjectSkills().add(new ProjectSkill(project, skillService.getSkillByName(skillName))));
-
-            projectRequest.getToolNames().forEach(toolName ->
-                    project.getProjectTools().add(new ProjectTool(project, toolService.getToolByName(toolName))));
 
             return new ProjectCreateResponse(project.getId());
 
