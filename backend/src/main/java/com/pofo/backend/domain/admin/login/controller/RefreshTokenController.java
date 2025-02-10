@@ -44,9 +44,9 @@ public class RefreshTokenController {
             // TokenProvider의 refreshAccessToken 메소드 호출로 새로운 토큰 쌍 발급
             TokenDto newTokenDto = tokenProvider.refreshAccessToken(refreshToken);
 
-            // (선택사항) 새로운 Refresh Token을 Redis에 저장 (유효시간 설정)
-            redisTemplate.opsForValue().set(newTokenDto.getRefreshToken(), "valid",
-                    newTokenDto.getRefreshTokenValidationTime(), TimeUnit.MILLISECONDS);
+//            // (선택사항) 새로운 Refresh Token을 Redis에 저장 (유효시간 설정)
+//            redisTemplate.opsForValue().set(newTokenDto.getRefreshToken(), "valid",
+//                    newTokenDto.getRefreshTokenValidationTime(), TimeUnit.MILLISECONDS);
 
             return ResponseEntity.ok(new RsData<>("200", "새로운 토큰이 발급되었습니다.", newTokenDto));
         } catch (Exception e) {

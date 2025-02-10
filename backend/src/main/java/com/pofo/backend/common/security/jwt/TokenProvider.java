@@ -11,6 +11,8 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.ReactiveRedisOperations;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -22,6 +24,7 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -49,6 +52,8 @@ public class TokenProvider {
     private final UserDetailsService userDetailsService;
 
     private final UserRepository userRepository;
+    private final RedisTemplate<String, String> redisTemplate; // ✅ Redis 추가
+
 
     @PostConstruct
     public void init() {
@@ -108,6 +113,39 @@ public class TokenProvider {
 
         log.info("Access Token 생성 완료");
         log.info("Refresh Token 생성 완료");
+
+        boolean isAdmin = authorities.contains("ROLE_ADMIN");
+
+        if (isAdmin) {
+            // 관리자용으로 저장
+            redisTemplate.opsForValue().set(
+                    "admin_access_token:" + accessToken,
+                    subject,
+                    validationTime,
+                    TimeUnit.SECONDS
+            );
+            redisTemplate.opsForValue().set(
+                    "admin_refresh_token:" + subject,
+                    refreshToken,
+                    refreshTokenValidationTime,
+                    TimeUnit.SECONDS
+            );
+        } else {
+            // 일반 사용자용으로 저장
+            redisTemplate.opsForValue().set(
+                    "user_access_token:" + accessToken,
+                    subject,
+                    validationTime,
+                    TimeUnit.SECONDS
+            );
+            redisTemplate.opsForValue().set(
+                    "user_refresh_token:" + subject,
+                    refreshToken,
+                    refreshTokenValidationTime,
+                    TimeUnit.SECONDS
+            );
+        }
+
 
         return TokenDto.builder()
                 .accessToken(accessToken)
@@ -288,4 +326,24 @@ public class TokenProvider {
         Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
         return claims.getExpiration().getTime() - System.currentTimeMillis();
     }
+
+    public String getEmailFromToken(String token) {
+        Claims claims = parseData(token);
+
+        if (claims == null) {
+            log.error("🔴 getEmailFromToken: 토큰에서 Claim을 추출할 수 없음 (토큰이 유효하지 않거나 만료됨)");
+            return null;
+        }
+
+        String subject = claims.getSubject();
+
+        if (subject == null || subject.trim().isEmpty()) {
+            log.error("🔴 getEmailFromToken: 토큰의 subject가 null 또는 빈 값입니다.");
+            return null;
+        }
+
+        log.info("✅ getEmailFromToken: 추출된 subject = {}", subject);
+        return subject; // User는 email, Admin은 username
+    }
+
 }

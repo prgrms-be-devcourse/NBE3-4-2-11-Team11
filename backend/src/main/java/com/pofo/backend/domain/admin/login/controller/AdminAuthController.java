@@ -82,21 +82,56 @@ public class AdminAuthController {
         }
     }
 
+//    @PostMapping("/logout")
+//    public ResponseEntity<RsData<AdminLogoutResponse>> logout(HttpServletRequest request) {
+//        String bearerToken = request.getHeader("Authorization");
+//        // "Bearer " 접두어 제거
+//        String token = (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer "))
+//                ? bearerToken.substring(7)
+//                : null;
+//
+//        if (token != null && tokenProvider.validateToken(token)) {
+//            long remainingMillis = tokenProvider.getExpiration(token);
+//            if (remainingMillis > 0) {
+//                // 토큰의 남은 유효시간을 기준으로 블랙리스트에 추가 (내부적으로 "blacklist:" 접두어 사용)
+//                tokenBlacklistService.addToBlacklist(token, remainingMillis);
+//            }
+//        }
+//        return ResponseEntity.ok(
+//                new RsData<>("200", "성공적으로 로그아웃되었습니다.", new AdminLogoutResponse("성공적으로 로그아웃되었습니다."))
+//        );
+//    }
+
     @PostMapping("/logout")
     public ResponseEntity<RsData<AdminLogoutResponse>> logout(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
-        // "Bearer " 접두어 제거
+
+        // ✅ "Bearer " 접두어 제거
         String token = (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer "))
                 ? bearerToken.substring(7)
                 : null;
 
         if (token != null && tokenProvider.validateToken(token)) {
             long remainingMillis = tokenProvider.getExpiration(token);
+
+            // ✅ Access Token을 블랙리스트에 추가 (만료되지 않았을 때만)
             if (remainingMillis > 0) {
-                // 토큰의 남은 유효시간을 기준으로 블랙리스트에 추가 (내부적으로 "blacklist:" 접두어 사용)
+                log.info("🛑 Admin 로그아웃: Access Token 블랙리스트 추가 (TTL: {} 초)", remainingMillis / 1000);
                 tokenBlacklistService.addToBlacklist(token, remainingMillis);
             }
+
+            // ✅ Redis에서 Refresh Token 삭제
+            String refreshTokenKey = "refresh_token:" + token;
+            if (Boolean.TRUE.equals(redisTemplate.hasKey(refreshTokenKey))) {
+                redisTemplate.delete(refreshTokenKey);
+                log.info("✅ Redis에서 Admin의 Refresh Token 삭제 완료");
+            } else {
+                log.warn("⚠️ Admin의 Refresh Token이 Redis에 존재하지 않음");
+            }
+        } else {
+            log.warn("❌ 유효하지 않은 Access Token으로 로그아웃 요청");
         }
+
         return ResponseEntity.ok(
                 new RsData<>("200", "성공적으로 로그아웃되었습니다.", new AdminLogoutResponse("성공적으로 로그아웃되었습니다."))
         );
