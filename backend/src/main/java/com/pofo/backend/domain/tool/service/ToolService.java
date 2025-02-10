@@ -15,7 +15,7 @@ public class ToolService {
 
 
     public void save() {
-        if (toolRepository.count() == 0) return;
+        if (toolRepository.count() > 0) return;
         List<String> toolNames = List.of(
             "IntelliJ IDEA", "Visual Studio Code", "Eclipse", "PyCharm", "Android Studio",
 
