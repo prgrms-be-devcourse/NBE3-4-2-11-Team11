@@ -67,12 +67,13 @@ public class SecurityConfig {
 
         http
                 // '/api/v1/admin/**' 경로에만 적용
-                .securityMatcher("/api/v1/admin/**")
-                .cors(withDefaults())  // ✅ CORS 활성화 추가
+                .securityMatcher("/api/v1/admin/**", "/api/v1/token/**")
+//                .cors(withDefaults())  // ✅ CORS 활성화 추가
+                .cors(c -> c.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/admin/login","/api/v1/admin/refresh-token").permitAll()
+                        .requestMatchers("/api/v1/admin/login","/api/v1/token/refresh").permitAll()
                         .requestMatchers("/api/v1/admin/me").authenticated() // ✅ 관리자 정보 조회는 인증 필요
                         .anyRequest().authenticated()
                 )

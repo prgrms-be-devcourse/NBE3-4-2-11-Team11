@@ -27,6 +27,7 @@ spring:
         show_sql: true
         default_batch_fetch_size: 100  # 배치 페치 크기
         highlight-sql: true  # SQL 강조
+    show-sql: false
 
   security:
     oauth2:
@@ -83,10 +84,10 @@ springdoc:
 
 logging:
   level:
-    org.hibernate.SQL: WARN  # Hibernate SQL 로그 레벨 설정
-    org.hibernate.orm.jdbc.bind: WARN  # Hibernate 바인딩 로그 레벨 설정
-    org.hibernate.orm.jdbc.extract: WARN  # Hibernate JDBC 추출 로그 레벨 설정
-    org.springframework.data.redis: DEBUG  # Spring Data Redis 로그 레벨 추가
+    org.hibernate.SQL: ERROR            # Hibernate SQL 로그를 ERROR 레벨로 변경
+    org.hibernate.orm.jdbc.bind: ERROR    # Hibernate 바인딩 로그를 ERROR 레벨로 변경
+    org.hibernate.orm.jdbc.extract: ERROR # Hibernate JDBC 추출 로그를 ERROR 레벨로 변경
+    org.springframework.data.redis: INFO
     root: INFO
     com.pofo.backend.common.security.jwt: DEBUG
 
