@@ -8,7 +8,6 @@ import com.pofo.backend.domain.resume.language.dto.LanguageResponse;
 import com.pofo.backend.domain.resume.license.dto.LicenseResponse;
 import java.time.LocalDate;
 import java.util.Set;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -30,4 +29,6 @@ public class ResumeResponse {
     private Set<EducationResponse> educations;
     private Set<LicenseResponse> licenses;
     private Set<LanguageResponse> languages;
+    private Set<String> skills;
+    private Set<String> tools;
 }
