@@ -102,9 +102,9 @@ const NoticeManagePage = () => {
       </div>
       <ul>
         {notices.map((notice) => (
-          <li key={notice.id} className={styles.noticeBox}>
+          <li key={notice.id} className={styles.noticeBox} onClick={() => router.push(`/admin/notice/${notice.id}`)}>
             <div className={styles.noticeSubjectRow}>
-              <div className={styles.noticeSubject} onClick={() => router.push(`admin/notice/${notice.id}`)}>
+              <div className={styles.noticeSubject}>
                 {notice.subject}
               </div>
               <div className={styles.noticeDate}>
