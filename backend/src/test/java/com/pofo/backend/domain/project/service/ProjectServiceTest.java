@@ -3,8 +3,10 @@ package com.pofo.backend.domain.project.service;
 import com.pofo.backend.common.rsData.RsData;
 import com.pofo.backend.domain.mapper.ProjectMapper;
 import com.pofo.backend.domain.project.dto.request.ProjectCreateRequest;
+import com.pofo.backend.domain.project.dto.request.ProjectUpdateRequest;
 import com.pofo.backend.domain.project.dto.response.ProjectCreateResponse;
 import com.pofo.backend.domain.project.dto.response.ProjectDetailResponse;
+import com.pofo.backend.domain.project.dto.response.ProjectUpdateResponse;
 import com.pofo.backend.domain.project.entity.Project;
 import com.pofo.backend.domain.project.exception.ProjectCreationException;
 import com.pofo.backend.domain.project.repository.ProjectRepository;
@@ -20,12 +22,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.springframework.dao.DataAccessException;
 
 import java.time.LocalDate;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -366,169 +368,201 @@ public class ProjectServiceTest {
 
     }
 
-//    private ProjectUpdateRequest projectUpdateRequest() {
-//        return ProjectUpdateRequest.builder()
-//                .name("업데이트된 프로젝트")
-//                .startDate(LocalDate.of(2025, 1, 25))
-//                .endDate(LocalDate.of(2025, 2, 20))
-//                .memberCount(8)
-//                .position("프론트엔드")
-//                .repositoryLink("newRepoLink")
-//                .description("업데이트된 프로젝트 설명")
-//                .imageUrl("newImage.img")
-//                .build();
-//    }
-//
-//    @Test
-//    @DisplayName("프로젝트 수정 성공")
-//    void t10() {
-//        // Given
-//        Long projectId = 1L;
-//        ProjectUpdateRequest updateRequest = projectUpdateRequest(); // 업데이트할 요청 객체
-//
-//        // 실제 프로젝트 객체 생성 (Spy 사용)
-//        Project realProject = spy(Project.builder()
-//                .user(mockUser)
-//                .name("기존 프로젝트")
-//                .startDate(LocalDate.of(2025, 1, 1))
-//                .endDate(LocalDate.of(2025, 2, 10))
-//                .memberCount(4)
-//                .position("백엔드")
-//                .repositoryLink("oldRepoLink")
-//                .description("기존 프로젝트 설명")
-//                .imageUrl("oldImage.img")
-//                .build());
-//
-//        when(projectRepository.findById(projectId)).thenReturn(Optional.of(realProject));
-//
-//        // When
-//        ProjectUpdateResponse response = projectService.updateProject(projectId, updateRequest, mockUser);
-//
-//        // Then
-//        assertNotNull(response);
-//        assertEquals(updateRequest.getName(), response.getName());
-//        assertEquals(updateRequest.getStartDate(), response.getStartDate());
-//        assertEquals(updateRequest.getEndDate(), response.getEndDate());
-//        assertEquals(updateRequest.getMemberCount(), response.getMemberCount());
-//        assertEquals(updateRequest.getPosition(), response.getPosition());
-//        assertEquals(updateRequest.getRepositoryLink(), response.getRepositoryLink());
-//        assertEquals(updateRequest.getDescription(), response.getDescription());
-//        assertEquals(updateRequest.getImageUrl(), response.getImageUrl());
-//
-//        // 프로젝트 엔티티가 업데이트되었는지 확인
-//        verify(realProject).update(
-//                updateRequest.getName(),
-//                updateRequest.getStartDate(),
-//                updateRequest.getEndDate(),
-//                updateRequest.getMemberCount(),
-//                updateRequest.getPosition(),
-//                updateRequest.getRepositoryLink(),
-//                updateRequest.getDescription(),
-//                updateRequest.getImageUrl()
-//        );
-//
-//    }
-//
-//
-//
-//
-//    @Test
-//    @DisplayName("프로젝트 수정 실패 - 프로젝트 없음")
-//    void t11(){
-//        ProjectUpdateRequest updateRequest = projectUpdateRequest(); // 업데이트할 요청 객체
-//
-//        when(projectRepository.findById(1L)).thenReturn(Optional.empty()); // 프로젝트 없음 처리
-//
-//        ProjectCreationException exception = assertThrows(ProjectCreationException.class, () -> {
-//            projectService.updateProject(1L, updateRequest, mockUser);
-//        });
-//
-//        RsData<Void> rsData = exception.getRsData();
-//        assertEquals("404", rsData.getResultCode());
-//        assertEquals("해당 프로젝트를 찾을 수 없습니다.", rsData.getMessage());
-//    }
-//
-//    @Test
-//    @DisplayName("프로젝트 수정 실패 - 권한 없음")
-//    void t12() {
-//        ProjectUpdateRequest updateRequest = projectUpdateRequest(); // 업데이트할 요청 객체
-//        User differentUser = Mockito.mock(User.class); // 다른 사용자
-//
-//        // Project를 Mock 객체로 생성
-//        Project mockProject = Mockito.mock(Project.class);
-//
-//        when(projectRepository.findById(1L)).thenReturn(Optional.of(mockProject));
-//        when(mockProject.getUser()).thenReturn(differentUser); // mockUser와 다르게 설정
-//
-//        // 예외 발생 여부 확인
-//        ProjectCreationException exception = assertThrows(ProjectCreationException.class, () -> {
-//            projectService.updateProject(1L, updateRequest, mockUser);
-//        });
-//
-//        RsData<Void> rsData = exception.getRsData();
-//        assertEquals("403", rsData.getResultCode());
-//        assertEquals("프로젝트 수정 할 권한이 없습니다.", rsData.getMessage());
-//    }
-//
-//    @Test
-//    @DisplayName("프로젝트 삭제 성공")
-//    void t13() {
-//        Long projectId=1L;
-//
-//        Project mockProject = Mockito.mock(Project.class);
-//        when(projectRepository.findById(projectId)).thenReturn(Optional.of(mockProject));
-//        when(mockProject.getUser()).thenReturn(mockUser); // 사용자 일치
-//
-//        // When
-//        assertDoesNotThrow(() -> projectService.deleteProject(projectId, mockUser));
-//
-//        // Then
-//        verify(projectRepository).delete(mockProject); // 삭제 확인
-//
-//    }
-//
-//
-//    @Test
-//    @DisplayName("프로젝트 삭제 실패 - 삭제 권한 없음")
-//    void t14(){
-//
-//        Long projectId=1L;
-//
-//        Project mockProject = Mockito.mock(Project.class);
-//        User differentUser = Mockito.mock(User.class); // 다른 사용자
-//        when(projectRepository.findById(projectId)).thenReturn(Optional.of(mockProject));
-//        when(mockProject.getUser()).thenReturn(differentUser); // 사용자 불일치
-//
-//        // When & Then
-//        ProjectCreationException exception = assertThrows(ProjectCreationException.class, () -> {
-//            projectService.deleteProject(projectId, mockUser);
-//        });
-//
-//        RsData<Void> rsData = exception.getRsData();
-//        assertEquals("403", rsData.getResultCode());
-//        assertEquals("프로젝트 삭제 할 권한이 없습니다.", rsData.getMessage());
-//    }
-//
-//    @Test
-//    @DisplayName("프로젝트 삭제 실패 - 데이터베이스 오류 발생")
-//    void t15(){
-//
-//        Long projectId=1L;
-//
-//        // Given
-//        Project mockProject = Mockito.mock(Project.class);
-//        when(projectRepository.findById(projectId)).thenReturn(Optional.of(mockProject));
-//        when(mockProject.getUser()).thenReturn(mockUser);
-//        doThrow(new DataAccessException("DB 오류"){}).when(projectRepository).delete(mockProject);
-//
-//        // When & Then
-//        ProjectCreationException exception = assertThrows(ProjectCreationException.class, () -> {
-//            projectService.deleteProject(projectId, mockUser);
-//        });
-//
-//        RsData<Void> rsData = exception.getRsData();
-//        assertEquals("500", rsData.getResultCode());
-//        assertEquals("프로젝트 삭제 중 데이터베이스 오류가 발생했습니다.", rsData.getMessage());
-//
-//    }
+    private ProjectUpdateRequest projectUpdateRequest() {
+        return ProjectUpdateRequest.builder()
+                .name("업데이트된 프로젝트")
+                .startDate(LocalDate.of(2025, 1, 25))
+                .endDate(LocalDate.of(2025, 2, 20))
+                .memberCount(8)
+                .position("프론트엔드")
+                .repositoryLink("newRepoLink")
+                .description("업데이트된 프로젝트 설명")
+                .imageUrl("newImage.img")
+                .skillNames(List.of("React", "TypeScript"))
+                .toolNames(List.of("vs Code", "Figma"))
+                .build();
+    }
+
+    @Test
+    @DisplayName("프로젝트 수정 성공")
+    void t10() {
+        // Given
+        Long projectId = 1L;
+
+        //  업데이트할 요청 객체 (Builder 패턴 적용)
+        ProjectUpdateRequest updateRequest = ProjectUpdateRequest.builder()
+                .name("업데이트된 프로젝트")
+                .startDate(LocalDate.of(2025, 1, 25))
+                .endDate(LocalDate.of(2025, 2, 20))
+                .memberCount(8)
+                .position("프론트엔드")
+                .repositoryLink("newRepoLink")
+                .description("업데이트된 프로젝트 설명")
+                .imageUrl("newImage.img")
+                .skillNames(List.of("React", "TypeScript"))  // ✅ 기존 Java → 새로운 Skill 목록
+                .toolNames(List.of("VS Code", "Figma"))  // ✅ 기존 IntelliJ IDEA → 새로운 Tool 목록
+                .build();
+
+        // ✅ 기존 프로젝트 객체 생성 (Spy 사용)
+        Project realProject = spy(Project.builder()
+                .user(mockUser)
+                .name("기존 프로젝트")
+                .startDate(LocalDate.of(2025, 1, 1))
+                .endDate(LocalDate.of(2025, 2, 10))
+                .memberCount(4)
+                .position("백엔드")
+                .repositoryLink("oldRepoLink")
+                .description("기존 프로젝트 설명")
+                .imageUrl("oldImage.img")
+                .build());
+
+        // 기존 Skill 및 Tool 설정 (빌드 후 추가)
+        ProjectSkill existingProjectSkill = new ProjectSkill(realProject, new Skill("Java"));
+        ProjectTool existingProjectTool = new ProjectTool(realProject, new Tool("IntelliJ IDEA"));
+
+        realProject.setProjectSkills(new ArrayList<>(List.of(existingProjectSkill)));
+        realProject.setProjectTools(new ArrayList<>(List.of(existingProjectTool)));
+
+        //  Mock 설정
+        when(projectRepository.findById(projectId)).thenReturn(Optional.of(realProject));
+
+        //  Skill 및 Tool 서비스 Mock 설정
+        when(skillService.getSkillByName("React")).thenReturn(new Skill("React"));
+        when(skillService.getSkillByName("TypeScript")).thenReturn(new Skill("TypeScript"));
+        when(toolService.getToolByName("VS Code")).thenReturn(new Tool("VS Code"));
+        when(toolService.getToolByName("Figma")).thenReturn(new Tool("Figma"));
+
+        // When
+        ProjectUpdateResponse response = projectService.updateProject(projectId, updateRequest, mockUser);
+
+        // Then
+        assertNotNull(response);
+        assertEquals(updateRequest.getName(), response.getName());
+        assertEquals(updateRequest.getStartDate(), response.getStartDate());
+        assertEquals(updateRequest.getEndDate(), response.getEndDate());
+        assertEquals(updateRequest.getMemberCount(), response.getMemberCount());
+        assertEquals(updateRequest.getPosition(), response.getPosition());
+        assertEquals(updateRequest.getRepositoryLink(), response.getRepositoryLink());
+        assertEquals(updateRequest.getDescription(), response.getDescription());
+        assertEquals(updateRequest.getImageUrl(), response.getImageUrl());
+
+        // Skill 및 Tool 검증 (기존 데이터를 새로운 데이터로 완전히 덮어쓰는지 확인)
+        assertEquals(updateRequest.getSkillNames().size(), response.getSkillNames().size());
+        assertEquals(updateRequest.getToolNames().size(), response.getToolNames().size());
+        assertTrue(response.getSkillNames().containsAll(updateRequest.getSkillNames()));
+        assertTrue(response.getToolNames().containsAll(updateRequest.getToolNames()));
+
+        // Skill 및 Tool이 정확히 덮어쓰기 되었는지 검증 (기존 "Java", "IntelliJ IDEA"는 삭제됨)
+        Set<String> actualSkills = realProject.getProjectSkills().stream()
+                .map(ps -> ps.getSkill().getName())
+                .collect(Collectors.toSet());
+
+        Set<String> actualTools = realProject.getProjectTools().stream()
+                .map(pt -> pt.getTool().getName())
+                .collect(Collectors.toSet());
+
+        assertEquals(new HashSet<>(updateRequest.getSkillNames()), actualSkills);
+        assertEquals(new HashSet<>(updateRequest.getToolNames()), actualTools);
+    }
+
+
+    @Test
+    @DisplayName("프로젝트 수정 실패 - 프로젝트 없음")
+    void t11(){
+        ProjectUpdateRequest updateRequest = projectUpdateRequest(); // 업데이트할 요청 객체
+
+        when(projectRepository.findById(1L)).thenReturn(Optional.empty()); // 프로젝트 없음 처리
+
+        ProjectCreationException exception = assertThrows(ProjectCreationException.class, () -> {
+            projectService.updateProject(1L, updateRequest, mockUser);
+        });
+
+        RsData<Void> rsData = exception.getRsData();
+        assertEquals("404", rsData.getResultCode());
+        assertEquals("해당 프로젝트를 찾을 수 없습니다.", rsData.getMessage());
+    }
+
+    @Test
+    @DisplayName("프로젝트 수정 실패 - 권한 없음")
+    void t12() {
+        ProjectUpdateRequest updateRequest = projectUpdateRequest(); // 업데이트할 요청 객체
+        User differentUser = Mockito.mock(User.class); // 다른 사용자
+
+        // Project를 Mock 객체로 생성
+        Project mockProject = Mockito.mock(Project.class);
+
+        when(projectRepository.findById(1L)).thenReturn(Optional.of(mockProject));
+        when(mockProject.getUser()).thenReturn(differentUser); // mockUser와 다르게 설정
+
+        // 예외 발생 여부 확인
+        ProjectCreationException exception = assertThrows(ProjectCreationException.class, () -> {
+            projectService.updateProject(1L, updateRequest, mockUser);
+        });
+
+        RsData<Void> rsData = exception.getRsData();
+        assertEquals("403", rsData.getResultCode());
+        assertEquals("프로젝트 수정 할 권한이 없습니다.", rsData.getMessage());
+    }
+
+    @Test
+    @DisplayName("프로젝트 삭제 성공")
+    void t13() {
+        Long projectId=1L;
+
+        Project mockProject = Mockito.mock(Project.class);
+        when(projectRepository.findById(projectId)).thenReturn(Optional.of(mockProject));
+        when(mockProject.getUser()).thenReturn(mockUser); // 사용자 일치
+
+        // When
+        assertDoesNotThrow(() -> projectService.deleteProject(projectId, mockUser));
+
+        // Then
+        verify(projectRepository).delete(mockProject); // 삭제 확인
+
+    }
+
+
+    @Test
+    @DisplayName("프로젝트 삭제 실패 - 삭제 권한 없음")
+    void t14(){
+
+        Long projectId=1L;
+
+        Project mockProject = Mockito.mock(Project.class);
+        User differentUser = Mockito.mock(User.class); // 다른 사용자
+        when(projectRepository.findById(projectId)).thenReturn(Optional.of(mockProject));
+        when(mockProject.getUser()).thenReturn(differentUser); // 사용자 불일치
+
+        // When & Then
+        ProjectCreationException exception = assertThrows(ProjectCreationException.class, () -> {
+            projectService.deleteProject(projectId, mockUser);
+        });
+
+        RsData<Void> rsData = exception.getRsData();
+        assertEquals("403", rsData.getResultCode());
+        assertEquals("프로젝트 삭제 할 권한이 없습니다.", rsData.getMessage());
+    }
+
+    @Test
+    @DisplayName("프로젝트 삭제 실패 - 데이터베이스 오류 발생")
+    void t15(){
+
+        Long projectId=1L;
+
+        // Given
+        Project mockProject = Mockito.mock(Project.class);
+        when(projectRepository.findById(projectId)).thenReturn(Optional.of(mockProject));
+        when(mockProject.getUser()).thenReturn(mockUser);
+        doThrow(new DataAccessException("DB 오류"){}).when(projectRepository).delete(mockProject);
+
+        // When & Then
+        ProjectCreationException exception = assertThrows(ProjectCreationException.class, () -> {
+            projectService.deleteProject(projectId, mockUser);
+        });
+
+        RsData<Void> rsData = exception.getRsData();
+        assertEquals("500", rsData.getResultCode());
+        assertEquals("프로젝트 삭제 중 데이터베이스 오류가 발생했습니다.", rsData.getMessage());
+
+    }
 }

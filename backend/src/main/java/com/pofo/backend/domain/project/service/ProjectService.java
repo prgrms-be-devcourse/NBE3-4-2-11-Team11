@@ -20,10 +20,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class ProjectService {
 
     private final ProjectRepository projectRepository;
@@ -31,7 +33,6 @@ public class ProjectService {
     private final SkillService skillService;
     private final ToolService toolService;
 
-    @Transactional
     public ProjectCreateResponse createProject(ProjectCreateRequest projectRequest, User user) {
 
         try{
@@ -98,7 +99,6 @@ public class ProjectService {
         }
     }
 
-    @Transactional
     public ProjectDetailResponse detailProject(Long projectId, User user) {
 
         try{
@@ -120,7 +120,6 @@ public class ProjectService {
         }
     }
 
-    @Transactional
     public ProjectUpdateResponse updateProject(Long projectId, ProjectUpdateRequest request, User user) {
 
         Project project = projectRepository.findById(projectId)
@@ -132,17 +131,9 @@ public class ProjectService {
                 throw ProjectCreationException.forbidden("프로젝트 수정 할 권한이 없습니다.");
             }
 
-            List<ProjectSkill> projectSkills = request.getSkillNames().stream()
-                    .map(skillName -> new ProjectSkill(project, skillService.getSkillByName(skillName)))
-                    .collect(Collectors.toList());
-
-            List<ProjectTool> projectTools = request.getToolNames().stream()
-                    .map(toolName -> new ProjectTool(project, toolService.getToolByName(toolName)))
-                    .collect(Collectors.toList());
-
 
             // 프로젝트 정보 업데이트
-            project.update(
+            project.updateBasicInfo(
                     request.getName(),
                     request.getStartDate(),
                     request.getEndDate(),
@@ -150,9 +141,26 @@ public class ProjectService {
                     request.getPosition(),
                     request.getRepositoryLink(),
                     request.getDescription(),
-                    request.getImageUrl(),
-                    projectSkills,
-                    projectTools
+                    request.getImageUrl()
+            );
+
+            // 새로운 스킬 및 툴 리스트 생성
+            updateProjectSkills(project, request.getSkillNames());
+            updateProjectTools(project, request.getToolNames());
+
+            // 응답 변환
+            return new ProjectUpdateResponse(
+                    project.getId(),
+                    project.getName(),
+                    project.getStartDate(),
+                    project.getEndDate(),
+                    project.getMemberCount(),
+                    project.getPosition(),
+                    project.getRepositoryLink(),
+                    project.getDescription(),
+                    project.getImageUrl(),
+                    project.getProjectSkills().stream().map(ps -> ps.getSkill().getName()).collect(Collectors.toList()),
+                    project.getProjectTools().stream().map(pt -> pt.getTool().getName()).collect(Collectors.toList())
             );
 
         }catch (DataAccessException ex){
@@ -160,35 +168,42 @@ public class ProjectService {
         }catch (ProjectCreationException ex) {
             throw ex;  // 이미 정의된 예외는 다시 던진다.
         }catch (Exception ex){
+            ex.printStackTrace(); // 예외 상세 출력
             throw ProjectCreationException.badRequest("프로젝트 수정 중 오류가 발생했습니다.");
         }
 
-        // 응답 변환
-        List<String> skillNames = project.getProjectSkills().stream()
-                .map(ps -> ps.getSkill().getName())
-                .collect(Collectors.toList());
-
-        List<String> toolNames = project.getProjectTools().stream()
-                .map(pt -> pt.getTool().getName())
-                .collect(Collectors.toList());
-
-        // 응답 변환
-        return new ProjectUpdateResponse(
-                project.getId(),
-                project.getName(),
-                project.getStartDate(),
-                project.getEndDate(),
-                project.getMemberCount(),
-                project.getPosition(),
-                project.getRepositoryLink(),
-                project.getDescription(),
-                project.getImageUrl(),
-                skillNames,
-                toolNames
-        );
     }
 
-    @Transactional
+    private void updateProjectSkills(Project project, List<String> skillNames) {
+        // 현재 프로젝트에 연결된 Skill 가져오기
+        Map<String, ProjectSkill> existingSkills = project.getProjectSkills().stream()
+                .collect(Collectors.toMap(ps -> ps.getSkill().getName(), ps -> ps));
+
+        // 새로운 Skill 목록 생성
+        List<ProjectSkill> updatedSkills = skillNames.stream()
+                .map(skillName -> existingSkills.getOrDefault(skillName,
+                        new ProjectSkill(project, skillService.getSkillByName(skillName))))
+                .collect(Collectors.toList());
+
+        project.getProjectSkills().clear();
+        project.getProjectSkills().addAll(updatedSkills);
+    }
+
+    private void updateProjectTools(Project project, List<String> toolNames) {
+        // 현재 프로젝트에 연결된 Tool 가져오기
+        Map<String, ProjectTool> existingTools = project.getProjectTools().stream()
+                .collect(Collectors.toMap(pt -> pt.getTool().getName(), pt -> pt));
+
+        // 새로운 Tool 목록 생성
+        List<ProjectTool> updatedTools = toolNames.stream()
+                .map(toolName -> existingTools.getOrDefault(toolName,
+                        new ProjectTool(project, toolService.getToolByName(toolName))))
+                .collect(Collectors.toList());
+
+        project.getProjectTools().clear();
+        project.getProjectTools().addAll(updatedTools);
+    }
+
     public void deleteProject(Long projectId, User user) {
 
         try {
