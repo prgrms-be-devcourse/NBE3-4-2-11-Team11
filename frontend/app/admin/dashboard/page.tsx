@@ -63,7 +63,7 @@ export default function AdminDashboard() {
       <div className="mt-6 flex flex-col space-y-4">
         <button
           className="bg-blue-500 text-white px-6 py-3 rounded-lg shadow-md hover:bg-blue-600"
-          onClick={() => router.push("/notice/manage")}
+          onClick={() => router.push("/admin/notice/manage")}
         >
           공지사항 관리
         </button>

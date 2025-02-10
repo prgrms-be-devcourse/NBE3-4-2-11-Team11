@@ -52,7 +52,7 @@ const NoticeEditPage = () => {
         },
       });
       alert('공지사항이 성공적으로 수정되었습니다!');
-      router.push("/notice/manage");
+      router.push("/admin/notice/manage");
     } catch (error) {
       console.error('Error updating notice:', error);
       alert('수정 실패: 알 수 없는 오류가 발생했습니다.');

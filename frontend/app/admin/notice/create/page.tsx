@@ -30,7 +30,7 @@ const CreateNoticePage = () => {
 
       if (response.status === 200) {
         alert("공지사항이 성공적으로 생성되었습니다!");
-        router.push("/notice/manage");
+        router.push("/admin/notice/manage");
       } else {
         throw new Error("공지사항 생성에 실패했습니다.");
       }

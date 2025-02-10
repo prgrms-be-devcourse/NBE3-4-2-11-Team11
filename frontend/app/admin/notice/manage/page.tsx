@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
+import { useAuthStore } from '@/store/authStore'; // Zustand 스토어 사용
 import styles from '../noticeList.module.css';
 
 type NoticeDetailResponse = {
@@ -21,11 +22,18 @@ type RsData<T> = {
 const NoticeManagePage = () => {
   const [notices, setNotices] = useState<NoticeDetailResponse[]>([]);
   const router = useRouter();
+  const { isLoggedIn, login } = useAuthStore();
 
   useEffect(() => {
+
+
     const fetchNotices = async () => {
       try {
-        const response = await axios.get<RsData<NoticeDetailResponse[]>>('/api/v1/common/notices');
+        const response = await axios.get<RsData<NoticeDetailResponse[]>>('/api/v1/common/notices', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         if (Array.isArray(response.data.data)) {
           setNotices(response.data.data);
         } else {
@@ -37,7 +45,7 @@ const NoticeManagePage = () => {
     };
 
     fetchNotices();
-  }, []);
+  }, [router, isLoggedIn, login]);
 
   const handleDelete = async (id: number) => {
     const token = localStorage.getItem('accessToken');
@@ -76,7 +84,7 @@ const NoticeManagePage = () => {
         <h1 className="text-2xl font-bold">공지사항 관리</h1>
         <button
           className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-600"
-          onClick={() => router.push("/notice/create")}
+          onClick={() => router.push("/admin/notice/create")}
         >
           작성하기
         </button>
@@ -85,7 +93,7 @@ const NoticeManagePage = () => {
         {notices.map((notice) => (
           <li key={notice.id} className={styles.noticeBox}>
             <div className={styles.noticeSubjectRow}>
-              <div className={styles.noticeSubject} onClick={() => router.push(`/notice/${notice.id}`)}>
+              <div className={styles.noticeSubject} onClick={() => router.push(`admin/notice/${notice.id}`)}>
                 {notice.subject}
               </div>
               <div className={styles.noticeDate}>
@@ -98,7 +106,7 @@ const NoticeManagePage = () => {
                 className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600"
                 onClick={(e) => {
                   e.stopPropagation();
-                  router.push(`/notice/edit/${notice.id}`);
+                  router.push(`/admin/notice/edit/${notice.id}`);
                 }}
               >
                 수정

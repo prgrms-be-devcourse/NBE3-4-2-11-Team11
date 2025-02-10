@@ -44,7 +44,7 @@ const NoticePage = () => {
       <ul>
         {notices.map((notice) => (
           <li key={notice.id} className={styles.noticeBox}>
-           <Link href={`/notice/${notice.id}`}>
+           <Link href={`/app/admin/notice/${notice.id}`}>
             <div className={styles.noticeSubjectRow}>
               <div className={styles.noticeSubject}>{notice.subject}</div>
               <div className={styles.noticeDate}>{new Date(notice.createdAt).toLocaleDateString('ko-KR')}</div>
