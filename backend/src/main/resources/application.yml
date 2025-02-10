@@ -94,16 +94,18 @@ jwt:
   secret:
     key: ${JWT_SECRET_KEY}
   expiration:
-    time: 60000  # AccessToken expired time : 1h(60min)
+    time: ${JWT_VALIDATION_TIME}
   refresh-token:
-    expiration-time: 1800000  # RefreshToken expired time : 30min
+    expiration-time: ${JWT_REFRESH_VALIDATION_TIME}
+
+auth:
+  key: ${AUTHORIZATION_KEY}
 
 aes:
   secret:
     key: ${AES_SECRET_KEY}
 
-auth :
-  key : ${AUTHORIZATION_KEY}
+
 
 # JWT Test Settings (commented out)
 #jwt:

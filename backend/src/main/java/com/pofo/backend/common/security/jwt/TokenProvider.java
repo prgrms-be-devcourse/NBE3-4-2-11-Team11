@@ -1,5 +1,6 @@
 package com.pofo.backend.common.security.jwt;
 
+import com.pofo.backend.common.security.AdminDetails;
 import com.pofo.backend.common.security.AdminDetailsService;
 import com.pofo.backend.common.security.CustomUserDetails;
 import com.pofo.backend.common.security.dto.TokenDto;
@@ -16,7 +17,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -35,19 +35,18 @@ public class TokenProvider {
     @Value("${JWT_SECRET_KEY}")
     private String secret;
 
-    @Value("${JWT_VALIDATION_TIME}")
+    @Value("${jwt.expiration.time}")
     private Long validationTime;
 
     @Value("${AUTHORIZATION_KEY}")
     private String AUTHORIZATION_KEY;
 
-    @Value("${JWT_REFRESH_VALIDATION_TIME}")
+    @Value("${jwt.refresh-token.expiration-time}")
     private Long refreshTokenValidationTime;
 
     private SecretKey key;
     private final AdminDetailsService adminDetailsService;
     private final CustomUserDetailsService customUserDetailsService;
-
     private final UserRepository userRepository;
 
     @PostConstruct
@@ -62,6 +61,7 @@ public class TokenProvider {
      * @param authentication 인증 객체
      * @return TokenDto 객체 (토큰 값 및 유효시간 포함)
      */
+
     public TokenDto createToken(Authentication authentication) {
         if (authentication == null || authentication.getName() == null) {
             log.error("createToken: Authentication 또는 사용자 이름이 null입니다.");
@@ -74,18 +74,34 @@ public class TokenProvider {
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","));
 
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        String email = userDetails.getUsername();
+//        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+//        String email = userDetails.getUsername();
+
+        String subject;
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof CustomUserDetails) {
+            // 일반 사용자는 이메일을 subject로 사용
+            CustomUserDetails userDetails = (CustomUserDetails) principal;
+            subject = userDetails.getUsername(); // 여기서 이메일이 리턴됨
+        } else if (principal instanceof AdminDetails) {
+            // 관리자는 getEmail()을 사용하도록
+            AdminDetails adminDetails = (AdminDetails) principal;
+            subject = adminDetails.getUsername();
+        } else {
+            subject = authentication.getName();
+        }
+
 
         String accessToken = Jwts.builder()
-                .setSubject(email)
+                .setSubject(subject)
                 .setExpiration(new Date(now + validationTime))
                 .claim(AUTHORIZATION_KEY, authorities)
                 .signWith(this.key, SignatureAlgorithm.HS512)
                 .compact();
 
         String refreshToken = Jwts.builder()
-                .setSubject(email)
+                .setSubject(subject)
+                .claim(AUTHORIZATION_KEY, authorities)
                 .setExpiration(new Date(now + refreshTokenValidationTime))
                 .signWith(this.key, SignatureAlgorithm.HS512)
                 .compact();
@@ -101,6 +117,7 @@ public class TokenProvider {
                 .type("Bearer")
                 .build();
     }
+
 
     /**
      * 주어진 인증 정보를 바탕으로 Access Token만 생성하여 반환합니다.
@@ -118,27 +135,6 @@ public class TokenProvider {
      * @param token JWT 토큰 문자열
      * @return Authentication 객체
      */
-//    public Authentication getAuthentication(String token) {
-//        Claims claims = parseData(token);
-//        if (claims == null) {
-//            throw new IllegalArgumentException("Cannot parse token claims");
-//        }
-//        String authClaim = claims.get(AUTHORIZATION_KEY, String.class);
-//        List<SimpleGrantedAuthority> authorities = (authClaim != null && !authClaim.isEmpty())
-//                ? Arrays.stream(authClaim.split(","))
-//                .map(SimpleGrantedAuthority::new)
-//                .collect(Collectors.toList())
-//                : Collections.emptyList();
-//
-//        String subject = claims.getSubject();
-//        if (subject == null || subject.trim().isEmpty()) {
-//            log.error("getAuthentication: Subject is null or empty for token: {}", token);
-//            throw new IllegalArgumentException("Cannot create User with null subject");
-//        }
-//        User principal = new User(subject, "", authorities);
-//        return new UsernamePasswordAuthenticationToken(principal, "", authorities);
-//    }
-
     public Authentication getAuthentication(String token) {
         Claims claims = parseData(token);
         if (claims == null) {
@@ -173,19 +169,42 @@ public class TokenProvider {
         }
     }
 
-
     /**
      * Refresh Token을 기반으로 DB에서 사용자 정보를 조회하여 올바른 권한을 포함한 Authentication 객체를 생성합니다.
      *
      * @param token Refresh Token 문자열
      * @return Authentication 객체
      */
+//    public Authentication getAuthenticationFromRefreshToken(String token) {
+//        Claims claims = parseData(token);
+//        String username = claims.getSubject();
+//        UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
+//        return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
+//    }
+
     public Authentication getAuthenticationFromRefreshToken(String token) {
         Claims claims = parseData(token);
         String username = claims.getSubject();
-        UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
+
+        // 토큰에 포함된 권한 정보 읽기
+        String authClaim = claims.get(AUTHORIZATION_KEY, String.class);
+        List<SimpleGrantedAuthority> authorities = (authClaim != null && !authClaim.isEmpty())
+                ? Arrays.stream(authClaim.split(","))
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toList())
+                : Collections.emptyList();
+
+        UserDetails userDetails;
+        if (authorities.contains(new SimpleGrantedAuthority("ROLE_ADMIN"))) {
+            // 관리자 권한이 있는 경우 adminDetailsService를 사용
+            userDetails = adminDetailsService.loadUserByUsername(username);
+        } else {
+            // 일반 사용자의 경우 customUserDetailsService를 사용
+            userDetails = customUserDetailsService.loadUserByUsername(username);
+        }
         return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
     }
+
 
     /**
      * 주어진 JWT 토큰의 유효성을 검증합니다.
@@ -197,7 +216,6 @@ public class TokenProvider {
      *   최초 accessToken 재발급을 위해 refreshToken을 Parsing 할 때는 이상이 없지만,
      *   2번째 재발급 시도부터 parsing 과정에서 현재 시간과 만료 시간이 정확히 일치 하기 때문에,
      *   5초 정도의 오차 시간 적용
-     *
      */
     public boolean validateToken(String token) {
         try {
