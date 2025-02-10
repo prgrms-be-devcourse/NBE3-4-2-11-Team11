@@ -1,6 +1,5 @@
 package com.pofo.backend.common.security.jwt;
 
-import com.pofo.backend.common.security.AdminDetails;
 import com.pofo.backend.common.security.AdminDetailsService;
 import com.pofo.backend.common.security.CustomUserDetails;
 import com.pofo.backend.common.security.dto.TokenDto;
@@ -11,8 +10,6 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.ReactiveRedisOperations;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -24,7 +21,6 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -52,8 +48,6 @@ public class TokenProvider {
     private final UserDetailsService userDetailsService;
 
     private final UserRepository userRepository;
-    private final RedisTemplate<String, String> redisTemplate; // ✅ Redis 추가
-
 
     @PostConstruct
     public void init() {
@@ -79,73 +73,24 @@ public class TokenProvider {
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","));
 
-//        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-//        String email = userDetails.getUsername();
-
-        String subject;
-        Object principal = authentication.getPrincipal();
-        if (principal instanceof CustomUserDetails) {
-            // 일반 사용자는 이메일을 subject로 사용
-            CustomUserDetails userDetails = (CustomUserDetails) principal;
-            subject = userDetails.getUsername(); // 여기서 이메일이 리턴됨
-        } else if (principal instanceof AdminDetails) {
-            // 관리자는 getEmail()을 사용하도록
-            AdminDetails adminDetails = (AdminDetails) principal;
-            subject = adminDetails.getUsername();
-        } else {
-            subject = authentication.getName();
-        }
-
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        String email = userDetails.getUsername();
 
         String accessToken = Jwts.builder()
-                .setSubject(subject)
-                .setExpiration(new Date(now + validationTime))
-                .claim(AUTHORIZATION_KEY, authorities)
-                .signWith(this.key, SignatureAlgorithm.HS512)
-                .compact();
+            .setSubject(email)
+            .setExpiration(new Date(now + validationTime))
+            .claim(AUTHORIZATION_KEY, authorities)
+            .signWith(this.key, SignatureAlgorithm.HS512)
+            .compact();
 
         String refreshToken = Jwts.builder()
-                .setSubject(subject)
-                .claim(AUTHORIZATION_KEY, authorities)
-                .setExpiration(new Date(now + refreshTokenValidationTime))
-                .signWith(this.key, SignatureAlgorithm.HS512)
-                .compact();
+            .setSubject(email)
+            .setExpiration(new Date(now + refreshTokenValidationTime))
+            .signWith(this.key, SignatureAlgorithm.HS512)
+            .compact();
 
         log.info("Access Token 생성 완료");
         log.info("Refresh Token 생성 완료");
-
-        boolean isAdmin = authorities.contains("ROLE_ADMIN");
-
-        if (isAdmin) {
-            // 관리자용으로 저장
-            redisTemplate.opsForValue().set(
-                    "admin_access_token:" + accessToken,
-                    subject,
-                    validationTime,
-                    TimeUnit.SECONDS
-            );
-            redisTemplate.opsForValue().set(
-                    "admin_refresh_token:" + subject,
-                    refreshToken,
-                    refreshTokenValidationTime,
-                    TimeUnit.SECONDS
-            );
-        } else {
-            // 일반 사용자용으로 저장
-            redisTemplate.opsForValue().set(
-                    "user_access_token:" + accessToken,
-                    subject,
-                    validationTime,
-                    TimeUnit.SECONDS
-            );
-            redisTemplate.opsForValue().set(
-                    "user_refresh_token:" + subject,
-                    refreshToken,
-                    refreshTokenValidationTime,
-                    TimeUnit.SECONDS
-            );
-        }
-
 
         return TokenDto.builder()
                 .accessToken(accessToken)
@@ -165,6 +110,33 @@ public class TokenProvider {
     public String generateAccessToken(Authentication authentication) {
         return createToken(authentication).getAccessToken();
     }
+
+    /**
+     * JWT 토큰을 파싱하여 Authentication 객체를 생성합니다.
+     *
+     * @param token JWT 토큰 문자열
+     * @return Authentication 객체
+     */
+//    public Authentication getAuthentication(String token) {
+//        Claims claims = parseData(token);
+//        if (claims == null) {
+//            throw new IllegalArgumentException("Cannot parse token claims");
+//        }
+//        String authClaim = claims.get(AUTHORIZATION_KEY, String.class);
+//        List<SimpleGrantedAuthority> authorities = (authClaim != null && !authClaim.isEmpty())
+//                ? Arrays.stream(authClaim.split(","))
+//                .map(SimpleGrantedAuthority::new)
+//                .collect(Collectors.toList())
+//                : Collections.emptyList();
+//
+//        String subject = claims.getSubject();
+//        if (subject == null || subject.trim().isEmpty()) {
+//            log.error("getAuthentication: Subject is null or empty for token: {}", token);
+//            throw new IllegalArgumentException("Cannot create User with null subject");
+//        }
+//        User principal = new User(subject, "", authorities);
+//        return new UsernamePasswordAuthenticationToken(principal, "", authorities);
+//    }
 
     public Authentication getAuthentication(String token) {
         Claims claims = parseData(token);
@@ -209,26 +181,9 @@ public class TokenProvider {
      */
     public Authentication getAuthenticationFromRefreshToken(String token) {
         Claims claims = parseData(token);
-        if (claims == null) {
-            throw new IllegalArgumentException("Invalid token claims");
-        }
         String username = claims.getSubject();
-        log.info("🔍 Refresh Token에서 추출한 사용자 이름: {}", username);
-
-        // refresh token에도 포함된 권한 정보를 읽음
-        String authClaim = claims.get(AUTHORIZATION_KEY, String.class);
-
-        if (authClaim != null && authClaim.contains("ROLE_ADMIN")) {
-            // 관리자 계정인 경우
-            log.info("🔍 관리자 인증 시도: {}", username);
-            UserDetails adminDetails = adminDetailsService.loadUserByUsername(username);
-            return new UsernamePasswordAuthenticationToken(adminDetails, "", adminDetails.getAuthorities());
-        } else {
-            // 일반 사용자 계정인 경우
-            log.info("🔍 일반 사용자 인증 시도: {}", username); // ✅ 로그 추가
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-            return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
-        }
+        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
     }
 
     /**
@@ -269,30 +224,6 @@ public class TokenProvider {
             return null;
         }
     }
-    /**
-     * Refresh Token을 기반으로 새로운 Access Token(및 Refresh Token)을 발급하는 메소드입니다.
-     *
-     * @param refreshToken 기존에 발급된 Refresh Token 문자열
-     * @return 새로운 TokenDto 객체 (Access Token 및 Refresh Token 포함)
-     */
-
-    public TokenDto refreshAccessToken(String refreshToken) {
-        // refresh token의 유효성 검증: 만료되었거나 위변조된 토큰이면 예외 발생
-        if (!validateToken(refreshToken)) {
-            log.error("refreshAccessToken: 유효하지 않은 refresh token");
-            throw new RuntimeException("Refresh token is invalid or expired");
-        }
-
-        // refresh token으로부터 Authentication 객체 복원
-        Authentication authentication = getAuthenticationFromRefreshToken(refreshToken);
-
-        // 복원된 인증 정보를 기반으로 새로운 Access Token 및 Refresh Token 생성
-        TokenDto newTokenDto = createToken(authentication);
-
-        log.info("새로운 Access Token 및 Refresh Token 발급 완료");
-
-        return newTokenDto;
-    }
 
     /**
      * 주어진 Access Token의 남은 유효 시간을 밀리초 단위로 반환합니다.
@@ -326,24 +257,4 @@ public class TokenProvider {
         Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
         return claims.getExpiration().getTime() - System.currentTimeMillis();
     }
-
-    public String getEmailFromToken(String token) {
-        Claims claims = parseData(token);
-
-        if (claims == null) {
-            log.error("🔴 getEmailFromToken: 토큰에서 Claim을 추출할 수 없음 (토큰이 유효하지 않거나 만료됨)");
-            return null;
-        }
-
-        String subject = claims.getSubject();
-
-        if (subject == null || subject.trim().isEmpty()) {
-            log.error("🔴 getEmailFromToken: 토큰의 subject가 null 또는 빈 값입니다.");
-            return null;
-        }
-
-        log.info("✅ getEmailFromToken: 추출된 subject = {}", subject);
-        return subject; // User는 email, Admin은 username
-    }
-
 }

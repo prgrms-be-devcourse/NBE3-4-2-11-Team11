@@ -19,7 +19,18 @@ export const useAuthStore = create<AuthState>()(
             refreshToken: getRefreshToken(),
 
             login: (accessToken, refreshToken) => {
+                if (!refreshToken) {
+                    console.warn("❌ WARNING: refreshToken이 없습니다. 백엔드 응답 확인 필요!");
+                }
+
                 setTokens(accessToken,refreshToken); // ✅ 유틸 함수 사용
+
+                const payload: any = JSON.parse(atob(accessToken.split(".")[1]));
+
+                if (!payload.exp)  {
+                    console.error("❌ JWT payload에 exp 필드가 없습니다. 토큰을 확인하세요:", payload);
+                }
+
                 set({ isLoggedIn: true, accessToken, refreshToken });
             },
 
@@ -39,7 +50,7 @@ export const useAuthStore = create<AuthState>()(
                 }
 
                 try {
-                    const response = await fetch("/api/v1/user/refresh", {
+                    const response = await fetch("/api/v1/token/refresh", {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json",
@@ -57,7 +68,7 @@ export const useAuthStore = create<AuthState>()(
                     console.log("✅ Access Token 갱신 완료:", data.accessToken);
 
                     setTokens(data.data.accessToken,data.data.refreshToken); // ✅ 유틸 함수 사용
-                    set({ accessToken: data.accessToken });
+                    set({ accessToken: data.data.accessToken });
 
                     return true;
                 } catch (error) {
