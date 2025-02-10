@@ -98,6 +98,7 @@ public class ProjectService {
         }
     }
 
+    @Transactional
     public ProjectDetailResponse detailProject(Long projectId, User user) {
 
         try{
@@ -108,28 +109,7 @@ public class ProjectService {
                 throw ProjectCreationException.forbidden("프로젝트 단건 조회 할 권한이 없습니다.");
             }
 
-            // 프로젝트 상세 조회 시 기술 및 도구 목록 포함
-            List<String> skills = project.getProjectSkills().stream()
-                    .map(ps -> ps.getSkill().getName())
-                    .collect(Collectors.toList());
-
-            List<String> tools = project.getProjectTools().stream()
-                    .map(pt -> pt.getTool().getName())
-                    .collect(Collectors.toList());
-
-            return new ProjectDetailResponse(
-                    project.getId(),
-                    project.getName(),
-                    project.getStartDate(),
-                    project.getEndDate(),
-                    project.getMemberCount(),
-                    project.getPosition(),
-                    project.getRepositoryLink(),
-                    project.getDescription(),
-                    project.getImageUrl(),
-                    skills,
-                    tools
-            );
+            return projectMapper.projectToProjectDetailResponse(project);
 
         }catch (DataAccessException ex){
             throw ProjectCreationException.serverError("프로젝트 단건 조회 중 데이터베이스 오류가 발생했습니다.");

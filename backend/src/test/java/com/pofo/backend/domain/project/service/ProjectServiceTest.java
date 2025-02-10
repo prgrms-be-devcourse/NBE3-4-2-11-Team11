@@ -25,6 +25,7 @@ import org.mockito.MockitoAnnotations;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -253,89 +254,118 @@ public class ProjectServiceTest {
     }
 
 
+    @Test
+    @DisplayName("프로젝트 단건 조회 성공")
+    void t7() {
+        Long projectId = 1L;
+        User ownUser = mock(User.class);
+        when(ownUser.getId()).thenReturn(3L);
 
-//    @Test
-//    @DisplayName("프로젝트 단건 조회 성공")
-//    void t7(){
-//        Long projectId = 1L;
-//        User ownUser = mock(User.class);
-//        when(ownUser.getId()).thenReturn(3L);
-//
-//        Project mockProject = mock(Project.class);
-//        ProjectDetailResponse mockResponse = mock(ProjectDetailResponse.class);
-//
-//        when(mockProject.getUser()).thenReturn(ownUser);
-//        when(mockResponse.getName()).thenReturn("국내 여행 추천 웹페이지");
-//        when(mockResponse.getStartDate()).thenReturn(startDate);
-//        when(mockResponse.getEndDate()).thenReturn(endDate);
-//        when(mockResponse.getMemberCount()).thenReturn(4);
-//        when(mockResponse.getPosition()).thenReturn("백엔드");
-//        when(mockResponse.getRepositoryLink()).thenReturn("koreaTravel@github.com");
-//        when(mockResponse.getDescription()).thenReturn("국내 여행지 추천해주는 웹페이지입니다.");
-//        when(mockResponse.getImageUrl()).thenReturn("travel.img");
-//
-//        when(projectRepository.findById(projectId)).thenReturn(Optional.of(mockProject));
-//        when(projectMapper.projectToProjectDetailResponse(mockProject)).thenReturn(mockResponse);
-//
-//        // When
-//        ProjectDetailResponse response = projectService.detailProject(projectId, ownUser);
-//
-//        // Then
-//        assertNotNull(response);
-//        assertEquals("국내 여행 추천 웹페이지", response.getName());
-//        assertEquals(startDate, response.getStartDate());
-//        assertEquals(endDate, response.getEndDate());
-//        assertEquals(4, response.getMemberCount());
-//        assertEquals("백엔드", response.getPosition());
-//        assertEquals("koreaTravel@github.com", response.getRepositoryLink());
-//        assertEquals("국내 여행지 추천해주는 웹페이지입니다.", response.getDescription());
-//        assertEquals("travel.img", response.getImageUrl());
-//
-//        // Verify
-//        verify(projectRepository).findById(projectId);
-//        verify(projectMapper).projectToProjectDetailResponse(mockProject);
-//    }
-//
-//    @Test
-//    @DisplayName("프로젝트 단건 조회 실패 - 프로젝트 없음")
-//    void t8(){
-//        //Given
-//        Long projectId = 1L;
-//        User mockUser = mock(User.class);
-//        when(projectRepository.findById(projectId)).thenReturn(Optional.empty());
-//
-//        //when&Then
-//        ProjectCreationException exception = assertThrows(ProjectCreationException.class, () -> {
-//            projectService.detailProject(projectId, mockUser);
-//        });
-//
-//        RsData<Void> rsData = exception.getRsData();
-//        assertEquals("404", rsData.getResultCode());
-//        assertEquals("해당 프로젝트를 찾을 수 없습니다.", rsData.getMessage());
-//    }
-//
-//
-//
-//
-//    @Test
-//    @DisplayName("프로젝트 단건 조회 실패 - 예기치 못한 오류")
-//    void t9(){
-//        Long projectId = 1L;
-//        User mockUser = mock(User.class);
-//        when(projectRepository.findById(projectId)).thenThrow(new RuntimeException("Unexpected Error"));
-//
-//        //when & Then
-//        ProjectCreationException exception = assertThrows(ProjectCreationException.class, () -> {
-//            projectService.detailProject(projectId, mockUser);
-//        });
-//
-//        RsData<Void> rsData = exception.getRsData();
-//        assertEquals("400", rsData.getResultCode());
-//        assertEquals("프로젝트 단건 조회 중 오류가 발생했습니다.", rsData.getMessage());
-//
-//
-//    }
-//
+        Project project = new Project();
+        project.setUser(ownUser);
+        project.setName("국내 여행 추천 웹페이지");
+        project.setStartDate(startDate);
+        project.setEndDate(endDate);
+        project.setMemberCount(4);
+        project.setPosition("백엔드");
+        project.setRepositoryLink("koreaTravel@github.com");
+        project.setDescription("국내 여행지 추천해주는 웹페이지입니다.");
+        project.setImageUrl("travel.img");
+
+        project.setProjectSkills(
+                List.of(new ProjectSkill(project, new Skill("Java")),
+                        new ProjectSkill(project, new Skill("Spring Boot")))
+        );
+        project.setProjectTools(
+                List.of(new ProjectTool(project, new Tool("IntelliJ IDEA")),
+                        new ProjectTool(project, new Tool("Docker")))
+        );
+
+        ProjectDetailResponse mockResponse = mock(ProjectDetailResponse.class);
+
+        //  mockResponse의 필드 값 설정
+        when(mockResponse.getName()).thenReturn("국내 여행 추천 웹페이지");
+        when(mockResponse.getStartDate()).thenReturn(startDate);
+        when(mockResponse.getEndDate()).thenReturn(endDate);
+        when(mockResponse.getMemberCount()).thenReturn(4);
+        when(mockResponse.getPosition()).thenReturn("백엔드");
+        when(mockResponse.getRepositoryLink()).thenReturn("koreaTravel@github.com");
+        when(mockResponse.getDescription()).thenReturn("국내 여행지 추천해주는 웹페이지입니다.");
+        when(mockResponse.getImageUrl()).thenReturn("travel.img");
+
+        when(mockResponse.getSkillNames()).thenReturn(List.of("Java", "Spring Boot"));
+        when(mockResponse.getToolNames()).thenReturn(List.of("IntelliJ IDEA", "Docker"));
+
+        when(projectRepository.findById(projectId)).thenReturn(Optional.of(project));
+        when(projectMapper.projectToProjectDetailResponse(project)).thenReturn(mockResponse);
+
+        // When
+        ProjectDetailResponse response = projectService.detailProject(projectId, ownUser);
+
+        // Then
+        assertNotNull(response);
+        assertEquals("국내 여행 추천 웹페이지", response.getName());
+        assertEquals(startDate, response.getStartDate());
+        assertEquals(endDate, response.getEndDate());
+        assertEquals(4, response.getMemberCount());
+        assertEquals("백엔드", response.getPosition());
+        assertEquals("koreaTravel@github.com", response.getRepositoryLink());
+        assertEquals("국내 여행지 추천해주는 웹페이지입니다.", response.getDescription());
+        assertEquals("travel.img", response.getImageUrl());
+
+        // Skill 및 Tool 검증
+        assertEquals(2, response.getSkillNames().size());
+        assertEquals(2, response.getToolNames().size());
+        assertTrue(response.getSkillNames().containsAll(List.of("Java", "Spring Boot")));
+        assertTrue(response.getToolNames().containsAll(List.of("IntelliJ IDEA", "Docker")));
+
+        // Verify
+        verify(projectRepository).findById(projectId);
+        verify(projectMapper).projectToProjectDetailResponse(project);
+    }
+
+
+
+    @Test
+    @DisplayName("프로젝트 단건 조회 실패 - 프로젝트 없음")
+    void t8(){
+        //Given
+        Long projectId = 1L;
+        User mockUser = mock(User.class);
+        when(projectRepository.findById(projectId)).thenReturn(Optional.empty());
+
+        //when&Then
+        ProjectCreationException exception = assertThrows(ProjectCreationException.class, () -> {
+            projectService.detailProject(projectId, mockUser);
+        });
+
+        RsData<Void> rsData = exception.getRsData();
+        assertEquals("404", rsData.getResultCode());
+        assertEquals("해당 프로젝트를 찾을 수 없습니다.", rsData.getMessage());
+    }
+
+
+
+
+    @Test
+    @DisplayName("프로젝트 단건 조회 실패 - 예기치 못한 오류")
+    void t9(){
+        Long projectId = 1L;
+        User mockUser = mock(User.class);
+        when(projectRepository.findById(projectId)).thenThrow(new RuntimeException("Unexpected Error"));
+
+        //when & Then
+        ProjectCreationException exception = assertThrows(ProjectCreationException.class, () -> {
+            projectService.detailProject(projectId, mockUser);
+        });
+
+        RsData<Void> rsData = exception.getRsData();
+        assertEquals("400", rsData.getResultCode());
+        assertEquals("프로젝트 단건 조회 중 오류가 발생했습니다.", rsData.getMessage());
+
+
+    }
+
 //    private ProjectUpdateRequest projectUpdateRequest() {
 //        return ProjectUpdateRequest.builder()
 //                .name("업데이트된 프로젝트")

@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-02-10T05:01:04+0900",
+    date = "2025-02-10T10:01:26+0900",
     comments = "version: 1.5.2.Final, compiler: javac, environment: Java 21.0.2 (GraalVM Community)"
 )
 @Component
@@ -41,10 +41,10 @@ public class ProjectMapperImpl implements ProjectMapper {
         description = project.getDescription();
         imageUrl = project.getImageUrl();
 
-        List<String> skills = null;
-        List<String> tools = null;
+        List<String> skillNames = project.getProjectSkills().stream().map(ps -> ps.getSkill().getName()).collect(java.util.stream.Collectors.toList());
+        List<String> toolNames = project.getProjectTools().stream().map(pt -> pt.getTool().getName()).collect(java.util.stream.Collectors.toList());
 
-        ProjectDetailResponse projectDetailResponse = new ProjectDetailResponse( projectId, name, startDate, endDate, memberCount, position, repositoryLink, description, imageUrl, skills, tools );
+        ProjectDetailResponse projectDetailResponse = new ProjectDetailResponse( projectId, name, startDate, endDate, memberCount, position, repositoryLink, description, imageUrl, skillNames, toolNames );
 
         return projectDetailResponse;
     }
