@@ -10,14 +10,22 @@ import com.pofo.backend.domain.resume.license.entity.License;
 import com.pofo.backend.domain.skill.entity.ResumeSkill;
 import com.pofo.backend.domain.tool.entity.ResumeTool;
 import com.pofo.backend.domain.user.join.entity.User;
-import jakarta.persistence.*;
-import lombok.*;
-
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Builder(toBuilder = true)
 @Getter
@@ -57,7 +65,7 @@ public class Resume extends BaseTime {
     private Set<Language> languages = new HashSet<>();
 
     @OneToMany(mappedBy = "resume", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ResumeTool> resumeTools = new ArrayList<>();
+    private Set<ResumeTool> resumeTools = new HashSet<>();
     @OneToMany(mappedBy = "resume", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ResumeSkill> resumeSkills = new ArrayList<>();
+    private Set<ResumeSkill> resumeSkills = new HashSet<>();
 }
