@@ -2,86 +2,37 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import axios from "axios";
 
-function CreateNoticePage() {
+const CreateNoticePage = () => {
   const [subject, setSubject] = useState("");
   const [content, setContent] = useState("");
   const [message, setMessage] = useState("");
   const router = useRouter();
 
-  const refreshAccessToken = async () => {
-    const refreshToken = localStorage.getItem("refreshToken");
-    if (!refreshToken) {
-      throw new Error("리프레시 토큰이 없습니다.");
-    }
-
-    const response = await fetch("/api/refresh-token", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ refreshToken }),
-    });
-
-    if (!response.ok) {
-      throw new Error("토큰 갱신에 실패했습니다.");
-    }
-
-    const data = await response.json();
-    localStorage.setItem("accessToken", data.accessToken);
-  };
-
   const handleSubmit = async (event) => {
     event.preventDefault();
 
     try {
-      let token = localStorage.getItem("accessToken");
-      console.log("Token:", token);
-
+      const token = localStorage.getItem("accessToken");
       if (!token) {
         throw new Error("인증 토큰이 없습니다.");
       }
 
-      let response = await fetch("/api/v1/admin/notice", {
-        method: "POST",
+      const response = await axios.post("/api/v1/admin/notice", {
+        subject,
+        content,
+      }, {
         headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          subject,
-          content,
-        }),
       });
 
-      if (response.status === 401) {
-        await refreshAccessToken();
-        token = localStorage.getItem("accessToken");
-
-        response = await fetch("/api/v1/admin/notice", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            subject,
-            content,
-          }),
-        });
-      }
-
-      if (!response.ok) {
-        throw new Error("공지사항 생성에 실패했습니다.");
-      }
-
-      const data = await response.json();
-      if (data.code === "200") {
-        if (window.confirm("작성 완료되었습니다!")) {
-          router.push("/notice");
-        }
+      if (response.status === 200) {
+        alert("공지사항이 성공적으로 생성되었습니다!");
+        router.push("/notice/manage");
       } else {
-        throw new Error(data.message);
+        throw new Error("공지사항 생성에 실패했습니다.");
       }
     } catch (error) {
       setMessage(error.message);
@@ -122,6 +73,6 @@ function CreateNoticePage() {
       {message && <p className="mt-4 text-red-500">{message}</p>}
     </div>
   );
-}
+};
 
 export default CreateNoticePage;
