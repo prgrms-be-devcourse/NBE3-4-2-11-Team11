@@ -58,7 +58,7 @@ const NoticeManagePage = () => {
         },
       });
       setNotices(notices.filter(notice => notice.id !== id));
-      alert('성공적으로 삭제되었습니다!');
+      alert('공지사항이 성공적으로 삭제되었습니다!');
     } catch (error) {
       if (axios.isAxiosError(error)) {
         console.error('Error deleting notice:', error.response?.data || error.message);
@@ -83,14 +83,9 @@ const NoticeManagePage = () => {
       </div>
       <ul>
         {notices.map((notice) => (
-          <li
-            key={notice.id}
-            className={styles.noticeBox}
-            onClick={() => router.push(`/notice/${notice.id}`)}
-            style={{ cursor: 'pointer' }}
-          >
+          <li key={notice.id} className={styles.noticeBox}>
             <div className={styles.noticeSubjectRow}>
-              <div className={styles.noticeSubject}>
+              <div className={styles.noticeSubject} onClick={() => router.push(`/notice/${notice.id}`)}>
                 {notice.subject}
               </div>
               <div className={styles.noticeDate}>
@@ -98,7 +93,7 @@ const NoticeManagePage = () => {
               </div>
             </div>
             <p className={styles.noticeContent}>{notice.content}</p>
-            <div className="flex space-x-2 mt-2">
+            <div className="flex justify-end space-x-2 mt-2">
               <button
                 className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600"
                 onClick={(e) => {
