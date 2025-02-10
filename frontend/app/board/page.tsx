@@ -1,3 +1,7 @@
+// 게시글 목록 페이지
+// 작성버튼-> 작성페이지
+//게시글 클릭->상세페이지
+
 "use client";
 
 import { useEffect, useState } from 'react';
