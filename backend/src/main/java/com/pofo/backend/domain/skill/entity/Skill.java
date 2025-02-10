@@ -15,7 +15,7 @@ import java.util.List;
 @Getter
 public class Skill extends BaseEntity {
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String name;
     @OneToMany(mappedBy = "skill", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ResumeSkill> resumeSkills = new ArrayList<>();
