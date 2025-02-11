@@ -29,8 +29,6 @@ const InquiryPage = () => {
     const checkLoginStatus = () => {
       const token = localStorage.getItem('token');
       const authUser = localStorage.getItem('auth_user');
-      console.log('Current token:', token);
-      console.log('Auth user:', authUser);
       setIsLoggedIn(!!token && !!authUser);
     };
 
@@ -59,7 +57,7 @@ const InquiryPage = () => {
   return (
     <div className={styles.inquiryContainer}>
       <h1 className={styles.inquiryHeader}>문의하기</h1>
-      <button onClick={handleCreateInquiry} className={styles.createButton}>작성하기</button>
+      <button onClick={handleCreateInquiry} className={styles.createButton} style={{  }}>작성하기</button>
       <ul>
         {inquiries.map((inquiry) => (
           <li key={inquiry.id} className={styles.inquiryBox}>
