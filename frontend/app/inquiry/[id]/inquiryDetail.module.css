@@ -1,0 +1,58 @@
+.inquiryDetailContainer {
+  padding: 50px;
+  width: 100%;
+}
+
+.inquiryDetailSubject {
+  font-size: 1.5em;
+  font-weight: bold;
+}
+
+.inquiryDetailDate {
+  font-size: 0.9m;
+  color: #666;
+  text-align: right;
+  margin-bottom: 5px;
+}
+
+.inquiryDetailUserId {
+  font-size: 1em;
+  color: #333;
+  text-align: left;
+  margin-top:-40px;
+}
+
+.inquiryDetailHeader {
+  font-size: 1.8em;
+  font-weight: bold;
+  margin-bottom: 0px;
+  padding-bottom: 10px;
+}
+
+.inquiryDetailSubjectRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.inquiryDetailContent {
+  font-size: 1em;
+  color: #333;
+  margin-top: 40px;
+  white-space: pre-wrap !important;
+  word-break: break-all;
+}
+
+.inquiryDetailDividerContainer {
+  width: 100%;
+}
+
+.inquiryDetailDivider {
+  border: none;
+  border-top: 1px solid #ccc;
+  width: 100%;
+  margin: -20px 0;
+}
+

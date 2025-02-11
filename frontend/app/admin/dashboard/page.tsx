@@ -66,8 +66,11 @@ export default function AdminDashboard() {
         안녕하세요, <span className="font-semibold">{adminName}</span>님!
       </p>
       <div className="mt-6 flex flex-col space-y-4">
-        <button className="bg-blue-500 text-white px-6 py-3 rounded-lg shadow-md hover:bg-blue-600">
-          공지사항 작성하기
+      <button
+          className="bg-blue-500 text-white px-6 py-3 rounded-lg shadow-md hover:bg-blue-600"
+          onClick={() => router.push("/admin/notice/manage")}
+        >
+          공지사항 관리
         </button>
         <button className="bg-green-500 text-white px-6 py-3 rounded-lg shadow-md hover:bg-green-600">
           사용자 관리
