@@ -44,7 +44,7 @@ const Header = () => {
               </ul>
             </li>
             <li>
-              <Link href="/contact" className="hover:text-gray-400">문의하기</Link>
+              <Link href="/inquiry" className="hover:text-gray-400">문의하기</Link>
             </li>
             <li>
               {isLoggedIn ? (
