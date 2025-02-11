@@ -1,3 +1,13 @@
+/*
+ * 변경 사항:
+ *
+ * 1. 의존성 배열에 isLoggedIn만 포함했던 것을 [isLoggedIn, accessToken, refreshToken]으로 확장하여,
+ *    토큰 값의 변경(예: 로그아웃 시 토큰 제거)이 즉시 반영되도록 했습니다.
+ *
+ * 2. 인터벌 내에서 매 실행 시 최신 refresh token을 재확인하고, refresh token이 없으면
+ *    clearInterval()을 호출하여 인터벌을 종료함으로써 불필요한 갱신 요청 및 경고 메시지가 반복되지 않도록 했습니다.
+ */
+
 "use client";
 
 import { useEffect } from "react";
