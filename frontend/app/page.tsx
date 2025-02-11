@@ -1,6 +1,12 @@
+"use client";
+
 import Image from "next/image";
+import useTokenRefresh from "@/utils/useTokenRefresh";
 
 export default function Home() {
+
+  useTokenRefresh();  // ✅ 토큰 만료 체크 주기적 실행
+
   return (
     <div className="flex flex-col items-center bg-gray-100 text-gray-900 min-h-screen">
       <section className="w-full max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-center p-8">
