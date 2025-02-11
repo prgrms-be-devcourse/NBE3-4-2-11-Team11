@@ -1,11 +1,14 @@
 package com.pofo.backend.common.security;
 
+import static org.springframework.security.config.Customizer.withDefaults;
+
 import com.pofo.backend.common.security.jwt.JwtSecurityConfig;
 import com.pofo.backend.common.security.jwt.OAuth2AuthenticationSuccessHandler;
 import com.pofo.backend.common.security.jwt.TokenProvider;
 import com.pofo.backend.common.security.provider.AuthenticationProviderConfig;
 import com.pofo.backend.common.service.CustomUserDetailsService;
 import com.pofo.backend.domain.user.login.service.CustomOAuth2UserService;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,10 +26,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import java.util.List;
-
-import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
 @EnableWebSecurity
@@ -50,6 +49,7 @@ public class SecurityConfig {
     }
 
     /**
+
      * 관리자용 SecurityFilterChain
      * - '/api/v1/admin/**' 경로에 대해 별도의 보안 설정 적용
      *
@@ -85,8 +85,7 @@ public class SecurityConfig {
 
 
     /**
-     * 유저용 SecurityFilterChain
-     * - '/api/v1/user/**' 경로에 대해 별도의 보안 설정 적용
+     * 유저용 SecurityFilterChain - '/api/v1/user/**' 경로에 대해 별도의 보안 설정 적용
      */
     @Bean
     public SecurityFilterChain userSecurityFilterChain(HttpSecurity http) throws Exception {
@@ -95,6 +94,7 @@ public class SecurityConfig {
 
         http
                 // '/api/v1/user/**' 경로에만 적용
+                .cors(withDefaults())
                 .securityMatcher("/api/v1/user/**")
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -142,6 +142,7 @@ public class SecurityConfig {
 //    }
 
     @Bean
+
     public AuthenticationManager authenticationManager() {
         DaoAuthenticationProvider adminProvider = new DaoAuthenticationProvider();
         adminProvider.setUserDetailsService(adminDetailsService);

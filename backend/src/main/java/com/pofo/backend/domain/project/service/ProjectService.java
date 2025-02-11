@@ -9,7 +9,14 @@ import com.pofo.backend.domain.project.dto.response.ProjectUpdateResponse;
 import com.pofo.backend.domain.project.entity.Project;
 import com.pofo.backend.domain.project.exception.ProjectCreationException;
 import com.pofo.backend.domain.project.repository.ProjectRepository;
+import com.pofo.backend.domain.skill.entity.ProjectSkill;
+import com.pofo.backend.domain.skill.repository.ProjectSkillRepository;
+import com.pofo.backend.domain.skill.service.SkillService;
+import com.pofo.backend.domain.tool.entity.ProjectTool;
+import com.pofo.backend.domain.tool.repository.ProjectToolRepository;
+import com.pofo.backend.domain.tool.service.ToolService;
 import com.pofo.backend.domain.user.join.entity.User;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
@@ -20,12 +27,19 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class ProjectService {
 
     private final ProjectRepository projectRepository;
     private final ProjectMapper projectMapper;
+    private final SkillService skillService;
+    private final ToolService toolService;
 
-    @Transactional
+    private final ProjectSkillRepository projectSkillRepository;
+    private final ProjectToolRepository projectToolRepository;
+
+    private final EntityManager entityManager;
+
     public ProjectCreateResponse createProject(ProjectCreateRequest projectRequest, User user) {
 
         try{
@@ -46,12 +60,17 @@ public class ProjectService {
 
             projectRepository.save(project);
 
+            skillService.addProjectSkills(project.getId(), projectRequest.getSkills());
+
+            toolService.addProjectTools(project.getId(), projectRequest.getTools());
+
             return new ProjectCreateResponse(project.getId());
 
         }catch (Exception ex){
             throw ProjectCreationException.badRequest("프로젝트 등록 중 오류가 발생했습니다.");
         }
     }
+
 
     public List<ProjectDetailResponse> detailAllProject(User user){
 
@@ -107,7 +126,6 @@ public class ProjectService {
         }
     }
 
-    @Transactional
     public ProjectUpdateResponse updateProject(Long projectId, ProjectUpdateRequest request, User user) {
 
         Project project = projectRepository.findById(projectId)
@@ -121,7 +139,7 @@ public class ProjectService {
 
 
             // 프로젝트 정보 업데이트
-            project.update(
+            project.updateBasicInfo(
                     request.getName(),
                     request.getStartDate(),
                     request.getEndDate(),
@@ -132,29 +150,54 @@ public class ProjectService {
                     request.getImageUrl()
             );
 
+            project = projectRepository.save(project);
+
+            // 새로운 스킬 및 툴 리스트 생성
+            skillService.updateProjectSkills(projectId, request.getSkills());
+            toolService.updateProjectTools(projectId, request.getTools());
+
+            project = projectRepository.findById(projectId)
+                    .orElseThrow(() -> ProjectCreationException.serverError("프로젝트 데이터를 다시 불러오는 중 오류가 발생했습니다."));
+
+            List<ProjectSkill> updatedSkills = projectSkillRepository.findByProjectId(projectId);
+            List<ProjectTool> updatedTools = projectToolRepository.findByProjectId(projectId);
+
+            project.getProjectSkills().clear();
+            project.getProjectSkills().addAll(updatedSkills);
+
+            project.getProjectTools().clear();
+            project.getProjectTools().addAll(updatedTools);
+
+
+            project = projectRepository.save(project);
+
+            // 응답 변환
+            return new ProjectUpdateResponse(
+                    project.getId(),
+                    project.getName(),
+                    project.getStartDate(),
+                    project.getEndDate(),
+                    project.getMemberCount(),
+                    project.getPosition(),
+                    project.getRepositoryLink(),
+                    project.getDescription(),
+                    project.getImageUrl(),
+                    project.getProjectSkills().stream().map(ps -> ps.getSkill().getName()).collect(Collectors.toList()),
+                    project.getProjectTools().stream().map(pt -> pt.getTool().getName()).collect(Collectors.toList())
+            );
+
         }catch (DataAccessException ex){
             throw ProjectCreationException.serverError("프로젝트 수정 중 데이터베이스 오류가 발생했습니다.");
         }catch (ProjectCreationException ex) {
             throw ex;  // 이미 정의된 예외는 다시 던진다.
         }catch (Exception ex){
+            ex.printStackTrace(); // 예외 상세 출력
             throw ProjectCreationException.badRequest("프로젝트 수정 중 오류가 발생했습니다.");
         }
 
-        // 응답 변환
-        return new ProjectUpdateResponse(
-                project.getId(),
-                project.getName(),
-                project.getStartDate(),
-                project.getEndDate(),
-                project.getMemberCount(),
-                project.getPosition(),
-                project.getRepositoryLink(),
-                project.getDescription(),
-                project.getImageUrl()
-        );
     }
 
-    @Transactional
+
     public void deleteProject(Long projectId, User user) {
 
         try {
@@ -165,6 +208,10 @@ public class ProjectService {
             if (!project.getUser().equals(user)) {
                 throw ProjectCreationException.forbidden("프로젝트 삭제 할 권한이 없습니다.");
             }
+
+            //중간 테이블 데이터 먼저 삭제
+            skillService.deleteProjectSkills(projectId);
+            toolService.deleteProjectTools(projectId);
 
             projectRepository.delete(project);
 
