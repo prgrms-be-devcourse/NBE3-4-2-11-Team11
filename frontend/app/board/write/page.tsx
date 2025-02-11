@@ -21,7 +21,7 @@ const WritePostPage = () => {
     }
 
     try {
-      await createPost({ title, content });  // 사용자 ID는 토큰으로 자동 처리
+      await createPost({ title, content });  // 닉네임은 createPost 함수 내에서 처리
       router.push('/board');  // 작성 완료 후 목록 페이지로 이동
     } catch (error) {
       console.error('게시글 작성 실패:', error);

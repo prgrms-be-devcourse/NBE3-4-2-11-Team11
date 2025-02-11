@@ -4,19 +4,50 @@ import { useState, useEffect } from 'react';
 import { getPostById, updatePost } from '../../../../lib/board';
 import { useRouter } from 'next/navigation';
 import Header from '../../../../components/Header';
-import { useAuthStore } from '@/store/authStore';  // 로그인 상태 가져오기
+import { useAuthStore } from '@/store/authStore';
+import { getAccessToken } from '@/utils/token';
+import { jwtDecode } from 'jwt-decode';
+
+// Post 타입에 작성자 닉네임 추가
+interface Post {
+  id: number;
+  title: string;
+  content: string;
+  nickname: string;  // 작성자 닉네임
+}
+
+// JWT 토큰에서 닉네임 추출 함수
+const extractNicknameFromToken = (): string | null => {
+  const token = getAccessToken();
+  if (!token) return null;
+
+  try {
+    const decoded: { nickname: string } = jwtDecode(token);
+    return decoded.nickname;
+  } catch (error) {
+    console.error('토큰 디코딩 실패:', error);
+    return null;
+  }
+};
 
 const EditPostPage = ({ params }: { params: { id: string } }) => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [postNickname, setPostNickname] = useState('');
   const router = useRouter();
-  const { isLoggedIn } = useAuthStore();  // 로그인 상태 확인
+  const { isLoggedIn } = useAuthStore();
+
+  // // 로그인한 사용자의 닉네임 가져오기
+  // const loggedInNickname = extractNicknameFromToken();
+    // 로그인한 사용자의 닉네임 (Zustand 또는 localStorage에서 가져오기)
+    const loggedInNickname = localStorage.getItem('nickname');
 
   useEffect(() => {
     const fetchPost = async () => {
       const post = await getPostById(Number(params.id));
       setTitle(post.title);
       setContent(post.content);
+      setPostNickname(post.nickname);  // 게시글 작성자의 닉네임 저장
     };
     fetchPost();
   }, [params.id]);
@@ -25,6 +56,12 @@ const EditPostPage = ({ params }: { params: { id: string } }) => {
     if (!isLoggedIn) {
       alert('로그인 후 게시글을 수정할 수 있습니다.');
       router.push('/login');
+      return;
+    }
+
+    // 작성자 검증 (로그인한 닉네임과 게시글 작성자의 닉네임 비교)
+    if (loggedInNickname?.toLowerCase() !== postNickname.toLowerCase()) {
+      alert('작성자만 게시글을 수정할 수 있습니다.');
       return;
     }
 
