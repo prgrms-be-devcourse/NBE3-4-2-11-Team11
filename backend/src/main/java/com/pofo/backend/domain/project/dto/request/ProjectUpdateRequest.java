@@ -38,8 +38,8 @@ public class ProjectUpdateRequest {
 
     // 기술 및 도구 목록 추가
     @NotEmpty
-    private List<String> skillNames;
+    private List<String> skills;
     @NotEmpty
-    private List<String> toolNames;
+    private List<String> tools;
 
 }

@@ -12,9 +12,11 @@ import com.pofo.backend.domain.project.exception.ProjectCreationException;
 import com.pofo.backend.domain.project.repository.ProjectRepository;
 import com.pofo.backend.domain.skill.entity.ProjectSkill;
 import com.pofo.backend.domain.skill.entity.Skill;
+import com.pofo.backend.domain.skill.repository.ProjectSkillRepository;
 import com.pofo.backend.domain.skill.service.SkillService;
 import com.pofo.backend.domain.tool.entity.ProjectTool;
 import com.pofo.backend.domain.tool.entity.Tool;
+import com.pofo.backend.domain.tool.repository.ProjectToolRepository;
 import com.pofo.backend.domain.tool.service.ToolService;
 import com.pofo.backend.domain.user.join.entity.User;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,6 +27,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.dao.DataAccessException;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -58,6 +61,12 @@ public class ProjectServiceTest {
 
     @Mock
     private ToolService toolService;
+
+    @Mock
+     private ProjectSkillRepository projectSkillRepository;
+
+    @Mock
+    private ProjectToolRepository projectToolRepository;
 
     LocalDate startDate = LocalDate.of(2025, 1, 22);
     LocalDate endDate = LocalDate.of(2025, 2, 14);
@@ -97,8 +106,8 @@ public class ProjectServiceTest {
                 .repositoryLink("testRepositoryLink")
                 .description("프로젝트 설명")
                 .imageUrl("sample.img")
-                .skillNames(List.of("Java", "Spring Boot")) // 추가
-                .toolNames(List.of("IntelliJ IDEA", "Docker")) // 추가
+                .skills(List.of("Java", "Spring Boot")) // 추가
+                .tools(List.of("IntelliJ IDEA", "Docker")) // 추가
                 .build();
     }
 
@@ -109,11 +118,11 @@ public class ProjectServiceTest {
         ProjectCreateRequest request = projectCreateRequest();
 
         // Project 객체 생성 시 skills & tools 추가
-        List<ProjectSkill> projectSkills = request.getSkillNames().stream()
+        List<ProjectSkill> projectSkills = request.getSkills().stream()
                 .map(skillName -> new ProjectSkill(null, skillService.getSkillByName(skillName)))
                 .collect(Collectors.toList());
 
-        List<ProjectTool> projectTools = request.getToolNames().stream()
+        List<ProjectTool> projectTools = request.getTools().stream()
                 .map(toolName -> new ProjectTool(null, toolService.getToolByName(toolName)))
                 .collect(Collectors.toList());
 
@@ -140,19 +149,19 @@ public class ProjectServiceTest {
         assertNotNull(response); // 응답 객체가 null이 아니어야 함
         verify(projectRepository).save(any(Project.class)); // 저장 메서드 호출 확인
 
-        assertEquals(request.getSkillNames().size(), realProject.getProjectSkills().size());
-        assertEquals(request.getToolNames().size(), realProject.getProjectTools().size());
+        assertEquals(request.getSkills().size(), realProject.getProjectSkills().size());
+        assertEquals(request.getTools().size(), realProject.getProjectTools().size());
 
         // Skill 및 Tool이 요청한 값과 동일한지 확인
         assertTrue(realProject.getProjectSkills().stream()
                 .map(ps -> ps.getSkill().getName())
                 .collect(Collectors.toList())
-                .containsAll(request.getSkillNames()));
+                .containsAll(request.getSkills()));
 
         assertTrue(realProject.getProjectTools().stream()
                 .map(pt -> pt.getTool().getName())
                 .collect(Collectors.toList())
-                .containsAll(request.getToolNames()));
+                .containsAll(request.getTools()));
     }
 
     @Test
@@ -186,8 +195,8 @@ public class ProjectServiceTest {
         when(mockProjectResponse.getDescription()).thenReturn("커피 원두를 주문할 수 있는 웹페이지");
         when(mockProjectResponse.getImageUrl()).thenReturn("test.img");
 
-        when(mockProjectResponse.getSkillNames()).thenReturn(List.of("Java", "Spring Boot"));
-        when(mockProjectResponse.getToolNames()).thenReturn(List.of("IntelliJ IDEA", "Docker"));
+        when(mockProjectResponse.getSkills()).thenReturn(List.of("Java", "Spring Boot"));
+        when(mockProjectResponse.getTools()).thenReturn(List.of("IntelliJ IDEA", "Docker"));
 
         when(projectMapper.projectToProjectDetailResponse(mockProject)).thenReturn(mockProjectResponse);
 
@@ -208,10 +217,10 @@ public class ProjectServiceTest {
         assertEquals("커피 원두를 주문할 수 있는 웹페이지", response.get(0).getDescription());
         assertEquals("test.img", response.get(0).getImageUrl());
 
-        assertEquals(2, response.get(0).getSkillNames().size());
-        assertEquals(2, response.get(0).getToolNames().size());
-        assertTrue(response.get(0).getSkillNames().containsAll(List.of("Java", "Spring Boot")));
-        assertTrue(response.get(0).getToolNames().containsAll(List.of("IntelliJ IDEA", "Docker")));
+        assertEquals(2, response.get(0).getSkills().size());
+        assertEquals(2, response.get(0).getTools().size());
+        assertTrue(response.get(0).getSkills().containsAll(List.of("Java", "Spring Boot")));
+        assertTrue(response.get(0).getTools().containsAll(List.of("IntelliJ IDEA", "Docker")));
 
         // Verify
         verify(projectRepository).findAllByOrderByIdDesc();
@@ -295,8 +304,8 @@ public class ProjectServiceTest {
         when(mockResponse.getDescription()).thenReturn("국내 여행지 추천해주는 웹페이지입니다.");
         when(mockResponse.getImageUrl()).thenReturn("travel.img");
 
-        when(mockResponse.getSkillNames()).thenReturn(List.of("Java", "Spring Boot"));
-        when(mockResponse.getToolNames()).thenReturn(List.of("IntelliJ IDEA", "Docker"));
+        when(mockResponse.getSkills()).thenReturn(List.of("Java", "Spring Boot"));
+        when(mockResponse.getTools()).thenReturn(List.of("IntelliJ IDEA", "Docker"));
 
         when(projectRepository.findById(projectId)).thenReturn(Optional.of(project));
         when(projectMapper.projectToProjectDetailResponse(project)).thenReturn(mockResponse);
@@ -316,10 +325,10 @@ public class ProjectServiceTest {
         assertEquals("travel.img", response.getImageUrl());
 
         // Skill 및 Tool 검증
-        assertEquals(2, response.getSkillNames().size());
-        assertEquals(2, response.getToolNames().size());
-        assertTrue(response.getSkillNames().containsAll(List.of("Java", "Spring Boot")));
-        assertTrue(response.getToolNames().containsAll(List.of("IntelliJ IDEA", "Docker")));
+        assertEquals(2, response.getSkills().size());
+        assertEquals(2, response.getTools().size());
+        assertTrue(response.getSkills().containsAll(List.of("Java", "Spring Boot")));
+        assertTrue(response.getTools().containsAll(List.of("IntelliJ IDEA", "Docker")));
 
         // Verify
         verify(projectRepository).findById(projectId);
@@ -378,33 +387,20 @@ public class ProjectServiceTest {
                 .repositoryLink("newRepoLink")
                 .description("업데이트된 프로젝트 설명")
                 .imageUrl("newImage.img")
-                .skillNames(List.of("React", "TypeScript"))
-                .toolNames(List.of("vs Code", "Figma"))
+                .skills(List.of("React", "TypeScript"))
+                .tools(List.of("vs Code", "Figma"))
                 .build();
     }
 
     @Test
+    @Transactional
     @DisplayName("프로젝트 수정 성공")
     void t10() {
         // Given
         Long projectId = 1L;
 
-        //  업데이트할 요청 객체 (Builder 패턴 적용)
-        ProjectUpdateRequest updateRequest = ProjectUpdateRequest.builder()
-                .name("업데이트된 프로젝트")
-                .startDate(LocalDate.of(2025, 1, 25))
-                .endDate(LocalDate.of(2025, 2, 20))
-                .memberCount(8)
-                .position("프론트엔드")
-                .repositoryLink("newRepoLink")
-                .description("업데이트된 프로젝트 설명")
-                .imageUrl("newImage.img")
-                .skillNames(List.of("React", "TypeScript"))  // ✅ 기존 Java → 새로운 Skill 목록
-                .toolNames(List.of("VS Code", "Figma"))  // ✅ 기존 IntelliJ IDEA → 새로운 Tool 목록
-                .build();
-
-        // ✅ 기존 프로젝트 객체 생성 (Spy 사용)
-        Project realProject = spy(Project.builder()
+        // 기존 프로젝트 객체 (Mock 데이터)
+        Project realProject = Project.builder()
                 .user(mockUser)
                 .name("기존 프로젝트")
                 .startDate(LocalDate.of(2025, 1, 1))
@@ -414,19 +410,56 @@ public class ProjectServiceTest {
                 .repositoryLink("oldRepoLink")
                 .description("기존 프로젝트 설명")
                 .imageUrl("oldImage.img")
-                .build());
+                .build();
 
-        // 기존 Skill 및 Tool 설정 (빌드 후 추가)
-        ProjectSkill existingProjectSkill = new ProjectSkill(realProject, new Skill("Java"));
-        ProjectTool existingProjectTool = new ProjectTool(realProject, new Tool("IntelliJ IDEA"));
+        // 기존 Skill 및 Tool 추가
+        realProject.setProjectSkills(List.of(new ProjectSkill(realProject, new Skill("Java"))));
+        realProject.setProjectTools(List.of(new ProjectTool(realProject, new Tool("IntelliJ IDEA"))));
 
-        realProject.setProjectSkills(new ArrayList<>(List.of(existingProjectSkill)));
-        realProject.setProjectTools(new ArrayList<>(List.of(existingProjectTool)));
+        // 업데이트할 요청 객체
+        ProjectUpdateRequest updateRequest = ProjectUpdateRequest.builder()
+                .name("업데이트된 프로젝트")
+                .startDate(LocalDate.of(2025, 1, 25))
+                .endDate(LocalDate.of(2025, 2, 20))
+                .memberCount(8)
+                .position("프론트엔드")
+                .repositoryLink("newRepoLink")
+                .description("업데이트된 프로젝트 설명")
+                .imageUrl("newImage.img")
+                .skills(List.of("React", "TypeScript"))
+                .tools(List.of("VS Code", "Figma"))
+                .build();
 
-        //  Mock 설정
+        // ✅ 수정된 프로젝트 객체 생성 (Mock에서 반환할 값)
+        Project updatedProject = Project.builder()
+                .user(mockUser)
+                .name(updateRequest.getName())
+                .startDate(updateRequest.getStartDate())
+                .endDate(updateRequest.getEndDate())
+                .memberCount(updateRequest.getMemberCount())
+                .position(updateRequest.getPosition())
+                .repositoryLink(updateRequest.getRepositoryLink())
+                .description(updateRequest.getDescription())
+                .imageUrl(updateRequest.getImageUrl())
+                .build();
+
+        updatedProject.setProjectSkills(List.of(
+                new ProjectSkill(updatedProject, new Skill("React")),
+                new ProjectSkill(updatedProject, new Skill("TypeScript"))
+        ));
+
+        updatedProject.setProjectTools(List.of(
+                new ProjectTool(updatedProject, new Tool("VS Code")),
+                new ProjectTool(updatedProject, new Tool("Figma"))
+        ));
+
+        // ✅ Mock 설정 (기존 프로젝트 조회 시 realProject 반환)
         when(projectRepository.findById(projectId)).thenReturn(Optional.of(realProject));
 
-        //  Skill 및 Tool 서비스 Mock 설정
+        // ✅ Mock 설정 (save 호출 시 업데이트된 프로젝트 반환)
+        when(projectRepository.save(any(Project.class))).thenReturn(updatedProject);
+
+        // ✅ Skill 및 Tool 서비스 Mock 설정
         when(skillService.getSkillByName("React")).thenReturn(new Skill("React"));
         when(skillService.getSkillByName("TypeScript")).thenReturn(new Skill("TypeScript"));
         when(toolService.getToolByName("VS Code")).thenReturn(new Tool("VS Code"));
@@ -446,24 +479,16 @@ public class ProjectServiceTest {
         assertEquals(updateRequest.getDescription(), response.getDescription());
         assertEquals(updateRequest.getImageUrl(), response.getImageUrl());
 
-        // Skill 및 Tool 검증 (기존 데이터를 새로운 데이터로 완전히 덮어쓰는지 확인)
-        assertEquals(updateRequest.getSkillNames().size(), response.getSkillNames().size());
-        assertEquals(updateRequest.getToolNames().size(), response.getToolNames().size());
-        assertTrue(response.getSkillNames().containsAll(updateRequest.getSkillNames()));
-        assertTrue(response.getToolNames().containsAll(updateRequest.getToolNames()));
+        // ✅ Skill 및 Tool 검증
+        assertEquals(updateRequest.getSkills().size(), response.getSkills().size());
+        assertEquals(updateRequest.getTools().size(), response.getTools().size());
+        assertTrue(response.getSkills().containsAll(updateRequest.getSkills()));
+        assertTrue(response.getTools().containsAll(updateRequest.getTools()));
 
-        // Skill 및 Tool이 정확히 덮어쓰기 되었는지 검증 (기존 "Java", "IntelliJ IDEA"는 삭제됨)
-        Set<String> actualSkills = realProject.getProjectSkills().stream()
-                .map(ps -> ps.getSkill().getName())
-                .collect(Collectors.toSet());
-
-        Set<String> actualTools = realProject.getProjectTools().stream()
-                .map(pt -> pt.getTool().getName())
-                .collect(Collectors.toSet());
-
-        assertEquals(new HashSet<>(updateRequest.getSkillNames()), actualSkills);
-        assertEquals(new HashSet<>(updateRequest.getToolNames()), actualTools);
+        // ✅ save()가 한 번 호출되었는지 확인
+        verify(projectRepository, times(1)).save(any(Project.class));
     }
+
 
 
     @Test

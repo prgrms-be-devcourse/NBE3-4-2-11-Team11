@@ -10,17 +10,19 @@ import com.pofo.backend.domain.project.entity.Project;
 import com.pofo.backend.domain.project.exception.ProjectCreationException;
 import com.pofo.backend.domain.project.repository.ProjectRepository;
 import com.pofo.backend.domain.skill.entity.ProjectSkill;
+import com.pofo.backend.domain.skill.repository.ProjectSkillRepository;
 import com.pofo.backend.domain.skill.service.SkillService;
 import com.pofo.backend.domain.tool.entity.ProjectTool;
+import com.pofo.backend.domain.tool.repository.ProjectToolRepository;
 import com.pofo.backend.domain.tool.service.ToolService;
 import com.pofo.backend.domain.user.join.entity.User;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,6 +34,11 @@ public class ProjectService {
     private final ProjectMapper projectMapper;
     private final SkillService skillService;
     private final ToolService toolService;
+
+    private final ProjectSkillRepository projectSkillRepository;
+    private final ProjectToolRepository projectToolRepository;
+
+    private final EntityManager entityManager;
 
     public ProjectCreateResponse createProject(ProjectCreateRequest projectRequest, User user) {
 
@@ -49,15 +56,13 @@ public class ProjectService {
                     .repositoryLink(projectRequest.getRepositoryLink())
                     .description(projectRequest.getDescription())
                     .imageUrl(projectRequest.getImageUrl())
-                    .projectSkills(projectRequest.getSkillNames().stream()
-                            .map(skillName -> new ProjectSkill(null, skillService.getSkillByName(skillName)))
-                            .collect(Collectors.toList()))
-                    .projectTools(projectRequest.getToolNames().stream()
-                            .map(toolName -> new ProjectTool(null, toolService.getToolByName(toolName)))
-                            .collect(Collectors.toList()))
                     .build();
 
             projectRepository.save(project);
+
+            skillService.addProjectSkills(project.getId(), projectRequest.getSkills());
+
+            toolService.addProjectTools(project.getId(), projectRequest.getTools());
 
             return new ProjectCreateResponse(project.getId());
 
@@ -65,6 +70,7 @@ public class ProjectService {
             throw ProjectCreationException.badRequest("프로젝트 등록 중 오류가 발생했습니다.");
         }
     }
+
 
     public List<ProjectDetailResponse> detailAllProject(User user){
 
@@ -144,9 +150,26 @@ public class ProjectService {
                     request.getImageUrl()
             );
 
+            project = projectRepository.save(project);
+
             // 새로운 스킬 및 툴 리스트 생성
-            updateProjectSkills(project, request.getSkillNames());
-            updateProjectTools(project, request.getToolNames());
+            skillService.updateProjectSkills(projectId, request.getSkills());
+            toolService.updateProjectTools(projectId, request.getTools());
+
+            project = projectRepository.findById(projectId)
+                    .orElseThrow(() -> ProjectCreationException.serverError("프로젝트 데이터를 다시 불러오는 중 오류가 발생했습니다."));
+
+            List<ProjectSkill> updatedSkills = projectSkillRepository.findByProjectId(projectId);
+            List<ProjectTool> updatedTools = projectToolRepository.findByProjectId(projectId);
+
+            project.getProjectSkills().clear();
+            project.getProjectSkills().addAll(updatedSkills);
+
+            project.getProjectTools().clear();
+            project.getProjectTools().addAll(updatedTools);
+
+
+            project = projectRepository.save(project);
 
             // 응답 변환
             return new ProjectUpdateResponse(
@@ -174,35 +197,6 @@ public class ProjectService {
 
     }
 
-    private void updateProjectSkills(Project project, List<String> skillNames) {
-        // 현재 프로젝트에 연결된 Skill 가져오기
-        Map<String, ProjectSkill> existingSkills = project.getProjectSkills().stream()
-                .collect(Collectors.toMap(ps -> ps.getSkill().getName(), ps -> ps));
-
-        // 새로운 Skill 목록 생성
-        List<ProjectSkill> updatedSkills = skillNames.stream()
-                .map(skillName -> existingSkills.getOrDefault(skillName,
-                        new ProjectSkill(project, skillService.getSkillByName(skillName))))
-                .collect(Collectors.toList());
-
-        project.getProjectSkills().clear();
-        project.getProjectSkills().addAll(updatedSkills);
-    }
-
-    private void updateProjectTools(Project project, List<String> toolNames) {
-        // 현재 프로젝트에 연결된 Tool 가져오기
-        Map<String, ProjectTool> existingTools = project.getProjectTools().stream()
-                .collect(Collectors.toMap(pt -> pt.getTool().getName(), pt -> pt));
-
-        // 새로운 Tool 목록 생성
-        List<ProjectTool> updatedTools = toolNames.stream()
-                .map(toolName -> existingTools.getOrDefault(toolName,
-                        new ProjectTool(project, toolService.getToolByName(toolName))))
-                .collect(Collectors.toList());
-
-        project.getProjectTools().clear();
-        project.getProjectTools().addAll(updatedTools);
-    }
 
     public void deleteProject(Long projectId, User user) {
 
@@ -214,6 +208,10 @@ public class ProjectService {
             if (!project.getUser().equals(user)) {
                 throw ProjectCreationException.forbidden("프로젝트 삭제 할 권한이 없습니다.");
             }
+
+            //중간 테이블 데이터 먼저 삭제
+            skillService.deleteProjectSkills(projectId);
+            toolService.deleteProjectTools(projectId);
 
             projectRepository.delete(project);
 
