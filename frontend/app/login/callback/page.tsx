@@ -45,7 +45,10 @@ export default function OAuthCallback() {
 
                 if (data.resultCode === "200") {
                     if (data.data.token) {
-                        login(data.data.token);  // ✅ Zustand에 로그인 상태 반영
+
+                       
+                        login(data.data.token,data.data.refreshToken);  // ✅ Zustand에 로그인 상태 반영
+
                         router.push("/");
 
                     } else {
