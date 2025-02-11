@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { createPost } from '../../../lib/board';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';  // 로그인 상태 가져오기
+import { getAccessToken } from '@/utils/token';    // 토큰 가져오기
+import { decodeJWT } from '@/utils/decodeJWT';     // JWT 디코딩
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -11,20 +13,37 @@ const WritePostPage = () => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const router = useRouter();
-  const { isLoggedIn } = useAuthStore();  // 로그인 상태 확인
+  const { isLoggedIn } = useAuthStore();  
 
   const handleSubmit = async () => {
     if (!isLoggedIn) {
       alert('로그인 후 게시글을 작성할 수 있습니다.');
-      router.push('/login');  // 로그인 페이지로 리디렉트
+      router.push('/login');  
       return;
     }
 
     try {
-      await createPost({ title, content });  // 닉네임은 createPost 함수 내에서 처리
+      // 토큰에서 이메일 추출
+      const token = getAccessToken();
+      if (!token) {
+        alert('로그인 정보가 올바르지 않습니다.');
+        return;
+      }
+
+      const decoded: any = decodeJWT(token);
+      const email = decoded?.sub;  // 이메일 정보는 JWT의 sub 필드에 있음
+
+      if (!email) {
+        alert('사용자 이메일 정보를 찾을 수 없습니다.');
+        return;
+      }
+
+      // 이메일 포함하여 게시글 작성 요청
+      await createPost({ title, content, email });
       router.push('/board');  // 작성 완료 후 목록 페이지로 이동
-    } catch (error) {
+    } catch (error: any) {
       console.error('게시글 작성 실패:', error);
+      alert(`게시글 작성 중 오류가 발생했습니다: ${error.message}`);
     }
   };
 

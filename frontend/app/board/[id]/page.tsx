@@ -1,51 +1,43 @@
 "use client";
 
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';  // useParams 추가
 import { getPostById, deletePost } from '../../../lib/board';
 import { useEffect, useState } from 'react';
-import Header from '../../../components/Header';
 import MarkdownRenderer from '../../../components/MarkdownRenderer';
 import { useAuthStore } from '@/store/authStore';
 import { getAccessToken } from '@/utils/token';
-import { jwtDecode } from 'jwt-decode';
+import { decodeJWT } from '@/utils/decodeJWT';
+import { Post } from '../../../lib/board'; // Post 타입이 정의된 경로로 수정
 
-interface Post {
-  id: number;
-  title: string;
-  content: string;
-  createdAt: string;
-  nickname: string;  // 작성자 닉네임 추가
-}
+// JWT 토큰에서 로그인한 사용자의 이메일을 추출하는 함수
+const getLoggedInEmail = (): string | null => {
+  const token = getAccessToken();
+  if (!token) return null;
 
-// // 토큰에서 닉네임 추출 함수
-// const extractNicknameFromToken = (): string | null => {
-//   const token = getAccessToken();
-//   if (!token) return null;
+  const decoded: any = decodeJWT(token);
+  return decoded?.sub || null;  // JWT의 sub 필드에 이메일이 저장됨
+};
 
-//   try {
-//     const decoded: { nickname: string } = jwtDecode(token);
-//     return decoded.nickname;
-//   } catch (error) {
-//     console.error('토큰 디코딩 실패:', error);
-//     return null;
-//   }
-// };
-
-const PostDetailPage = ({ params }: { params: { id: string } }) => {
+const PostDetailPage = () => {  // params 제거
   const [post, setPost] = useState<Post | null>(null);
   const router = useRouter();
+  const params = useParams();  // useParams 훅으로 params 가져오기
   const { isLoggedIn } = useAuthStore();
 
- // 로그인한 사용자의 닉네임 (Zustand 또는 localStorage에서 가져오기)
- const loggedInNickname = localStorage.getItem('nickname');
+  const loggedInEmail = getLoggedInEmail();
+  const postId = params.id as string;  // params.id는 문자열로 반환됨
 
   useEffect(() => {
     const fetchPost = async () => {
-      const data = await getPostById(Number(params.id));
-      setPost(data);
+      try {
+        const data = await getPostById(Number(postId));  // postId 사용
+        setPost(data);
+      } catch (error) {
+        console.error('게시글 불러오기 실패:', error);
+      }
     };
     fetchPost();
-  }, [params.id]);
+  }, [postId]);
 
   const handleDelete = async () => {
     if (!isLoggedIn) {
@@ -54,33 +46,43 @@ const PostDetailPage = ({ params }: { params: { id: string } }) => {
       return;
     }
 
-   // 작성자 검증 (닉네임 비교)
-   if (loggedInNickname?.toLowerCase() !== post?.nickname.toLowerCase()) {
-    alert('작성자만 게시글을 삭제할 수 있습니다.');
-    return;
-  }
+    if (!post || !loggedInEmail || loggedInEmail.toLowerCase() !== post.email.toLowerCase()) {
+      alert('작성자만 게시글을 삭제할 수 있습니다.');
+      return;
+    }
 
     if (confirm('정말 이 게시글을 삭제하시겠습니까?')) {
-      await deletePost(Number(params.id));
-      router.push('/board');  // 삭제 후 목록 페이지로 리디렉트
+      try {
+        await deletePost(Number(postId));  // postId 사용
+        alert('게시글이 성공적으로 삭제되었습니다.');
+        router.push('/board');  // 삭제 후 목록 페이지로 이동
+      } catch (error) {
+        console.error('게시글 삭제 실패:', error);
+        alert('게시글 삭제 중 오류가 발생했습니다.');
+      }
     }
   };
 
-  if (!post) return <p>로딩 중...</p>;
+  if (!post) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <p className="text-lg text-gray-600">게시글을 불러오는 중...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <Header />
       <main className="max-w-xl mx-auto mt-8">
         <h1 className="text-2xl font-bold mb-4">{post.title}</h1>
-        <p className="text-gray-600 mb-2">작성자: {post.nickname}</p>
+        <p className="text-gray-600 mb-2">작성자: {post.email}</p>
         <p className="text-gray-600 mb-4">{new Date(post.createdAt).toLocaleDateString()}</p>
         <div className="bg-gray-700 text-white p-4 mb-4 rounded">
           <MarkdownRenderer content={post.content} />
         </div>
         <div className="flex justify-end space-x-4">
           <button
-            onClick={() => router.push(`/board/${params.id}/edit`)}
+            onClick={() => router.push(`/board/${postId}/edit`)}  // postId 사용
             className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
           >
             수정
