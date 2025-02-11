@@ -126,10 +126,6 @@ export default function AdminLoginPage() {
         throw new Error("백엔드에서 토큰을 받지 못했습니다.");
       }
 
-      // 로컬 스토리지에 토큰 저장
-      localStorage.setItem("accessToken", accessToken);
-      localStorage.setItem("refreshToken", refreshToken);
-
       // Zustand 스토어에 로그인 상태 반영 (accessToken, refreshToken 둘 다 전달)
       login(accessToken, refreshToken);
 

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import api from "../../../utils/api"; // 실제 경로에 맞게 수정
 import { useAuthStore } from "@/store/authStore"; // Zustand 스토어 사용
+import { getAccessToken, getRefreshToken, removeTokens } from "@/utils/token";
 
 export default function AdminDashboard() {
   const [adminName, setAdminName] = useState<string | null>(null);
@@ -18,10 +19,13 @@ export default function AdminDashboard() {
 
     if (token && !isLoggedIn) {
       // 로그인 상태가 스토어에 반영되지 않았다면, accessToken (및 refreshToken은 내부에서 자동 관리됨)을 사용해 로그인 상태 복원
-      login(token, localStorage.getItem("refreshToken") || "");
+      // login(token, localStorage.getItem("refreshToken") || "");
+      const refreshToken = getRefreshToken() || "";
+      login(token, refreshToken);
+
     } else if (!token) {
       setError("로그인이 필요합니다.");
-      router.push("/admin/login");
+      router.push("/login");
       return;
     }
     fetchAdminData();
@@ -33,7 +37,7 @@ export default function AdminDashboard() {
       setAdminName(response.data.data.username);
     } catch (err: any) {
       setError(err.message || "관리자 정보를 불러올 수 없습니다.");
-      router.push("/admin/login");
+      router.push("/login");
     } finally {
       setIsLoading(false);
     }
@@ -45,10 +49,10 @@ export default function AdminDashboard() {
     } catch (error) {
       console.error("로그아웃 API 호출 실패:", error);
     } finally {
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
+      removeTokens();
+
       logout();
-      router.push("/admin/login");
+      router.push("/login");
     }
   };
 
