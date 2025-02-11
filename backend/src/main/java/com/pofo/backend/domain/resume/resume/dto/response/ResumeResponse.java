@@ -29,6 +29,7 @@ public class ResumeResponse {
     private Set<EducationResponse> educations;
     private Set<LicenseResponse> licenses;
     private Set<LanguageResponse> languages;
-    private Set<String> skills;
-    private Set<String> tools;
+    private Set<SkillResponse> skills;
+    private Set<ToolResponse> tools;
 }
+

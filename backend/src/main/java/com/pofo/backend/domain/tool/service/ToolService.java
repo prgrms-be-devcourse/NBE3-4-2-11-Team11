@@ -1,12 +1,12 @@
 package com.pofo.backend.domain.tool.service;
 
 import com.pofo.backend.domain.project.exception.ProjectCreationException;
+import com.pofo.backend.domain.tool.dto.ToolProjection;
 import com.pofo.backend.domain.tool.entity.Tool;
 import com.pofo.backend.domain.tool.repository.ToolRepository;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -52,7 +52,7 @@ public class ToolService {
     }
 
     // 저장된 모든 도구 조회
-    public List<Tool> getAllTools() {
-        return toolRepository.findAll();
+    public List<ToolProjection> getAllTools() {
+        return toolRepository.findAllByProjection();
     }
 }

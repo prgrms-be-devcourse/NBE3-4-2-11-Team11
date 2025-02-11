@@ -1,12 +1,12 @@
 package com.pofo.backend.domain.skill.service;
 
 import com.pofo.backend.domain.project.exception.ProjectCreationException;
+import com.pofo.backend.domain.skill.dto.SkillProjection;
 import com.pofo.backend.domain.skill.entity.Skill;
 import com.pofo.backend.domain.skill.repository.SkillRepository;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -57,8 +57,8 @@ public class SkillService {
     }
 
     // 저장된 모든 기술 조회
-    public List<Skill> getAllSkills() {
-        return skillRepository.findAll();
+    public List<SkillProjection> getAllSkills() {
+        return skillRepository.findAllByProjection();
     }
 
 
