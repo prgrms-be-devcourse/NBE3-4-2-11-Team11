@@ -1,0 +1,51 @@
+.noticeContainer {
+  padding: 50px;
+  width: 100%;
+}
+
+.noticeSubject {
+  font-size: 1.5em;
+  font-weight: bold;
+}
+
+.noticeDate {
+  font-size: 0.9em;
+  color: #666;
+  text-align: right;
+  margin-bottom: 0px;
+}
+
+.noticeHeader {
+  font-size: 1.8em;
+  font-weight: bold;
+  margin-bottom: 0px;
+  padding-bottom: 10px;
+}
+
+.noticeSubjectRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.noticeContent {
+  font-size: 1em;
+  color: #333;
+  margin-top: 40px;
+  white-space: pre-wrap !important;
+  word-break: break-all;
+}
+
+.noticeDividerContainer {
+  width: 100%;
+}
+
+.noticeDivider {
+  border: none;
+  border-top: 1px solid #ccc;
+  width: 100%;
+  margin: -20px 0;
+}
+
