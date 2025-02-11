@@ -5,13 +5,15 @@ import {getRefreshToken, isAccessTokenExpired} from "../utils/token";
 import { useAuthStore } from "../store/authStore";
 import {decodeJWT} from "@/utils/decodeJWT";
 
-const refreshToken = getRefreshToken();
+// const refreshToken = getRefreshToken();
 const useTokenRefresh = () => {
 
     useEffect(() => {
         const interval = setInterval(async () => {
-            if (refreshToken) {
-                const decoded = decodeJWT(refreshToken);
+            const currentRefreshToken = getRefreshToken();
+
+            if (currentRefreshToken) {
+                const decoded = decodeJWT(currentRefreshToken);
                 console.log("🔍 디코딩된 Refresh Token:", decoded);
             } else {
                 console.warn("❌ Refresh Token이 없습니다.");
@@ -20,7 +22,7 @@ const useTokenRefresh = () => {
                 console.log("🔄 Access Token 만료 감지 → Refresh Token 요청 실행");
                 await useAuthStore.getState().refreshAccessToken();
             }
-        }, 60000); // ✅ 60초마다 실행 (필요 시 조정 가능)
+        }, 20000); // ✅ 20초마다 실행 (필요 시 조정 가능)
 
         return () => clearInterval(interval);
     }, []);
