@@ -31,31 +31,34 @@ const InquiryDetailPage = () => {
 
   useEffect(() => {
     if (id) {
-    const fetchInquiry = async () => {
-      console.log('Fetching inquiry detail for ID:', id); // ID 로그 출력
-      try {
-        const response = await axios.get<RsData<InquiryDetailResponse>>(`/api/v1/common/inquiries/${id}`);
-        console.log('Response data:', response.data); // 디버깅 로그
-        setInquiry(response.data.data);
-      } catch (error) {
-        console.error('Error fetching inquiry detail:', error);
-      }
-    };
+      const fetchInquiry = async () => {
+        try {
+          const response = await axios.get<RsData<InquiryDetailResponse>>(`/api/v1/common/inquiries/${id}`);
+          setInquiry(response.data.data);
+        } catch (error) {
+          console.error('Error fetching inquiry detail:', error);
+        }
+      };
 
-    fetchInquiry();
-  }
+      fetchInquiry();
+    }
   }, [id]);
 
+  const token = localStorage.getItem('accessToken');
+
   const handleDelete = async () => {
-    const token = localStorage.getItem('accessToken');
+    if (!inquiry) {
+      alert('문의글 정보를 불러오는 중입니다.');
+      return;
+    }
+
     if (!token) {
-      console.error('No access token found');
       alert('로그인이 필요합니다.');
       return;
     }
 
     try {
-      await axios.delete(`/api/v1/common/inquiries/${id}`, {
+      await axios.delete(`/api/v1/user/inquiries/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -69,24 +72,16 @@ const InquiryDetailPage = () => {
   };
 
   const handleEditRedirect = () => {
-    const token = localStorage.getItem('accessToken');
+    if (!inquiry) {
+      alert('문의글 정보를 불러오는 중입니다.');
+      return;
+    }
+
     if (!token) {
-      console.error('No access token found');
       alert('로그인이 필요합니다.');
       return;
     }
 
-    // 현재 로그인된 사용자의 user_id 가져오기
-    const userId = localStorage.getItem('userId'); // 로그인 시 저장된 userId를 가져온다고 가정
-    const noticeUserId = inquiry.userId; // inquiry 상태에서 userId를 가져온다고 가정
-
-    // user_id 비교 (둘 다 문자열로 변환)
-    if (userId !== noticeUserId.toString()) {
-      alert('권한이 없습니다. 이 문의글을 수정할 수 없습니다.');
-      return;
-    }
-
-    // 권한이 확인되면 수정 페이지로 리다이렉트
     router.push(`/inquiry/edit/${id}`);
   };
 
