@@ -1,15 +1,18 @@
 "use client"
 
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import Link from 'next/link';
+import axios from 'axios';
 import styles from './inquiryList.module.css';
 
 type InquiryDetailResponse = {
+  userId: number;
   id: number;
   subject: string;
   content: string;
+  response: number;
   createdAt: string;
+  reply: ReplyDetailResponse | null;
 };
 
 type RsData<T> = {
@@ -48,6 +51,9 @@ const InquiryPage = () => {
               <div className={styles.inquirySubjectRow}>
                 <div className={styles.inquirySubject}>{inquiry.subject}</div>
                 <div className={styles.inquiryDate}>{new Date(inquiry.createdAt).toLocaleDateString('ko-KR')}</div>
+              </div>
+              <div className={styles.inquiryResponseStatus}>
+                {inquiry.response === 0 ? '답변 예정' : '답변 완료'}
               </div>
             </Link>
           </li>

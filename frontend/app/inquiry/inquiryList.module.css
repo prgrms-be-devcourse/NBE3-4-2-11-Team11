@@ -4,7 +4,7 @@
 
 .inquiryBox {
   background-color: #f0f0f0;
-  padding: 0px;
+  padding: 20px;
   margin-bottom: 20px;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
@@ -33,19 +33,21 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
-  margin-top: 10px;
-  padding: 15px;
-}
-
-.inquiryContent {
-  font-size: 1em;
-  color: #333;
+  margin-bottom: 30px;
   margin-top: -10px;
+  padding: 15px;
 }
 
 .inquiryBox p {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.inquiryResponseStatus {
+  text-align: left;
+  margin-top: -32px;
+  margin-left: 15px;
+  font-size: 1em;
+  color: #666;
 } 
