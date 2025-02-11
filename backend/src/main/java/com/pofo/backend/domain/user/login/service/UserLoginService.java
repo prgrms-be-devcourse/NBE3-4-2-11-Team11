@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.*;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
@@ -32,11 +33,15 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class UserLoginService {
+    private final RedisTemplate<String, String> redisTemplate; // ✅ Redis 추가
+
+    private final String REDIS_ACCESS_TOKEN_PREFIX = "access_token:";
 
     //  Users 테이블에 대한 레포지토리
     private final UserRepository userRepository;
@@ -502,6 +507,16 @@ public class UserLoginService {
 
         //  JWT 토큰 생성
         TokenDto jwtToken = tokenProvider.createToken(authentication);
+
+        log.info("✅ JWT Access Token: {}", jwtToken.getAccessToken());
+        log.info("✅ JWT Refresh Token: {}", jwtToken.getRefreshToken());
+
+        // ✅ Redis에 Access Token 저장 (로그아웃 시 무효화 가능하도록)
+        String accessTokenKey = REDIS_ACCESS_TOKEN_PREFIX + jwtToken.getAccessToken();
+        redisTemplate.opsForValue().set(accessTokenKey, "valid", jwtToken.getAccessTokenValidationTime(), TimeUnit.MILLISECONDS);
+
+        log.info("✅ Access Token 저장 완료 (TTL: {}ms): {}", jwtToken.getAccessTokenValidationTime(), accessTokenKey);
+
 
         return jwtToken;
     }
