@@ -2,12 +2,14 @@ package com.pofo.backend.domain.skill.service;
 
 import com.pofo.backend.domain.project.entity.Project;
 import com.pofo.backend.domain.project.exception.ProjectCreationException;
+import com.pofo.backend.domain.skill.dto.SkillProjection;
 import com.pofo.backend.domain.project.repository.ProjectRepository;
 import com.pofo.backend.domain.skill.dto.SkillProjection;
 import com.pofo.backend.domain.skill.entity.ProjectSkill;
 import com.pofo.backend.domain.skill.entity.Skill;
 import com.pofo.backend.domain.skill.repository.ProjectSkillRepository;
 import com.pofo.backend.domain.skill.repository.SkillRepository;
+import java.util.List;
 import jakarta.persistence.EntityManager;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
