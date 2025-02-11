@@ -36,11 +36,4 @@ out/
 ### VS Code ###
 .vscode/
 
-### mac os##
-.DS_Store
-
-### Custom ###
 .env
-
-# MapStruct에서 자동 생성된 구현체 파일 무시
-src/main/java/**/mapper/*Impl.java
