@@ -6,7 +6,8 @@ import axios from 'axios';
 import styles from './inquiryDetail.module.css';
 
 type ReplyDetailResponse = {
-  // ReplyDetailResponse의 필드 정의
+  id: number; // 답변 내용
+  createdAt: string; // 답변 생성일
 };
 
 type InquiryDetailResponse = {
@@ -15,7 +16,7 @@ type InquiryDetailResponse = {
   subject: string;
   content: string;
   createdAt: string; // LocalDateTime을 문자열로 변환
-  reply: ReplyDetailResponse | null;
+  reply: ReplyDetailResponse | null; // 답변 추가
 };
 
 type RsData<T> = {
@@ -28,18 +29,21 @@ const InquiryDetailPage = () => {
   const { id } = useParams();
   const router = useRouter();
   const [inquiry, setInquiry] = useState<InquiryDetailResponse | null>(null);
+  const [reply, setReply] = useState<ReplyDetailResponse | null>(null);
 
   useEffect(() => {
-    if (id) {
-      const fetchInquiry = async () => {
-        try {
-          const response = await axios.get<RsData<InquiryDetailResponse>>(`/api/v1/common/inquiries/${id}`);
-          setInquiry(response.data.data);
-        } catch (error) {
-          console.error('Error fetching inquiry detail:', error);
-        }
-      };
+    const fetchInquiry = async () => {
+      try {
+        const response = await axios.get<RsData<InquiryDetailResponse>>(`/api/v1/common/inquiries/${id}`);
+        setInquiry(response.data.data);
+        const replyResponse = await axios.get<RsData<ReplyDetailResponse>>(`/api/v1/common/inquiries/${id}/reply`);
+        setReply(replyResponse.data.data);
+      } catch (error) {
+        console.error('Error fetching inquiry detail:', error);
+      }
+    };
 
+    if (id) {
       fetchInquiry();
     }
   }, [id]);
@@ -110,10 +114,15 @@ const InquiryDetailPage = () => {
         </div>
         <hr className={styles.inquiryDetailDivider}/>
         <p className={styles.inquiryDetailContent}>{inquiry.content}</p>
-        {inquiry.reply && (
-          <div>
-            <h2>답변</h2>
-            {/* 답변 내용 표시 */}
+
+        {reply === null ? (
+          <div className={styles.replyContainer}>
+            <p className={styles.replyContent}>답변 예정입니다.</p>
+          </div>
+        ) : (
+          <div className={styles.replyContainer}>
+            <p className={styles.replyContent}>{reply.content}</p>
+            <div className={styles.replyDate}>{new Date(reply.createdAt).toLocaleDateString('ko-KR')}</div>
           </div>
         )}
       </div>
