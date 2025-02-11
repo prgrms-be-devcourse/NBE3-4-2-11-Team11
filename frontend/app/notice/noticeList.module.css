@@ -1,0 +1,49 @@
+.noticeContainer {
+  padding: 50px;
+}
+
+.noticeBox {
+  background-color: #f0f0f0;
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.noticeSubject {
+  font-size: 1.5em;
+  font-weight: bold;
+}
+
+.noticeDate {
+  font-size: 0.9em;
+  color: #666;
+  text-align: right;
+}
+
+.noticeHeader {
+  font-size: 1.8em;
+  font-weight: bold;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 10px;
+}
+
+.noticeSubjectRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.noticeContent {
+  font-size: 1em;
+  color: #333;
+  margin-top: -10px;
+}
+
+.noticeBox p {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+} 

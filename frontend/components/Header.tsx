@@ -12,8 +12,9 @@ const Header = () => {
     setHasMounted(true);
 
     // ✅ localStorage에서 accessToken이 있으면 로그인 유지
-    const token = localStorage.getItem("accessToken");
-    if (token) login(token);
+    const token: string | null = localStorage.getItem("accessToken");
+    const refreshToken: string = localStorage.getItem("refreshToken") || "";
+    if (token) login(token,refreshToken);
   }, [login]);
 
   if (!hasMounted) return null; // Hydration 오류 방지
