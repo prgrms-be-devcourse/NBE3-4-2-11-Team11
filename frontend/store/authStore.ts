@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
+
 import { getAccessToken, getRefreshToken,  setTokens, removeTokens } from "../utils/token"; // ✅ 토큰 유틸 함수 가져오기
 
 type AuthState = {
@@ -9,6 +10,7 @@ type AuthState = {
     login: (accessToken: string, refreshToken: string) => void;
     logout: () => void;
     refreshAccessToken: () => Promise<boolean>;
+
 };
 
 export const useAuthStore = create<AuthState>()(
@@ -32,10 +34,12 @@ export const useAuthStore = create<AuthState>()(
                 }
 
                 set({ isLoggedIn: true, accessToken, refreshToken });
+
             },
 
             logout: async () => {
                 if (typeof window === "undefined") return;
+
 
                 removeTokens(); // ✅ 유틸 함수 사용
                 set({ isLoggedIn: false, accessToken: null, refreshToken: null });
@@ -83,6 +87,7 @@ export const useAuthStore = create<AuthState>()(
             storage: typeof window !== "undefined"
                 ? createJSONStorage(() => localStorage)
                 : undefined,
+
         }
     )
 );

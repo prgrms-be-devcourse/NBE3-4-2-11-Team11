@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useAuthStore } from "@/store/authStore";
 
+
 const Header = () => {
   const { isLoggedIn, login, logout } = useAuthStore();
   const [hasMounted, setHasMounted] = useState(false);
@@ -23,6 +24,7 @@ const Header = () => {
       <header className="bg-gray-900 text-white py-4 px-8 flex justify-between items-center">
         <div className="text-xl font-bold">
           <Link href="/" className="hover:text-gray-400">POFO</Link>
+          {/*  POFO 로고 클릭시 메인페이지로 */}
         </div>
         <nav>
           <ul className="flex space-x-6">
@@ -39,7 +41,7 @@ const Header = () => {
                   <Link href="/mypage/projects">프로젝트</Link>
                 </li>
                 <li className="px-4 py-2 hover:bg-gray-700">
-                  <Link href="/mypage/board">게시판</Link>
+                  <Link href="/board">게시판</Link>
                 </li>
               </ul>
             </li>
@@ -53,9 +55,11 @@ const Header = () => {
                   <Link href="/login" className="hover:text-gray-400">로그인</Link>
               )}
             </li>
+
           </ul>
         </nav>
       </header>
+
   );
 };
 
