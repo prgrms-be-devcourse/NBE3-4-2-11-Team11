@@ -56,8 +56,24 @@ const InquiryPage = () => {
 
   return (
     <div className={styles.inquiryContainer}>
-      <h1 className={styles.inquiryHeader}>문의하기</h1>
-      <button onClick={handleCreateInquiry} className={styles.createButton} style={{  }}>작성하기</button>
+      <h1 className={styles.inquiryHeader} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        문의하기
+        <button 
+          onClick={handleCreateInquiry} 
+          className={styles.createButton} 
+          style={{ 
+            backgroundColor: '#0070f3',
+            color: '#ffffff',
+            padding: '10px 15px',
+            fontSize: '16px',
+            border: 'none',
+            borderRadius: '5px',
+            cursor: 'pointer'
+          }}
+        >
+          작성하기
+        </button>
+      </h1>
       <ul>
         {inquiries.map((inquiry) => (
           <li key={inquiry.id} className={styles.inquiryBox}>

@@ -25,18 +25,25 @@ type RsData<T> = {
   data: T;
 };
 
+type ReplyCreateResponse = {
+  id: number; // 생성된 답변의 ID
+};
+
 const InquiryDetailPage = () => {
   const { id } = useParams();
   const router = useRouter();
   const [inquiry, setInquiry] = useState<InquiryDetailResponse | null>(null);
   const [reply, setReply] = useState<ReplyDetailResponse | null>(null);
+  const [showInput, setShowInput] = useState(false);
+  const [replyContent, setReplyContent] = useState('');
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const fetchInquiry = async () => {
       try {
-        const response = await axios.get<RsData<InquiryDetailResponse>>(`/api/v1/common/inquiries/${id}`);
+        const response = await axios.get(`/api/v1/common/inquiries/${id}`);
         setInquiry(response.data.data);
-        const replyResponse = await axios.get<RsData<ReplyDetailResponse>>(`/api/v1/common/inquiries/${id}/reply`);
+        const replyResponse = await axios.get(`/api/v1/common/inquiries/${id}/reply`);
         setReply(replyResponse.data.data);
       } catch (error) {
         console.error('Error fetching inquiry detail:', error);
@@ -89,32 +96,8 @@ const InquiryDetailPage = () => {
     router.push(`/inquiry/edit/${id}`);
   };
 
-  const handleReplySubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    if (!inquiry) {
-      alert('문의글 정보를 불러오는 중입니다.');
-      return;
-    }
-
-    if (!token) {
-      alert('로그인이 필요합니다.');
-      return;
-    }
-
-    try {
-      const replyResponse = await axios.post<ReplyDetailResponse>(`/api/v1/common/inquiries/${id}/reply`, {
-        content: reply?.content,
-      }, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      setReply(replyResponse.data.data);
-      alert('답변이 성공적으로 등록되었습니다!');
-    } catch (error) {
-      console.error('Error submitting reply:', error);
-      alert('답변 등록 실패: 알 수 없는 오류가 발생했습니다.');
-    }
+  const handleReplyButtonClick = () => {
+    router.push(`/inquiry/${id}/reply/create`); // 답변 등록 페이지로 리다이렉트
   };
 
   if (!inquiry) return <div>Loading...</div>;
@@ -154,14 +137,16 @@ const InquiryDetailPage = () => {
           )}
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px' }}>
-          <button 
-            onClick={handleReplySubmit}
-            className={styles.replyButton}
-          >
-            답변 등록
-          </button>
-        </div>
+        {!showInput && (
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px' }}>
+            <button 
+              onClick={handleReplyButtonClick}
+              className={styles.replyButton}
+            >
+              답변 등록
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
