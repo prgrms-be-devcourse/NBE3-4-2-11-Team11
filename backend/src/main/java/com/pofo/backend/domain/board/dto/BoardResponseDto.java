@@ -14,7 +14,7 @@ public class BoardResponseDto  {
     private final String title;
     private final String content;
     private final LocalDateTime createdAt;  // 작성일자 필드 추가
-    private final String nickname;   // 작성자 닉네임 추가
+    private final String email;  // 작성자 이메일 추가
 
 
     public BoardResponseDto(Board board) {
@@ -22,6 +22,6 @@ public class BoardResponseDto  {
         this.title = board.getTitle();
         this.content = board.getContent();
         this.createdAt = board.getCreatedAt();  // BaseTime의 필드 값 설정
-        this.nickname = board.getUser().getNickname();  // 작성자 닉네임 설정
+        this.email = board.getUser().getEmail();  // 작성자 이메일 설정
     }
 }
