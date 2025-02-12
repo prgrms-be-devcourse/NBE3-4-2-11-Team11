@@ -9,7 +9,7 @@ interface Post {
   title: string;        // 게시글 제목
   content: string;      // 게시글 내용
   createdAt: string;    // 작성일자
-  nickname: string;     // 작성자 닉네임 (추가됨)
+  email: string;        // 작성자 이메일 (nickname -> email로 변경)
 }
 
 const BoardListPage = () => {
@@ -21,6 +21,7 @@ const BoardListPage = () => {
   useEffect(() => {
     fetchPosts(currentPage);
   }, [currentPage]);
+
 
   // 게시글 목록 가져오는 함수
   const fetchPosts = async (page: number) => {
@@ -73,7 +74,7 @@ const BoardListPage = () => {
                 <span className="text-sm text-gray-600">{new Date(post.createdAt).toLocaleDateString()}</span>
               </div>
               {/* 작성자 닉네임 표시 */}
-              <div className="text-sm text-gray-700 mt-1">작성자: {post.nickname}</div>
+              <div className="text-sm text-gray-700 mt-1">작성자: {post.email}</div>
             </div>
 
             {/* 게시글 내용 (100자 미리보기) */}

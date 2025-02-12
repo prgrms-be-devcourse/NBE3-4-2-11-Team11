@@ -2,55 +2,54 @@
 
 import { useState, useEffect } from 'react';
 import { getPostById, updatePost } from '../../../../lib/board';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';  // useParams 추가
 import Header from '../../../../components/Header';
 import { useAuthStore } from '@/store/authStore';
 import { getAccessToken } from '@/utils/token';
-import { jwtDecode } from 'jwt-decode';
+import { decodeJWT } from '@/utils/decodeJWT';
 
-// Post 타입에 작성자 닉네임 추가
+// Post 타입에 작성자 이메일 추가
 interface Post {
   id: number;
   title: string;
   content: string;
-  nickname: string;  // 작성자 닉네임
+  email: string;  // 작성자 이메일로 변경
 }
 
-// JWT 토큰에서 닉네임 추출 함수
-const extractNicknameFromToken = (): string | null => {
+// JWT 토큰에서 이메일 추출 함수
+const extractEmailFromToken = (): string | null => {
   const token = getAccessToken();
   if (!token) return null;
 
   try {
-    const decoded: { nickname: string } = jwtDecode(token);
-    return decoded.nickname;
+    const decoded = decodeJWT(token) as { sub: string };  // 디코딩된 객체의 타입을 명확히 지정
+    return decoded.sub || null;  // JWT의 sub 필드에 이메일 저장
   } catch (error) {
     console.error('토큰 디코딩 실패:', error);
     return null;
   }
 };
 
-const EditPostPage = ({ params }: { params: { id: string } }) => {
+const EditPostPage = () => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [postNickname, setPostNickname] = useState('');
+  const [postEmail, setPostEmail] = useState('');
   const router = useRouter();
+  const params = useParams();  // useParams로 params 가져오기
   const { isLoggedIn } = useAuthStore();
 
-  // // 로그인한 사용자의 닉네임 가져오기
-  // const loggedInNickname = extractNicknameFromToken();
-    // 로그인한 사용자의 닉네임 (Zustand 또는 localStorage에서 가져오기)
-    const loggedInNickname = localStorage.getItem('nickname');
+  const loggedInEmail = extractEmailFromToken();  // 로그인한 사용자의 이메일 가져오기
+  const postId = params.id as string;  // params.id는 문자열로 반환됨
 
   useEffect(() => {
     const fetchPost = async () => {
-      const post = await getPostById(Number(params.id));
+      const post = await getPostById(Number(postId));
       setTitle(post.title);
       setContent(post.content);
-      setPostNickname(post.nickname);  // 게시글 작성자의 닉네임 저장
+      setPostEmail(post.email);  // 게시글 작성자의 이메일 저장
     };
     fetchPost();
-  }, [params.id]);
+  }, [postId]);
 
   const handleSubmit = async () => {
     if (!isLoggedIn) {
@@ -59,15 +58,16 @@ const EditPostPage = ({ params }: { params: { id: string } }) => {
       return;
     }
 
-    // 작성자 검증 (로그인한 닉네임과 게시글 작성자의 닉네임 비교)
-    if (loggedInNickname?.toLowerCase() !== postNickname.toLowerCase()) {
+    // 작성자 검증 (로그인한 이메일과 게시글 작성자의 이메일 비교)
+    if (loggedInEmail?.toLowerCase() !== postEmail.toLowerCase()) {
       alert('작성자만 게시글을 수정할 수 있습니다.');
       return;
     }
 
     try {
-      await updatePost(Number(params.id), { title, content });
-      router.push(`/board/${params.id}`);  // 수정 후 상세 페이지로 이동
+      await updatePost(Number(postId), { title, content, email: loggedInEmail });
+      // router.push(`/board/${postId}`);  // 수정 후 상세 페이지로 이동
+      router.push(`/board`);  // 수정 후 목록 페이지로 이동
     } catch (error) {
       console.error('게시글 수정 실패:', error);
     }
