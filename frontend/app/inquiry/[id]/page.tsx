@@ -37,16 +37,31 @@ const InquiryDetailPage = () => {
   const [showInput, setShowInput] = useState(false);
   const [replyContent, setReplyContent] = useState('');
   const [error, setError] = useState('');
+  const [token, setToken] = useState(null);
+  const [replyExists, setReplyExists] = useState(false); // 답변 존재 여부 상태
+
+  useEffect(() => {
+    // 클라이언트 사이드에서만 localStorage 접근
+    const storedToken = localStorage.getItem('accessToken');
+    setToken(storedToken);
+  }, []);
 
   useEffect(() => {
     const fetchInquiry = async () => {
       try {
-        const response = await axios.get(`/api/v1/common/inquiries/${id}`);
+        const response = await axios.get(`/api/v1/common/inquiries/${id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`, // 토큰을 헤더에 추가
+          },
+        });
         setInquiry(response.data.data);
         
         try {
           const replyResponse = await axios.get(`/api/v1/common/inquiries/${id}/reply`);
           setReply(replyResponse.data.data);
+          if (replyResponse.data.data.length > 0) {
+            setReplyExists(true); // 답변이 존재함
+          }
         } catch (replyError) {
           // 답변이 없는 경우, reply를 null로 설정
           if (axios.isAxiosError(replyError) && replyError.response?.status === 404) {
@@ -61,12 +76,10 @@ const InquiryDetailPage = () => {
       }
     };
 
-    if (id) {
+    if (id && token) {
       fetchInquiry();
     }
-  }, [id]);
-
-  const token = localStorage.getItem('accessToken');
+  }, [id, token]);
 
   const handleDelete = async () => {
     if (!inquiry) {
@@ -113,6 +126,12 @@ const InquiryDetailPage = () => {
   };
 
   const handleReplyButtonClick = () => {
+    console.log('Reply Exists:', replyExists); // 상태 확인
+    if (replyExists) {
+      alert("답변이 이미 존재합니다."); // 답변 존재 알림
+      return;
+    }
+
     router.push(`/inquiry/${id}/reply/create`); // 답변 등록 페이지로 리다이렉트
   };
 
@@ -148,21 +167,18 @@ const InquiryDetailPage = () => {
           ) : (
             <>
               <p className={styles.replyContent}>{reply.content}</p>
-              <div className={styles.replyDate}>{new Date(reply.createdAt).toLocaleDateString('ko-KR')}</div>
             </>
           )}
         </div>
 
-        {!showInput && (
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px' }}>
-            <button 
-              onClick={handleReplyButtonClick}
-              className={styles.replyButton}
-            >
-              답변 등록
-            </button>
-          </div>
-        )}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px' }}>
+          <button 
+            onClick={handleReplyButtonClick}
+            className={styles.replyButton}
+          >
+            답변 등록
+          </button>
+        </div>
       </div>
     </div>
   );
