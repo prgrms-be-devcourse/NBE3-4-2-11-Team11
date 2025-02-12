@@ -89,17 +89,31 @@ const NoticeManagePage = () => {
     }
   };
 
+  const handleCreateNotice = () => {
+    window.location.href = '/admin/notice/create';
+  };
+
   return (
-    <div className="p-4">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">공지사항 관리</h1>
-        <button
-          className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-600"
-          onClick={() => router.push("/admin/notice/create")}
+    <div className={styles.noticeContainer}>
+         <h1 className={styles.noticeHeader} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          공지사항 관리
+          <button 
+          onClick={handleCreateNotice} 
+          className={styles.createButton} 
+          style={{ 
+            backgroundColor: '#0070f3',
+            color: '#ffffff',
+            padding: '10px 15px',
+            fontSize: '16px',
+            border: 'none',
+            borderRadius: '5px',
+            cursor: 'pointer'
+          }}
         >
           작성하기
         </button>
-      </div>
+      </h1>
+      <hr style={{ margin: '20px 0' }} />
       <ul>
         {notices.map((notice) => (
           <li key={notice.id} className={styles.noticeBox} onClick={() => router.push(`/admin/notice/${notice.id}`)}>

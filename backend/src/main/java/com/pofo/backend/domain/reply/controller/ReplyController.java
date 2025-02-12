@@ -22,10 +22,10 @@ public class ReplyController {
 
     private final ReplyService replyService;
 
-    @PostMapping("/admin/inquiries{id}/reply")
-    public ResponseEntity<RsData<ReplyCreateResponse>> createReply(@PathVariable Long id, @Valid @RequestBody ReplyCreateRequest replyCreateRequest, @AuthenticationPrincipal AdminDetails adminDetails) {
+    @PostMapping("/admin/inquiries/{inquiryId}/reply")
+    public ResponseEntity<RsData<ReplyCreateResponse>> createReply(@PathVariable Long inquiryId, @Valid @RequestBody ReplyCreateRequest replyCreateRequest, @AuthenticationPrincipal AdminDetails adminDetails) {
         Admin admin = adminDetails.getAdmin();
-        ReplyCreateResponse replyCreateResponse = this.replyService.create(id, replyCreateRequest, admin);
+        ReplyCreateResponse replyCreateResponse = this.replyService.create(inquiryId, replyCreateRequest, admin);
         return ResponseEntity.ok(new RsData<>("200", "답변 생성이 완료되었습니다.", replyCreateResponse));
     }
 

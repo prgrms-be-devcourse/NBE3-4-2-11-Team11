@@ -5,7 +5,7 @@ import { useState } from 'react';
 import axios from 'axios';
 
 const ReplyCreatePage = () => {
-  const { inquiryId } = useParams(); // URL에서 id 가져오기
+  const { id: inquiryId } = useParams(); // id를 inquiryId로 변경
   const router = useRouter();
   const [replyContent, setReplyContent] = useState(''); // 답변 내용 상태
   const [message, setMessage] = useState(''); // 성공 메시지 상태
@@ -13,6 +13,12 @@ const ReplyCreatePage = () => {
 
   const handleReplySubmit = async (e: React.FormEvent) => {
     e.preventDefault(); // 기본 폼 제출 방지
+
+    if (!inquiryId) {
+      setError("유효하지 않은 문의 ID입니다."); // 오류 메시지 설정
+      return;
+    }
+
     try {
       const token = localStorage.getItem('accessToken'); // 토큰 가져오기
       const response = await axios.post(`/api/v1/admin/inquiries/${inquiryId}/reply`, {
@@ -31,7 +37,11 @@ const ReplyCreatePage = () => {
       }
     } catch (err) {
       console.error('Error submitting reply:', err);
-      setError(err.message); // 오류 메시지 설정
+      if (axios.isAxiosError(err) && err.response?.status === 500) {
+        setError("서버 오류가 발생했습니다. 나중에 다시 시도해 주세요."); // 500 에러 처리
+      } else {
+        setError(err.message); // 오류 메시지 설정
+      }
     }
   };
 
