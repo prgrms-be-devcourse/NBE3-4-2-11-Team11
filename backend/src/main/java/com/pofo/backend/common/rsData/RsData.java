@@ -18,13 +18,13 @@ public class RsData<T> {
 	private final String resultCode;
 
 	@NonNull
-	private final String message;
+	private final String msg;
 
 	@NonNull
 	private final T data;
 
-	public RsData(String resultCode, String message) {
-		this(resultCode, message, (T) new Empty());
+	public RsData(String resultCode, String msg) {
+		this(resultCode, msg, (T) new Empty());
 	}
 
 	@JsonIgnore
