@@ -43,10 +43,21 @@ const InquiryDetailPage = () => {
       try {
         const response = await axios.get(`/api/v1/common/inquiries/${id}`);
         setInquiry(response.data.data);
-        const replyResponse = await axios.get(`/api/v1/common/inquiries/${id}/reply`);
-        setReply(replyResponse.data.data);
+        
+        try {
+          const replyResponse = await axios.get(`/api/v1/common/inquiries/${id}/reply`);
+          setReply(replyResponse.data.data);
+        } catch (replyError) {
+          // 답변이 없는 경우, reply를 null로 설정
+          if (axios.isAxiosError(replyError) && replyError.response?.status === 404) {
+            setReply(null); // 답변이 없을 경우 null로 설정
+          } else {
+            console.error('Error fetching reply:', replyError);
+          }
+        }
       } catch (error) {
         console.error('Error fetching inquiry detail:', error);
+        alert('문의글 정보를 불러오는 중 오류가 발생했습니다.');
       }
     };
 
