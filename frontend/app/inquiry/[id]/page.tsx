@@ -89,6 +89,34 @@ const InquiryDetailPage = () => {
     router.push(`/inquiry/edit/${id}`);
   };
 
+  const handleReplySubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!inquiry) {
+      alert('문의글 정보를 불러오는 중입니다.');
+      return;
+    }
+
+    if (!token) {
+      alert('로그인이 필요합니다.');
+      return;
+    }
+
+    try {
+      const replyResponse = await axios.post<ReplyDetailResponse>(`/api/v1/common/inquiries/${id}/reply`, {
+        content: reply?.content,
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setReply(replyResponse.data.data);
+      alert('답변이 성공적으로 등록되었습니다!');
+    } catch (error) {
+      console.error('Error submitting reply:', error);
+      alert('답변 등록 실패: 알 수 없는 오류가 발생했습니다.');
+    }
+  };
+
   if (!inquiry) return <div>Loading...</div>;
 
   return (
@@ -115,19 +143,28 @@ const InquiryDetailPage = () => {
         <hr className={styles.inquiryDetailDivider}/>
         <p className={styles.inquiryDetailContent}>{inquiry.content}</p>
 
-        {reply === null ? (
-          <div className={styles.replyContainer}>
+        <div className={styles.replyContainer}>
+          {reply === null ? (
             <p className={styles.replyContent}>답변 예정입니다.</p>
-          </div>
-        ) : (
-          <div className={styles.replyContainer}>
-            <p className={styles.replyContent}>{reply.content}</p>
-            <div className={styles.replyDate}>{new Date(reply.createdAt).toLocaleDateString('ko-KR')}</div>
-          </div>
-        )}
+          ) : (
+            <>
+              <p className={styles.replyContent}>{reply.content}</p>
+              <div className={styles.replyDate}>{new Date(reply.createdAt).toLocaleDateString('ko-KR')}</div>
+            </>
+          )}
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px' }}>
+          <button 
+            onClick={handleReplySubmit}
+            className={styles.replyButton}
+          >
+            답변 등록
+          </button>
+        </div>
       </div>
     </div>
   );
 };
 
-export default InquiryDetailPage; 
+export default InquiryDetailPage;
