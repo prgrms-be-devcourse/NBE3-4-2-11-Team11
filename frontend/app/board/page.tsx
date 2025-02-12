@@ -46,7 +46,7 @@ const BoardListPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <main className="max-w-xl mx-auto mt-8">
+      <main className="max-w-4xl mx-auto mt-8 mb-16">
         {/* 게시판 제목 */}
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-2xl font-bold">게시판</h1>
@@ -68,24 +68,32 @@ const BoardListPage = () => {
             onClick={() => router.push(`/board/${post.id}`)}  // 게시글 클릭 시 상세 페이지로 이동
           >
             {/* 게시글 제목 및 작성일자 */}
-            <div className="bg-gray-300 p-2">
+            <div className="bg-gray-300 p-1">
               <div className="flex justify-between items-center">
-                <span className="font-bold">{post.title}</span>
-                <span className="text-sm text-gray-600">{new Date(post.createdAt).toLocaleDateString()}</span>
+                <span className="font-bold text-base pl-5">{post.title}</span>
+
+
+
+                <div className="text-right">
+                  {/* 작성자 닉네임 표시 */}
+                  <div className="text-sm text-gray-700 text-right mt-1">작성자: {post.email}</div>
+                  <span className="text-sm text-gray-600">{new Date(post.createdAt).toLocaleDateString()}</span>
+                </div>
+                
               </div>
-              {/* 작성자 닉네임 표시 */}
-              <div className="text-sm text-gray-700 mt-1">작성자: {post.email}</div>
+             
             </div>
 
             {/* 게시글 내용 (100자 미리보기) */}
-            <div className="bg-gray-700 text-white p-4">
+            <div className="bg-white text-black p-6 h-39">
               <p>{post.content.replace(/[#_*`>~\\-]/g, '').substring(0, 100)}...</p>
             </div>
           </div>
         ))}
 
         {/* 페이지네이션 */}
-        <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 flex justify-center items-center space-x-4 bg-transparent p-2 rounded">
+        <div className="max-w-4xl mx-auto flex justify-center items-center space-x-4">
+        {/* <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 flex justify-center items-center space-x-4 bg-transparent p-2 rounded"> */}
           <button
             onClick={handlePrevPage}
             disabled={currentPage === 1}

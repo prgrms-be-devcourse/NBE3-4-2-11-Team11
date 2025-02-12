@@ -72,17 +72,25 @@ const PostDetailPage = () => {  // params 제거
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <main className="max-w-xl mx-auto mt-8">
-        <h1 className="text-2xl font-bold mb-4">{post.title}</h1>
-        <p className="text-gray-600 mb-2">작성자: {post.email}</p>
-        <p className="text-gray-600 mb-4">{new Date(post.createdAt).toLocaleDateString()}</p>
-        <div className="bg-gray-700 text-white p-4 mb-4 rounded">
+    <div className="min-h-screen bg-gray-100 p-8 flex justify-center">
+      <main className="w-full max-w-4xl bg-white p-6 rounded shadow-md">
+        <div className="flex items-center mb-4">
+          <div className="bg-white text-black p-4 rounded border w-3/4">
+            <h1 className="text-3xl font-bold">{post.title}</h1>
+          </div>
+          <div className="text-right w-1/4 ml-4">
+            <p className="text-gray-600 text-sm mb-1">작성자: {post.email}</p>
+            <p className="text-gray-600 text-sm mt-2">{new Date(post.createdAt).toLocaleDateString()}</p>
+          </div>
+        </div>
+
+        <div className="bg-white text-black p-6 mb-4 rounded h-[60vh] overflow-y-auto border">
           <MarkdownRenderer content={post.content} />
         </div>
+
         <div className="flex justify-end space-x-4">
           <button
-            onClick={() => router.push(`/board/${postId}/edit`)}  // postId 사용
+            onClick={() => router.push(`/board/${postId}/edit`)}
             className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
           >
             수정
@@ -98,5 +106,8 @@ const PostDetailPage = () => {  // params 제거
     </div>
   );
 };
+
+
+
 
 export default PostDetailPage;
