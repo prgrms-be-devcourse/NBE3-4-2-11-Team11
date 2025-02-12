@@ -34,4 +34,8 @@ public class Inquiry extends BaseTime {
 	public void updateResponse(boolean response) {
 		this.response = response ? 1 : 0;
 	}
+
+	public Long getUserId() {
+		return user.getId(); // User 객체의 id를 반환
+	}
 }

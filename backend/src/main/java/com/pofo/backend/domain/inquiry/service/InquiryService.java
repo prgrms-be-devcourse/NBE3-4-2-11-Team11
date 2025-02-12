@@ -1,6 +1,5 @@
 package com.pofo.backend.domain.inquiry.service;
 
-import com.pofo.backend.domain.admin.login.entitiy.Admin;
 import com.pofo.backend.domain.inquiry.dto.reponse.InquiryCreateResponse;
 import com.pofo.backend.domain.inquiry.dto.reponse.InquiryDetailResponse;
 import com.pofo.backend.domain.inquiry.dto.reponse.InquiryUpdateResponse;
@@ -68,20 +67,19 @@ public class InquiryService {
     }
 
     @Transactional
-    public void delete(Long id, User user, Admin admin) {
+    public void delete(Long id, User user) {
 
         Inquiry inquiry = this.inquiryRepository.findById(id)
                 .orElseThrow(() -> new InquiryException("해당 문의사항을 찾을 수 없습니다."));
 
-
-        if ((user != null && inquiry.getUser().equals(user)) || admin != null) {
-            try {
-                this.inquiryRepository.delete(inquiry);
-            } catch (Exception e) {
-                throw new InquiryException("문의사항 삭제 중 오류가 발생했습니다. 원인: " + e.getMessage());
-            }
-        } else {
+        if (!inquiry.getUser().equals(user)) {
             throw new UnauthorizedActionException("문의사항을 삭제할 권한이 없습니다.");
+        }
+
+        try {
+            this.inquiryRepository.delete(inquiry);
+        } catch (Exception e) {
+            throw new InquiryException("문의사항 삭제 중 오류가 발생했습니다. 원인: " + e.getMessage());
         }
     }
 

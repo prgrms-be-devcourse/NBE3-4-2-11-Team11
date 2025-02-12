@@ -6,7 +6,8 @@ import axios from 'axios';
 import styles from './inquiryDetail.module.css';
 
 type ReplyDetailResponse = {
-  // ReplyDetailResponse의 필드 정의
+  id: number; // 답변 내용
+  createdAt: string; // 답변 생성일
 };
 
 type InquiryDetailResponse = {
@@ -15,7 +16,7 @@ type InquiryDetailResponse = {
   subject: string;
   content: string;
   createdAt: string; // LocalDateTime을 문자열로 변환
-  reply: ReplyDetailResponse | null;
+  reply: ReplyDetailResponse | null; // 답변 추가
 };
 
 type RsData<T> = {
@@ -24,38 +25,51 @@ type RsData<T> = {
   data: T;
 };
 
+type ReplyCreateResponse = {
+  id: number; // 생성된 답변의 ID
+};
+
 const InquiryDetailPage = () => {
   const { id } = useParams();
   const router = useRouter();
   const [inquiry, setInquiry] = useState<InquiryDetailResponse | null>(null);
+  const [reply, setReply] = useState<ReplyDetailResponse | null>(null);
+  const [showInput, setShowInput] = useState(false);
+  const [replyContent, setReplyContent] = useState('');
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    if (id) {
     const fetchInquiry = async () => {
-      console.log('Fetching inquiry detail for ID:', id); // ID 로그 출력
       try {
-        const response = await axios.get<RsData<InquiryDetailResponse>>(`/api/v1/common/inquiries/${id}`);
-        console.log('Response data:', response.data); // 디버깅 로그
+        const response = await axios.get(`/api/v1/common/inquiries/${id}`);
         setInquiry(response.data.data);
+        const replyResponse = await axios.get(`/api/v1/common/inquiries/${id}/reply`);
+        setReply(replyResponse.data.data);
       } catch (error) {
         console.error('Error fetching inquiry detail:', error);
       }
     };
 
-    fetchInquiry();
-  }
+    if (id) {
+      fetchInquiry();
+    }
   }, [id]);
 
+  const token = localStorage.getItem('accessToken');
+
   const handleDelete = async () => {
-    const token = localStorage.getItem('accessToken');
+    if (!inquiry) {
+      alert('문의글 정보를 불러오는 중입니다.');
+      return;
+    }
+
     if (!token) {
-      console.error('No access token found');
       alert('로그인이 필요합니다.');
       return;
     }
 
     try {
-      await axios.delete(`/api/v1/common/inquiries/${id}`, {
+      await axios.delete(`/api/v1/user/inquiries/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -69,25 +83,21 @@ const InquiryDetailPage = () => {
   };
 
   const handleEditRedirect = () => {
-    const token = localStorage.getItem('accessToken');
+    if (!inquiry) {
+      alert('문의글 정보를 불러오는 중입니다.');
+      return;
+    }
+
     if (!token) {
-      console.error('No access token found');
       alert('로그인이 필요합니다.');
       return;
     }
 
-    // 현재 로그인된 사용자의 user_id 가져오기
-    const userId = localStorage.getItem('userId'); // 로그인 시 저장된 userId를 가져온다고 가정
-    const noticeUserId = inquiry.userId; // inquiry 상태에서 userId를 가져온다고 가정
-
-    // user_id 비교 (둘 다 문자열로 변환)
-    if (userId !== noticeUserId.toString()) {
-      alert('권한이 없습니다. 이 문의글을 수정할 수 없습니다.');
-      return;
-    }
-
-    // 권한이 확인되면 수정 페이지로 리다이렉트
     router.push(`/inquiry/edit/${id}`);
+  };
+
+  const handleReplyButtonClick = () => {
+    router.push(`/inquiry/${id}/reply/create`); // 답변 등록 페이지로 리다이렉트
   };
 
   if (!inquiry) return <div>Loading...</div>;
@@ -115,10 +125,26 @@ const InquiryDetailPage = () => {
         </div>
         <hr className={styles.inquiryDetailDivider}/>
         <p className={styles.inquiryDetailContent}>{inquiry.content}</p>
-        {inquiry.reply && (
-          <div>
-            <h2>답변</h2>
-            {/* 답변 내용 표시 */}
+
+        <div className={styles.replyContainer}>
+          {reply === null ? (
+            <p className={styles.replyContent}>답변 예정입니다.</p>
+          ) : (
+            <>
+              <p className={styles.replyContent}>{reply.content}</p>
+              <div className={styles.replyDate}>{new Date(reply.createdAt).toLocaleDateString('ko-KR')}</div>
+            </>
+          )}
+        </div>
+
+        {!showInput && (
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px' }}>
+            <button 
+              onClick={handleReplyButtonClick}
+              className={styles.replyButton}
+            >
+              답변 등록
+            </button>
           </div>
         )}
       </div>
@@ -126,4 +152,4 @@ const InquiryDetailPage = () => {
   );
 };
 
-export default InquiryDetailPage; 
+export default InquiryDetailPage;
