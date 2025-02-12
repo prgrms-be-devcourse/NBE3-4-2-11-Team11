@@ -50,8 +50,10 @@ public class BoardService {
     // 게시글 작성
     @Transactional
     public RsData<BoardResponseDto> createPost(BoardRequestDto requestDto) {
-        User user = findEntityOrThrow(usersRepository.findById(requestDto.getId()),  "사용자를 찾을 수 없습니다.");
+        // 이메일로 사용자 조회
+        User user = findEntityOrThrow(usersRepository.findByEmail(requestDto.getEmail()), "사용자를 찾을 수 없습니다.");
 
+        // 게시글 생성
         Board board = Board.builder()
                 .user(user)
                 .title(requestDto.getTitle())
