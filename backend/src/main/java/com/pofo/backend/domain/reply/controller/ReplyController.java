@@ -22,7 +22,7 @@ public class ReplyController {
 
     private final ReplyService replyService;
 
-    @PostMapping("/admin/inquiries{id}/reply")
+    @PostMapping("/admin/inquiries/{inquiryId}/reply")
     public ResponseEntity<RsData<ReplyCreateResponse>> createReply(@PathVariable Long id, @Valid @RequestBody ReplyCreateRequest replyCreateRequest, @AuthenticationPrincipal AdminDetails adminDetails) {
         Admin admin = adminDetails.getAdmin();
         ReplyCreateResponse replyCreateResponse = this.replyService.create(id, replyCreateRequest, admin);
