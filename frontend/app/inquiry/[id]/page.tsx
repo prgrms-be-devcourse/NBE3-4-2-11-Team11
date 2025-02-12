@@ -68,6 +68,11 @@ const InquiryDetailPage = () => {
       return;
     }
 
+    const confirmDelete = window.confirm('해당 문의글을 삭제하시겠습니까?');
+    if (!confirmDelete) {
+      return;
+    }
+
     try {
       await axios.delete(`/api/v1/user/inquiries/${id}`, {
         headers: {
