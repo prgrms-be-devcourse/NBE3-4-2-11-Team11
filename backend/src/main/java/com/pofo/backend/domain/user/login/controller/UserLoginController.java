@@ -3,9 +3,11 @@ package com.pofo.backend.domain.user.login.controller;
 
 import com.pofo.backend.common.exception.SocialLoginException;
 import com.pofo.backend.common.rsData.RsData;
+import com.pofo.backend.common.security.cookie.TokenCookieUtil;
 import com.pofo.backend.domain.user.join.entity.Oauth;
 import com.pofo.backend.domain.user.login.dto.UserLoginResponseDto;
 import com.pofo.backend.domain.user.login.service.UserLoginService;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -56,8 +58,12 @@ public class UserLoginController {
     
     private final UserLoginService userLoginService;
 
-    public UserLoginController(UserLoginService userLoginService) {
+    private final TokenCookieUtil tokenCookieUtil; //
+
+    public UserLoginController(UserLoginService userLoginService, TokenCookieUtil tokenCookieUtil) {
+
         this.userLoginService = userLoginService;
+        this.tokenCookieUtil = tokenCookieUtil;
     }
 
     @GetMapping("/naver/login")
@@ -102,12 +108,16 @@ public class UserLoginController {
     @GetMapping("/naver/login/process")
     public ResponseEntity<?> processNaverLogin(
             @RequestParam("code") String code,
-            @RequestParam("state") String state
+            @RequestParam("state") String state,
+            HttpServletResponse response
     ) {
 
         try{
             //  네이버 로그인 처리
             UserLoginResponseDto responseDto = userLoginService.processNaverLogin(Oauth.Provider.NAVER ,code, state);
+
+            //  토큰을 쿠키에 저장
+            tokenCookieUtil.setTokenCookies(response, responseDto.getToken(), responseDto.getRefreshToken());
 
             return ResponseEntity.ok(new RsData<>(responseDto.getResultCode(),responseDto.getMessage(),responseDto));
         } catch (Exception e) {
@@ -156,12 +166,16 @@ public class UserLoginController {
     @GetMapping("/kakao/login/process")
     public ResponseEntity<?> processKakaoLogin(
             @RequestParam("code") String code,
-            @RequestParam("state") String state
+            @RequestParam("state") String state,
+            HttpServletResponse response
     ) {
 
         try{
             //  카카오 로그인 처리
             UserLoginResponseDto responseDto = userLoginService.processKakaoLogin(Oauth.Provider.KAKAO, code, state);
+
+            //  토큰을 쿠키에 저장
+            tokenCookieUtil.setTokenCookies(response, responseDto.getToken(), responseDto.getRefreshToken());
 
             return ResponseEntity.ok(new RsData<>(responseDto.getResultCode(),responseDto.getMessage(),responseDto));
         } catch (Exception e) {
@@ -211,12 +225,15 @@ public class UserLoginController {
     @GetMapping("/google/login/process")
     public ResponseEntity<?> processGoogleLogin(
             @RequestParam("code") String code,
-            @RequestParam("state") String state
+            HttpServletResponse response
     ) {
 
         try{
             //  구글 로그인 처리
             UserLoginResponseDto responseDto = userLoginService.processGoogleLogin(Oauth.Provider.GOOGLE ,code);
+
+            //  토큰을 쿠키에 저장
+            tokenCookieUtil.setTokenCookies(response, responseDto.getToken(), responseDto.getRefreshToken());
 
             return ResponseEntity.ok(new RsData<>(responseDto.getResultCode(),responseDto.getMessage(),responseDto));
         } catch (Exception e) {

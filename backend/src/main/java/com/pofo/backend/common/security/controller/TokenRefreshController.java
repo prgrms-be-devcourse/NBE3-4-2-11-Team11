@@ -6,6 +6,9 @@ import com.pofo.backend.common.security.jwt.TokenProvider;
 import com.pofo.backend.domain.user.join.entity.User;
 import com.pofo.backend.domain.user.join.repository.UserRepository;
 import io.jsonwebtoken.Claims;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -30,11 +33,11 @@ public class TokenRefreshController {
     private final UserRepository userRepository;
 
     @PostMapping("/refresh")
-    public ResponseEntity<RsData<TokenDto>> refreshToken(@RequestBody TokenDto request) {
+    public ResponseEntity<RsData<TokenDto>> refreshToken(HttpServletRequest request,  HttpServletResponse response) {
         log.info("토큰 재발급 시작");
-        String refreshToken = request.getRefreshToken();
 
-        log.info("Refresh token 요청 : {}", refreshToken);
+        String  refreshToken = extractRefreshTokenFromCookies(request);
+        log.info("🔍 쿠키에서 Refresh Token 가져옴: {}", refreshToken);
 
         // Refresh Token 유효성 검사
         if (refreshToken == null || refreshToken.isEmpty() || !tokenProvider.validateToken(refreshToken)) {
@@ -64,12 +67,36 @@ public class TokenRefreshController {
         String newAccessToken = tokenProvider.generateAccessToken(authentication);
         log.info("✅ 새로운 Access Token 발급 완료: {}", newAccessToken);
 
+        // ✅ Set-Cookie로 새로운 accessCookie 설정
+        response.addHeader("Set-Cookie", "accessCookie=" + newAccessToken + "; Path=/; HttpOnly; Secure; SameSite=None");
+
         TokenDto newTokenResponse = TokenDto.builder()
                 .accessToken(newAccessToken)
                 .refreshToken(refreshToken) // 기존 Refresh Token 유지
                 .build();
 
         return ResponseEntity.ok(new RsData<>("200", "Access Token 갱신 성공", newTokenResponse));
+    }
+
+    /**
+     * HttpOnly 쿠키에서 Refresh Token 가져오는 메서드
+     */
+    private String extractRefreshTokenFromCookies(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) {
+            log.warn("⚠️ 쿠키가 존재하지 않음.");
+            return null;
+        }
+
+        for (Cookie cookie : cookies) {
+            if (cookie.getName().equals("refreshCookie")) {
+                log.info("🔍 쿠키에서 Refresh Token 가져옴: {}", cookie.getValue());
+                return cookie.getValue();
+            }
+        }
+
+        log.warn("⚠️ Refresh Token 쿠키를 찾을 수 없음.");
+        return null;
     }
 
 }

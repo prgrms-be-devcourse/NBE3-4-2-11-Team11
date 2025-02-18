@@ -1,24 +1,42 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import {useEffect, useState} from "react";
 import { useAuthStore } from "@/store/authStore";
+import {useRouter} from "next/navigation";
 
 
 const Header = () => {
-  const { isLoggedIn, login, logout } = useAuthStore();
-  const [hasMounted, setHasMounted] = useState(false);
+  const router = useRouter();
+  const { isLoggedIn, logout, checkAuthStatus } = useAuthStore();
+  const [hasChecked, setHasChecked] = useState(false);  // ✅ 새로고침 방지용 상태 추가
+  const [authState, setAuthState] = useState(isLoggedIn);
 
   useEffect(() => {
-    setHasMounted(true);
+    if (!hasChecked) {
+      checkAuthStatus();
+      setHasChecked(true);
+    }
 
-    // ✅ localStorage에서 accessToken이 있으면 로그인 유지
-    const token: string | null = localStorage.getItem("accessToken");
-    const refreshToken: string = localStorage.getItem("refreshToken") || "";
-    if (token) login(token,refreshToken);
-  }, [login]);
+    // ✅ "authChange" 이벤트 리스너 추가
+    const syncAuthState = () => {
+      //console.log("🔄 로그인 상태 변경 감지 → 상태 갱신");
+      checkAuthStatus();
+      setAuthState(useAuthStore.getState().isLoggedIn); // ✅ 상태 즉시 반영
+    };
 
-  if (!hasMounted) return null; // Hydration 오류 방지
+    window.addEventListener("authChange", syncAuthState);
+
+    return () => {
+      window.removeEventListener("authChange", syncAuthState);
+    };
+  }, [hasChecked]);
+
+  const handleLogout = async () => {
+    await logout();
+    setAuthState(false); // ✅ 상태 즉시 반영
+  };
+
 
   return (
       <header className="bg-gray-900 text-white py-4 px-8 flex justify-between items-center">
@@ -50,7 +68,7 @@ const Header = () => {
             </li>
             <li>
               {isLoggedIn ? (
-                  <button onClick={logout} className="hover:text-red-400">로그아웃</button>
+                  <button onClick={handleLogout} className="hover:text-red-400">로그아웃</button>
               ) : (
                   <Link href="/login" className="hover:text-gray-400">로그인</Link>
               )}
@@ -59,7 +77,6 @@ const Header = () => {
           </ul>
         </nav>
       </header>
-
   );
 };
 
