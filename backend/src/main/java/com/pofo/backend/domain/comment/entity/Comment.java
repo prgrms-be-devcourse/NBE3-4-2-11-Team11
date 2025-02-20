@@ -1,8 +1,8 @@
-package com.pofo.backend.domain.reply.entity;
+package com.pofo.backend.domain.comment.entity;
 
 import com.pofo.backend.common.jpa.entity.BaseTime;
-import com.pofo.backend.domain.admin.login.entitiy.Admin;
 import com.pofo.backend.domain.inquiry.entity.Inquiry;
+import com.pofo.backend.domain.user.join.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -11,12 +11,12 @@ import lombok.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-@Table(name = "replies")
-public class Reply extends BaseTime {
+@Table(name = "comments")
+public class Comment extends BaseTime {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "admin_id", nullable = false)
-    private Admin admin;
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "inquiry_id", nullable = false)
