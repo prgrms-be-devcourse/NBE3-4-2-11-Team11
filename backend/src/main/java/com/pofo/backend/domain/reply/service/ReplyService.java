@@ -33,10 +33,6 @@ public class ReplyService {
         Inquiry inquiry = this.inquiryRepository.findById(id)
                 .orElseThrow(() -> new ReplyException("문의사항을 찾을 수 없습니다."));
 
-        if (replyRepository.existsByInquiryId(id)) {
-            throw new ReplyException("해당 문의에 답변이 이미 존재합니다.");
-        }
-
         try {
             Reply reply = Reply.builder()
                     .admin(admin)
