@@ -1,7 +1,9 @@
 package com.pofo.backend.domain.comment.service;
 
 import com.pofo.backend.domain.comment.dto.request.CommentCreateRequest;
+import com.pofo.backend.domain.comment.dto.request.CommentUpdateRequest;
 import com.pofo.backend.domain.comment.dto.response.CommentCreateResponse;
+import com.pofo.backend.domain.comment.dto.response.CommentUpdateResponse;
 import com.pofo.backend.domain.comment.entity.Comment;
 import com.pofo.backend.domain.comment.exception.CommentException;
 import com.pofo.backend.domain.comment.repository.CommentRepository;
@@ -41,6 +43,24 @@ public class CommentService {
             return new CommentCreateResponse(comment.getId());
         } catch (Exception e) {
             throw new CommentException("댓글 생성 중 오류가 발생했습니다. 원인: " + e.getMessage());
+        }
+    }
+
+    @Transactional
+    public CommentUpdateResponse update(Long inquiryId, Long commentId, CommentUpdateRequest commentUpdateRequest, User user) {
+
+        Comment comment = this.commentRepository.findByInquiryIdAndId(inquiryId, commentId)
+                .orElseThrow(() -> new CommentException("해당 댓글을 찾을 수 없습니다."));
+
+        if (!comment.getUser().equals(user)) {
+            throw new CommentException("댓글을 수정할 권한이 없습니다.");
+        }
+
+        try {
+            comment.update(commentUpdateRequest.getContent());
+            return new CommentUpdateResponse(comment.getId());
+        } catch (Exception e) {
+            throw new CommentException("댓글 수정 중 오류가 발생했습니다. 원인: " + e.getMessage());
         }
     }
 }
