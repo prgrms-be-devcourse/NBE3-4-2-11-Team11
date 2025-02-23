@@ -1,15 +1,18 @@
 package com.pofo.backend.domain.inquiry.service;
 
+import com.pofo.backend.domain.comment.dto.response.CommentDetailResponse;
+import com.pofo.backend.domain.comment.service.CommentService;
+import com.pofo.backend.domain.inquiry.dto.request.InquiryCreateRequest;
+import com.pofo.backend.domain.inquiry.dto.request.InquiryUpdateRequest;
 import com.pofo.backend.domain.inquiry.dto.response.InquiryCreateResponse;
 import com.pofo.backend.domain.inquiry.dto.response.InquiryDetailResponse;
 import com.pofo.backend.domain.inquiry.dto.response.InquiryUpdateResponse;
-import com.pofo.backend.domain.inquiry.dto.request.InquiryCreateRequest;
-import com.pofo.backend.domain.inquiry.dto.request.InquiryUpdateRequest;
 import com.pofo.backend.domain.inquiry.entity.Inquiry;
 import com.pofo.backend.domain.inquiry.exception.InquiryException;
 import com.pofo.backend.domain.inquiry.repository.InquiryRepository;
-import com.pofo.backend.domain.reply.entity.Reply;
+import com.pofo.backend.domain.reply.dto.response.ReplyDetailResponse;
 import com.pofo.backend.domain.reply.repository.ReplyRepository;
+import com.pofo.backend.domain.reply.service.ReplyService;
 import com.pofo.backend.domain.resume.resume.exception.UnauthorizedActionException;
 import com.pofo.backend.domain.user.join.entity.User;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +25,10 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class InquiryService {
+
+    private final ReplyService replyService;
+
+    private final CommentService commentService;
 
     private final InquiryRepository inquiryRepository;
 
@@ -89,10 +96,11 @@ public class InquiryService {
         Inquiry inquiry = this.inquiryRepository.findById(id)
                 .orElseThrow(() -> new InquiryException("해당 문의사항을 찾을 수 없습니다."));
 
-        // 문의글 조회 시 답변도 함께 조회
-        Reply reply = this.replyRepository.findByInquiryId(id).orElse(null);
+        // 문의글 조회 시 답변과 댓글도 함께 조회
+        List<ReplyDetailResponse> replies = this.replyService.findByInquiryId(id);
+        List<CommentDetailResponse> comments = this.commentService.findByInquiryId(id);
 
-        return InquiryDetailResponse.from(inquiry, reply);
+        return InquiryDetailResponse.from(inquiry, replies, comments);
     }
 
     @Transactional(readOnly = true)
@@ -100,10 +108,10 @@ public class InquiryService {
 
         List<Inquiry> inquiries = this.inquiryRepository.findAllByOrderByCreatedAtDesc();
         return inquiries.stream()
-                .map(inquiry -> {
-                    Reply reply = this.replyRepository.findByInquiryId(inquiry.getId()).orElse(null);
-                    return InquiryDetailResponse.from(inquiry, reply);
-                })
+                .map(inquiry ->
+                        // 문의글 정보만 포함된 Response 생성
+                        InquiryDetailResponse.from(inquiry, null, null)
+                )
                 .collect(Collectors.toList());
     }
 
