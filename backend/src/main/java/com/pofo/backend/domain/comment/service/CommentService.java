@@ -89,7 +89,7 @@ public class CommentService {
     @Transactional(readOnly = true)
     public List<CommentDetailResponse> findByInquiryId(Long inquiryId) {
 
-        List<Comment> comments = this.commentRepository.findAllByOrderByCreatedAtDesc();
+        List<Comment> comments = this.commentRepository.findByInquiryId(inquiryId);
         return comments.stream()
                 .map(comment -> new CommentDetailResponse(comment.getId(), comment.getContent()))
                 .collect(Collectors.toList());
