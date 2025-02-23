@@ -13,6 +13,7 @@ public class ReplyDetailResponse {
     private Long id;
     private String content;
     private LocalDateTime createdAt;
+    private final String type = "reply";
 
     public static ReplyDetailResponse from(Reply reply) {
         return new ReplyDetailResponse(reply.getId(), reply.getContent(), reply.getCreatedAt());

@@ -13,6 +13,7 @@ public class CommentDetailResponse {
     private Long id;
     private String content;
     private LocalDateTime createdAt;
+    private final String type = "comment";
 
     public static CommentDetailResponse from(Comment comment) {
         return new CommentDetailResponse(comment.getId(), comment.getContent(), comment.getCreatedAt());
