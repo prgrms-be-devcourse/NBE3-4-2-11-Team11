@@ -35,5 +35,10 @@ public class CommentController {
         return ResponseEntity.ok(new RsData<>("200", "댓글 수정이 완료되었습니다.", commentUpdateResponse));
     }
 
-
+    @DeleteMapping("/{commentId}")
+    public ResponseEntity<RsData<Void>> deleteComment(@PathVariable Long inquiryId, @PathVariable Long commentId, @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        User user = customUserDetails.getUser();
+        this.commentService.delete(inquiryId, commentId, user);
+        return ResponseEntity.ok(new RsData<>("200", "댓글 삭제가 완료되었습니다."));
+    }
 }
