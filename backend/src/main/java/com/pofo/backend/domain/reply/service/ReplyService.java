@@ -94,7 +94,7 @@ public class ReplyService {
 
         List<Reply> replies = this.replyRepository.findByInquiryId(inquiryId);
         return replies.stream()
-                .map(reply -> new ReplyDetailResponse(reply.getId(), reply.getContent()))
+                .map(reply -> new ReplyDetailResponse(reply.getId(), reply.getContent(), reply.getCreatedAt()))
                 .collect(Collectors.toList());
     }
 
@@ -104,7 +104,7 @@ public class ReplyService {
         Reply reply = this.replyRepository.findById(id)
                 .orElseThrow(() -> new ReplyException("해당 답변을 찾을 수 없습니다."));
 
-        return new ReplyDetailResponse(reply.getId(), reply.getContent());
+        return new ReplyDetailResponse(reply.getId(), reply.getContent(), reply.getCreatedAt());
     }
 
     @Transactional(readOnly = true)

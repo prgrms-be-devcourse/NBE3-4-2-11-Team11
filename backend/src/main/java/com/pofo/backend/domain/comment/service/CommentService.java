@@ -91,7 +91,7 @@ public class CommentService {
 
         List<Comment> comments = this.commentRepository.findByInquiryId(inquiryId);
         return comments.stream()
-                .map(comment -> new CommentDetailResponse(comment.getId(), comment.getContent()))
+                .map(comment -> new CommentDetailResponse(comment.getId(), comment.getContent(), comment.getCreatedAt()))
                 .collect(Collectors.toList());
     }
 
@@ -101,7 +101,7 @@ public class CommentService {
         Comment comment = this.commentRepository.findById(id)
                 .orElseThrow(() -> new CommentException("해당 댓글을 찾을 수 없습니다."));
 
-        return new CommentDetailResponse(comment.getId(), comment.getContent());
+        return new CommentDetailResponse(comment.getId(), comment.getContent(), comment.getCreatedAt());
     }
 
     @Transactional
