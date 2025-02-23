@@ -3,6 +3,7 @@ package com.pofo.backend.domain.comment.service;
 import com.pofo.backend.domain.comment.dto.request.CommentCreateRequest;
 import com.pofo.backend.domain.comment.dto.request.CommentUpdateRequest;
 import com.pofo.backend.domain.comment.dto.response.CommentCreateResponse;
+import com.pofo.backend.domain.comment.dto.response.CommentDetailResponse;
 import com.pofo.backend.domain.comment.dto.response.CommentUpdateResponse;
 import com.pofo.backend.domain.comment.entity.Comment;
 import com.pofo.backend.domain.comment.exception.CommentException;
@@ -15,6 +16,9 @@ import com.pofo.backend.domain.user.join.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -82,5 +86,26 @@ public class CommentService {
         }
     }
 
+    @Transactional(readOnly = true)
+    public List<CommentDetailResponse> findByInquiryId(Long inquiryId) {
 
+        List<Comment> comments = this.commentRepository.findAllByOrderByCreatedAtDesc();
+        return comments.stream()
+                .map(comment -> new CommentDetailResponse(comment.getId(), comment.getContent()))
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public CommentDetailResponse findById(Long id) {
+
+        Comment comment = this.commentRepository.findById(id)
+                .orElseThrow(() -> new CommentException("해당 댓글을 찾을 수 없습니다."));
+
+        return new CommentDetailResponse(comment.getId(), comment.getContent());
+    }
+
+    @Transactional
+    public Long count() {
+        return this.commentRepository.count();
+    }
 }
