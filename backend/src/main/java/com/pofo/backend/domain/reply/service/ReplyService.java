@@ -16,6 +16,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 public class ReplyService {
@@ -87,9 +90,12 @@ public class ReplyService {
     }
 
     @Transactional(readOnly = true)
-    public ReplyDetailResponse findByInquiryId(Long inquiryId) {
-        Reply reply = replyRepository.findByInquiryId(inquiryId).orElseThrow(() -> new ReplyException("답변을 찾을 수 없습니다."));
-        return new ReplyDetailResponse(reply.getId(), reply.getContent());
+    public List<ReplyDetailResponse> findByInquiryId(Long inquiryId) {
+
+        List<Reply> replies = this.replyRepository.findByInquiryId(inquiryId);
+        return replies.stream()
+                .map(reply -> new ReplyDetailResponse(reply.getId(), reply.getContent()))
+                .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)

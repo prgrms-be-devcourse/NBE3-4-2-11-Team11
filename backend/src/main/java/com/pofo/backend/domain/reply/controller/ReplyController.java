@@ -15,6 +15,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
@@ -44,8 +46,8 @@ public class ReplyController {
     }
 
     @GetMapping("/common/inquiries/{inquiryId}/reply")
-    public ResponseEntity<RsData<ReplyDetailResponse>> getReply(@PathVariable Long inquiryId) {
-        ReplyDetailResponse replyDetailResponse = this.replyService.findByInquiryId(inquiryId);
-        return ResponseEntity.ok(new RsData<>("200", "답변 조회가 완료되었습니다.", replyDetailResponse));
+    public ResponseEntity<RsData<List<ReplyDetailResponse>>> getReply(@PathVariable Long inquiryId) {
+        List<ReplyDetailResponse> replyDetailResponses = this.replyService.findByInquiryId(inquiryId);
+        return ResponseEntity.ok(new RsData<>("200", "답변 조회가 완료되었습니다.", replyDetailResponses));
     }
 }
