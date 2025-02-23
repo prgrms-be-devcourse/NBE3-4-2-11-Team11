@@ -1,4 +1,4 @@
-package com.pofo.backend.domain.inquiry.dto.reponse;
+package com.pofo.backend.domain.inquiry.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

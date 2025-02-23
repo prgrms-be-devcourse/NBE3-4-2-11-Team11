@@ -2,9 +2,9 @@ package com.pofo.backend.domain.inquiry.controller;
 
 import com.pofo.backend.common.rsData.RsData;
 import com.pofo.backend.common.security.CustomUserDetails;
-import com.pofo.backend.domain.inquiry.dto.reponse.InquiryCreateResponse;
-import com.pofo.backend.domain.inquiry.dto.reponse.InquiryDetailResponse;
-import com.pofo.backend.domain.inquiry.dto.reponse.InquiryUpdateResponse;
+import com.pofo.backend.domain.inquiry.dto.response.InquiryCreateResponse;
+import com.pofo.backend.domain.inquiry.dto.response.InquiryDetailResponse;
+import com.pofo.backend.domain.inquiry.dto.response.InquiryUpdateResponse;
 import com.pofo.backend.domain.inquiry.dto.request.InquiryCreateRequest;
 import com.pofo.backend.domain.inquiry.dto.request.InquiryUpdateRequest;
 import com.pofo.backend.domain.inquiry.service.InquiryService;

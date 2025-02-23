@@ -1,4 +1,4 @@
-package com.pofo.backend.domain.inquiry.dto.reponse;
+package com.pofo.backend.domain.inquiry.dto.response;
 
 import com.pofo.backend.domain.inquiry.entity.Inquiry;
 import com.pofo.backend.domain.reply.dto.response.ReplyDetailResponse;
