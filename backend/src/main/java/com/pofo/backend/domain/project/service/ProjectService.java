@@ -67,6 +67,7 @@ public class ProjectService {
             return new ProjectCreateResponse(project.getId());
 
         }catch (Exception ex){
+            ex.printStackTrace();
             throw ProjectCreationException.badRequest("프로젝트 등록 중 오류가 발생했습니다.");
         }
     }
@@ -126,6 +127,35 @@ public class ProjectService {
         }
     }
 
+
+    public List<ProjectDetailResponse> searchProjectsByKeyword(User user, String keyword) {
+        try {
+            // 이름이나 설명에 키워드가 포함된 프로젝트 검색
+            List<Project> projects = projectRepository.findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(keyword, keyword);
+
+            // 접근 권한 필터링 (자신의 프로젝트만 조회)
+            List<Project> accessibleProjects = projects.stream()
+                    .filter(project -> project.getUser().equals(user))
+                    .collect(Collectors.toList());
+
+            if (accessibleProjects.isEmpty()) {
+                throw ProjectCreationException.notFound("검색된 프로젝트가 없습니다.");
+            }
+
+            return accessibleProjects.stream()
+                    .map(projectMapper::projectToProjectDetailResponse)
+                    .collect(Collectors.toList());
+
+        } catch (DataAccessException ex) {
+            throw ProjectCreationException.serverError("프로젝트 검색 중 데이터베이스 오류가 발생했습니다.");
+        } catch (ProjectCreationException ex) {
+            throw ex;  // 정의된 예외 재전달
+        } catch (Exception ex) {
+            throw ProjectCreationException.badRequest("프로젝트 검색 중 오류가 발생했습니다.");
+        }
+    }
+
+
     public ProjectUpdateResponse updateProject(Long projectId, ProjectUpdateRequest request, User user) {
 
         Project project = projectRepository.findById(projectId)
@@ -150,7 +180,7 @@ public class ProjectService {
                     request.getImageUrl()
             );
 
-            project = projectRepository.save(project);
+            projectRepository.save(project);
 
             // 새로운 스킬 및 툴 리스트 생성
             skillService.updateProjectSkills(projectId, request.getSkills());
