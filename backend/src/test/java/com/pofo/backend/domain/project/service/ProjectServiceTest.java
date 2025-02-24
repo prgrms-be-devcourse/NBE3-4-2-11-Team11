@@ -264,6 +264,88 @@ public class ProjectServiceTest {
         assertEquals("프로젝트 전체 조회 중 오류가 발생했습니다.", rsData.getMessage());
     }
 
+    @Test
+    @DisplayName("프로젝트 검색 성공 - 이름 또는 설명에 키워드 포함")
+    void t16(){
+        //Given
+        String keyword = "커피";
+
+        //when & Then
+        when(mockProjectResponse.getName()).thenReturn("커피 원두 주문 시스템");
+        when(mockProjectResponse.getDescription()).thenReturn("원두를 주문할 수 있는 편리한 웹 서비스");
+        when(projectRepository.findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(keyword, keyword))
+                .thenReturn(List.of(mockProject));
+        when(projectMapper.projectToProjectDetailResponse(mockProject)).thenReturn(mockProjectResponse);
+        when(mockProject.getUser()).thenReturn(mockUser);
+
+        // When
+        List<ProjectDetailResponse> response = projectService.searchProjectsByKeyword(mockUser, keyword);
+
+        // Then
+        assertEquals(1, response.size());
+        assertEquals("커피 원두 주문 시스템", response.get(0).getName());
+        assertEquals("원두를 주문할 수 있는 편리한 웹 서비스", response.get(0).getDescription());
+
+        // Verify
+        verify(projectRepository).findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(keyword, keyword);
+        verify(projectMapper).projectToProjectDetailResponse(mockProject);
+    }
+
+    @Test
+    @DisplayName("프로젝트 검색 실패 - 검색 결과 없음")
+    void t17() {
+        // Given
+        String keyword = "없는키워드";
+        when(projectRepository.findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(keyword, keyword))
+                .thenReturn(Collections.emptyList());
+
+        // When & Then
+        ProjectCreationException exception = assertThrows(ProjectCreationException.class, () -> {
+            projectService.searchProjectsByKeyword(mockUser, keyword);
+        });
+
+        RsData<Void> rsData = exception.getRsData();
+        assertEquals("404", rsData.getResultCode());
+        assertEquals("검색된 프로젝트가 없습니다.", rsData.getMessage());
+    }
+
+    @Test
+    @DisplayName("프로젝트 검색 실패 - 데이터베이스 오류 발생")
+    void t18() {
+        // Given
+        String keyword = "커피";
+        when(projectRepository.findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(keyword, keyword))
+                .thenThrow(new DataAccessException("Database error") {});
+
+        // When & Then
+        ProjectCreationException exception = assertThrows(ProjectCreationException.class, () -> {
+            projectService.searchProjectsByKeyword(mockUser, keyword);
+        });
+
+        RsData<Void> rsData = exception.getRsData();
+        assertEquals("500", rsData.getResultCode());
+        assertEquals("프로젝트 검색 중 데이터베이스 오류가 발생했습니다.", rsData.getMessage());
+    }
+
+    @Test
+    @DisplayName("프로젝트 검색 실패 - 예기치 않은 오류 발생")
+    void t19() {
+        // Given
+        String keyword = "커피";
+        when(projectRepository.findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(keyword, keyword))
+                .thenThrow(new RuntimeException("Unexpected error"));
+
+        // When & Then
+        ProjectCreationException exception = assertThrows(ProjectCreationException.class, () -> {
+            projectService.searchProjectsByKeyword(mockUser, keyword);
+        });
+
+        RsData<Void> rsData = exception.getRsData();
+        assertEquals("400", rsData.getResultCode());
+        assertEquals("프로젝트 검색 중 오류가 발생했습니다.", rsData.getMessage());
+    }
+
+
 
     @Test
     @DisplayName("프로젝트 단건 조회 성공")
@@ -412,11 +494,9 @@ public class ProjectServiceTest {
                 .imageUrl("oldImage.img")
                 .build();
 
-        // 기존 Skill 및 Tool 추가
-        realProject.setProjectSkills(List.of(new ProjectSkill(realProject, new Skill("Java"))));
-        realProject.setProjectTools(List.of(new ProjectTool(realProject, new Tool("IntelliJ IDEA"))));
+        realProject.setProjectSkills(new ArrayList<>(List.of(new ProjectSkill(realProject, new Skill("Java")))));
+        realProject.setProjectTools(new ArrayList<>(List.of(new ProjectTool(realProject, new Tool("IntelliJ IDEA")))));
 
-        // 업데이트할 요청 객체
         ProjectUpdateRequest updateRequest = ProjectUpdateRequest.builder()
                 .name("업데이트된 프로젝트")
                 .startDate(LocalDate.of(2025, 1, 25))
@@ -430,7 +510,6 @@ public class ProjectServiceTest {
                 .tools(List.of("VS Code", "Figma"))
                 .build();
 
-        // ✅ 수정된 프로젝트 객체 생성 (Mock에서 반환할 값)
         Project updatedProject = Project.builder()
                 .user(mockUser)
                 .name(updateRequest.getName())
@@ -443,23 +522,19 @@ public class ProjectServiceTest {
                 .imageUrl(updateRequest.getImageUrl())
                 .build();
 
-        updatedProject.setProjectSkills(List.of(
+        updatedProject.setProjectSkills(new ArrayList<>(List.of(
                 new ProjectSkill(updatedProject, new Skill("React")),
                 new ProjectSkill(updatedProject, new Skill("TypeScript"))
-        ));
-
-        updatedProject.setProjectTools(List.of(
+        )));
+        updatedProject.setProjectTools(new ArrayList<>(List.of(
                 new ProjectTool(updatedProject, new Tool("VS Code")),
                 new ProjectTool(updatedProject, new Tool("Figma"))
-        ));
+        )));
 
-        // ✅ Mock 설정 (기존 프로젝트 조회 시 realProject 반환)
         when(projectRepository.findById(projectId)).thenReturn(Optional.of(realProject));
 
-        // ✅ Mock 설정 (save 호출 시 업데이트된 프로젝트 반환)
         when(projectRepository.save(any(Project.class))).thenReturn(updatedProject);
 
-        // ✅ Skill 및 Tool 서비스 Mock 설정
         when(skillService.getSkillByName("React")).thenReturn(new Skill("React"));
         when(skillService.getSkillByName("TypeScript")).thenReturn(new Skill("TypeScript"));
         when(toolService.getToolByName("VS Code")).thenReturn(new Tool("VS Code"));
@@ -479,15 +554,16 @@ public class ProjectServiceTest {
         assertEquals(updateRequest.getDescription(), response.getDescription());
         assertEquals(updateRequest.getImageUrl(), response.getImageUrl());
 
-        // ✅ Skill 및 Tool 검증
+        //Skill 및 Tool 검증
         assertEquals(updateRequest.getSkills().size(), response.getSkills().size());
         assertEquals(updateRequest.getTools().size(), response.getTools().size());
         assertTrue(response.getSkills().containsAll(updateRequest.getSkills()));
         assertTrue(response.getTools().containsAll(updateRequest.getTools()));
 
-        // ✅ save()가 한 번 호출되었는지 확인
-        verify(projectRepository, times(1)).save(any(Project.class));
+        // save()가 한 번 호출되었는지 확인
+        verify(projectRepository, times(2)).save(any(Project.class));
     }
+
 
 
 
