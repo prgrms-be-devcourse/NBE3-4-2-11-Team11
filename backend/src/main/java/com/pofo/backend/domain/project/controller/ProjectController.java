@@ -43,14 +43,17 @@ public class ProjectController {
 
     //프로젝트 전체 조회
     @GetMapping("/projects")
-    public ResponseEntity<RsData<List<ProjectDetailResponse>>> detailAllProject(@AuthenticationPrincipal CustomUserDetails customUserDetails){
+    public ResponseEntity<RsData<List<ProjectDetailResponse>>> detailAllProject(
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            @RequestParam(value="keyword", required = false) String keyword){
         //인증로직이 없어서 임시조치
 
         User user = customUserDetails.getUser();
-
         userRepository.findById(user.getId());
 
-        List<ProjectDetailResponse> response = projectService.detailAllProject(user);
+        List<ProjectDetailResponse> response = (keyword == null || keyword.isEmpty())
+                ? projectService.detailAllProject(user)
+                : projectService.searchProjectsByKeyword(user , keyword);
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new RsData<>("200", "프로젝트 전체 조회가 완료되었습니다.", response));
