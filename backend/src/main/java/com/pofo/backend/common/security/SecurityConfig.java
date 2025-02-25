@@ -5,19 +5,16 @@ import static org.springframework.security.config.Customizer.withDefaults;
 import com.pofo.backend.common.security.jwt.JwtSecurityConfig;
 import com.pofo.backend.common.security.jwt.OAuth2AuthenticationSuccessHandler;
 import com.pofo.backend.common.security.jwt.TokenProvider;
-import com.pofo.backend.common.security.provider.AuthenticationProviderConfig;
 import com.pofo.backend.common.service.CustomUserDetailsService;
 import com.pofo.backend.domain.user.login.service.CustomOAuth2UserService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -33,7 +30,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig {
 
     private final TokenProvider tokenProvider;
-    private final RedisTemplate<String, String> redisTemplate;
     private final JwtSecurityConfig jwtSecurityConfig;
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2AuthenticationSuccessHandler successHandler;

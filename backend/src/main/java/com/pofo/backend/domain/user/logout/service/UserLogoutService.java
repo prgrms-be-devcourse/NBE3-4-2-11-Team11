@@ -1,14 +1,12 @@
 package com.pofo.backend.domain.user.logout.service;
 
 import com.pofo.backend.common.security.jwt.TokenProvider;
-import com.pofo.backend.common.service.TokenBlacklistService;
 import com.pofo.backend.domain.user.logout.dto.UserLogoutResponseDto;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -17,8 +15,6 @@ import org.springframework.stereotype.Service;
 public class UserLogoutService {
 
     private final TokenProvider tokenProvider;
-    private final TokenBlacklistService tokenBlacklistService;
-    private final RedisTemplate<String, String> redisTemplate;
 
     public UserLogoutResponseDto logout(
             String token,
@@ -26,28 +22,6 @@ public class UserLogoutService {
             HttpServletResponse response
     ) {
         log.info("🚪 로그아웃 요청 받음: Token = {}", token);
-
-        // ✅ Access Token 유효성 검사
-        if (tokenProvider.validateToken(token)) {
-            long expirationTime = tokenProvider.getTokenExpirationTime(token);
-
-            // ✅ Access Token을 블랙리스트에 추가
-            if (expirationTime > 0) {
-                log.info("🛑 Access Token 블랙리스트 추가 (TTL: {} 초)", expirationTime / 1000);
-                tokenBlacklistService.addToBlacklist(token, expirationTime);
-            }
-        } else {
-            log.warn("❌ 유효하지 않은 Access Token으로 로그아웃 요청");
-        }
-
-        // ✅ Redis에서 해당 사용자의 Refresh Token 삭제 (완전한 로그아웃)
-        String refreshTokenKey = "refresh_token:" + token;
-        if (Boolean.TRUE.equals(redisTemplate.hasKey(refreshTokenKey))) {
-            redisTemplate.delete(refreshTokenKey);
-            log.info("✅ Redis에서 Refresh Token 삭제 완료");
-        } else {
-            log.warn("⚠️ 해당 사용자의 Refresh Token이 Redis에 존재하지 않음");
-        }
 
         // ✅ 클라이언트 쿠키에서 Refresh Token 삭제
         Cookie refreshCookie = new Cookie("refreshCookie", null);
