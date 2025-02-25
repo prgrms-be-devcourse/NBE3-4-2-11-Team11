@@ -33,14 +33,10 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig {
 
     private final TokenProvider tokenProvider;
-    private final RedisTemplate<String, String> redisTemplate;
     private final JwtSecurityConfig jwtSecurityConfig;
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2AuthenticationSuccessHandler successHandler;
-
-    // 관리자 전용 UserDetailsService
     private final AdminDetailsService adminDetailsService;
-
     private final CustomUserDetailsService customUserDetailsService;
 
     @Bean
@@ -49,26 +45,17 @@ public class SecurityConfig {
     }
 
     /**
-
      * 관리자용 SecurityFilterChain
-     * - '/api/v1/admin/**' 경로에 대해 별도의 보안 설정 적용
-     *
-     *  2025-02-09 김누리 수정 : 순환 의존성 문제를 피하기 위해 AuthenticationProviderConfig 소스를
-     *  추가 하였기 때문에, .authenticationProvider(adminAuthenticationProvider());를
-     *   .authenticationProvider(adminAuthenticationProvider);로 변경
      */
     @Bean
     public SecurityFilterChain adminSecurityFilterChain(
             HttpSecurity http,
             AuthenticationProvider adminAuthenticationProvider
     ) throws Exception {
-        // JWT 필터 등 추가 설정이 필요하면 jwtSecurityConfig.configure(http) 호출 가능
         jwtSecurityConfig.configure(http);
 
         http
-                // '/api/v1/admin/**' 경로에만 적용
                 .securityMatcher("/api/v1/admin/**", "/api/v1/token/**","/api/v1/common/**")
-//                .cors(withDefaults())  // ✅ CORS 활성화 추가
                 .cors(c -> c.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -89,7 +76,6 @@ public class SecurityConfig {
      */
     @Bean
     public SecurityFilterChain userSecurityFilterChain(HttpSecurity http) throws Exception {
-        // JWT 필터 등 추가 설정이 필요하면 jwtSecurityConfig.configure(http) 호출 가능
         jwtSecurityConfig.configure(http);
 
         http
@@ -134,13 +120,7 @@ public class SecurityConfig {
         return provider;
     }
 
-    /**
-     * AuthenticationManager 빈이 필요한 경우 등록
-     */
-//    @Bean
-//    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
-//        return configuration.getAuthenticationManager();
-//    }
+
 
     @Bean
 
