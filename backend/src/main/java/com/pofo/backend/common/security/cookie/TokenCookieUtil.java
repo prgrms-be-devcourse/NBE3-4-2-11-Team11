@@ -18,14 +18,16 @@ public class TokenCookieUtil {
         //  accessToken을 쿠키에 넣자!
         Cookie accessCookie = new Cookie("accessCookie", accessToken);
         accessCookie.setHttpOnly(true);
-        accessCookie.setSecure(true);
+//        accessCookie.setSecure(true);
+        accessCookie.setSecure(false);
         accessCookie.setPath("/");
         accessCookie.setMaxAge(validationTime.intValue()/ 1000); // ms -> s로 변환
 
         //  refreshToken을 쿠키에 넣자!
         Cookie refreshCookie = new Cookie("refreshCookie", refreshToken);
         refreshCookie.setHttpOnly(true);
-        refreshCookie.setSecure(true);
+//        refreshCookie.setSecure(true);
+        refreshCookie.setSecure(false);
         refreshCookie.setPath("/");
         refreshCookie.setMaxAge(refreshTokenValidationTime.intValue()/ 1000); // ms -> s로 변환
 
