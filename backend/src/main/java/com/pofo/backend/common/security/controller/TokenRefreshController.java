@@ -3,9 +3,7 @@ package com.pofo.backend.common.security.controller;
 import com.pofo.backend.common.rsData.RsData;
 import com.pofo.backend.common.security.dto.TokenDto;
 import com.pofo.backend.common.security.jwt.TokenProvider;
-import com.pofo.backend.domain.user.join.entity.User;
 import com.pofo.backend.domain.user.join.repository.UserRepository;
-import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -15,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Optional;
 /*
  *
  *  AccessToken 만료 시, RefreshToken을 이용하여 AccessToken 재요청 하기 위한 컨트롤러,
@@ -79,9 +76,6 @@ public class TokenRefreshController {
             cookieHeader.append("; Secure; SameSite=None");
         }
         response.addHeader("Set-Cookie", cookieHeader.toString());
-
-
-
 
         TokenDto newTokenResponse = TokenDto.builder()
                 .accessToken(newAccessToken)

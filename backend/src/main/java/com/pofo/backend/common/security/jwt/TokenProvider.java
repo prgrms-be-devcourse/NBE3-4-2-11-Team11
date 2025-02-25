@@ -79,8 +79,6 @@ public class TokenProvider {
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","));
 
-//        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-//        String email = userDetails.getUsername();
 
         String subject;
         Object principal = authentication.getPrincipal();
@@ -180,12 +178,7 @@ public class TokenProvider {
      * @param token Refresh Token 문자열
      * @return Authentication 객체
      */
-//    public Authentication getAuthenticationFromRefreshToken(String token) {
-//        Claims claims = parseData(token);
-//        String username = claims.getSubject();
-//        UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
-//        return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
-//    }
+
 
     public Authentication getAuthenticationFromRefreshToken(String token) {
         Claims claims = parseData(token);
