@@ -103,6 +103,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/v1/user/join",
                                 "/api/v1/user/login",
+                                "/api/v1/user/last-login-provider",
                                 "/api/v1/user/naver/login",
                                 "/api/v1/user/naver/login/naver/callback",
                                 "/api/v1/user/naver/login/process",

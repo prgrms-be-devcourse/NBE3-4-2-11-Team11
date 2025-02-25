@@ -7,6 +7,7 @@ import com.pofo.backend.common.security.cookie.TokenCookieUtil;
 import com.pofo.backend.domain.user.join.entity.Oauth;
 import com.pofo.backend.domain.user.login.dto.UserLoginResponseDto;
 import com.pofo.backend.domain.user.login.service.UserLoginService;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
@@ -14,11 +15,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -119,6 +119,9 @@ public class UserLoginController {
             //  토큰을 쿠키에 저장
             tokenCookieUtil.setTokenCookies(response, responseDto.getToken(), responseDto.getRefreshToken());
 
+            //  마지막 로그인한 소셜 플랫폼 제공자를 쿠키에 저장
+            saveLastLoginProvider(response,"NAVER");
+
             return ResponseEntity.ok(new RsData<>(responseDto.getResultCode(),responseDto.getMessage(),responseDto));
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -176,6 +179,9 @@ public class UserLoginController {
 
             //  토큰을 쿠키에 저장
             tokenCookieUtil.setTokenCookies(response, responseDto.getToken(), responseDto.getRefreshToken());
+
+            //  마지막 로그인한 소셜 플랫폼 제공자를 쿠키에 저장
+            saveLastLoginProvider(response,"KAKAO");
 
             return ResponseEntity.ok(new RsData<>(responseDto.getResultCode(),responseDto.getMessage(),responseDto));
         } catch (Exception e) {
@@ -235,9 +241,32 @@ public class UserLoginController {
             //  토큰을 쿠키에 저장
             tokenCookieUtil.setTokenCookies(response, responseDto.getToken(), responseDto.getRefreshToken());
 
+            //  마지막 로그인한 소셜 플랫폼 제공자를 쿠키에 저장
+            saveLastLoginProvider(response,"GOOGLE");
+
             return ResponseEntity.ok(new RsData<>(responseDto.getResultCode(),responseDto.getMessage(),responseDto));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @GetMapping("/last-login-provider")
+    public ResponseEntity<Map<String, String>> getLastLoginProvider(
+            @CookieValue(value = "lastLoginProvider", required = false) String provider
+    ) {
+        if (provider == null) {
+            return ResponseEntity.ok(Collections.singletonMap("lastLoginProvider", "NONE")); // 쿠키가 없으면 "NONE" 반환
+        }
+
+        return ResponseEntity.ok(Collections.singletonMap("lastLoginProvider", provider));
+    }
+
+    private void saveLastLoginProvider(HttpServletResponse response, String provider) {
+        Cookie providerCookie = new Cookie("lastLoginProvider", provider);
+        providerCookie.setHttpOnly(true);  // JS에서 접근 불가
+        providerCookie.setSecure(true);  // HTTPS에서만 전송
+        providerCookie.setPath("/");  // 전체 도메인에서 접근 가능
+        providerCookie.setMaxAge(60 * 60 * 24 * 30);  // 30일 유지
+        response.addCookie(providerCookie);
     }
 }

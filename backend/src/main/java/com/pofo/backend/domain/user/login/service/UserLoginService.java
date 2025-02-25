@@ -511,13 +511,6 @@ public class UserLoginService {
         log.info("✅ JWT Access Token: {}", jwtToken.getAccessToken());
         log.info("✅ JWT Refresh Token: {}", jwtToken.getRefreshToken());
 
-        // ✅ Redis에 Access Token 저장 (로그아웃 시 무효화 가능하도록)
-        String accessTokenKey = REDIS_ACCESS_TOKEN_PREFIX + jwtToken.getAccessToken();
-        redisTemplate.opsForValue().set(accessTokenKey, "valid", jwtToken.getAccessTokenValidationTime(), TimeUnit.MILLISECONDS);
-
-        log.info("✅ Access Token 저장 완료 (TTL: {}ms): {}", jwtToken.getAccessTokenValidationTime(), accessTokenKey);
-
-
         return jwtToken;
     }
 
