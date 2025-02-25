@@ -17,11 +17,11 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
 /*
-*
-*  AccessToken 만료 시, RefreshToken을 이용하여 AccessToken 재요청 하기 위한 컨트롤러,
-*  공통 부품으로 쓰기 위해 common/security/controller에 적재.
-*
-*/
+ *
+ *  AccessToken 만료 시, RefreshToken을 이용하여 AccessToken 재요청 하기 위한 컨트롤러,
+ *  공통 부품으로 쓰기 위해 common/security/controller에 적재.
+ *
+ */
 
 @RestController
 @Slf4j
@@ -68,7 +68,20 @@ public class TokenRefreshController {
         log.info("✅ 새로운 Access Token 발급 완료: {}", newAccessToken);
 
         // ✅ Set-Cookie로 새로운 accessCookie 설정
-        response.addHeader("Set-Cookie", "accessCookie=" + newAccessToken + "; Path=/; HttpOnly; Secure; SameSite=None");
+//        response.addHeader("Set-Cookie", "accessCookie=" + newAccessToken + "; Path=/; HttpOnly; Secure; SameSite=None");
+// 예: 현재 환경이 프로덕션인지 여부를 판단 (여기서는 간단히 isProd 변수 사용)
+        boolean isProd = false; // 개발 환경에서는 false, 프로덕션에서는 true
+
+        StringBuilder cookieHeader = new StringBuilder();
+        cookieHeader.append("accessCookie=").append(newAccessToken)
+                .append("; Path=/; HttpOnly");
+        if (isProd) {
+            cookieHeader.append("; Secure; SameSite=None");
+        }
+        response.addHeader("Set-Cookie", cookieHeader.toString());
+
+
+
 
         TokenDto newTokenResponse = TokenDto.builder()
                 .accessToken(newAccessToken)

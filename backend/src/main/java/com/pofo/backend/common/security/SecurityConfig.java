@@ -67,7 +67,7 @@ public class SecurityConfig {
 
         http
                 // '/api/v1/admin/**' 경로에만 적용
-                .securityMatcher("/api/v1/admin/**", "/api/v1/token/**")
+                .securityMatcher("/api/v1/admin/**", "/api/v1/token/**","/api/v1/common/**")
 //                .cors(withDefaults())  // ✅ CORS 활성화 추가
                 .cors(c -> c.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
