@@ -706,11 +706,21 @@ public class ProjectServiceTest {
         Project mockProject1 = Mockito.mock(Project.class);
         Project mockProject2 = Mockito.mock(Project.class);
 
-        when(projectRepository.findAllById(projectIds)).thenReturn(List.of(mockProject1, mockProject2));
+        when(mockProject1.getId()).thenReturn(1L);
+        when(mockProject2.getId()).thenReturn(2L);
+
         when(mockProject1.getUser()).thenReturn(mockUser);
         when(mockProject2.getUser()).thenReturn(mockUser);
 
+        when(mockProject1.isDeleted()).thenReturn(true);
+        when(mockProject2.isDeleted()).thenReturn(true);
+
+        when(projectRepository.findAllByIdAndIsDeletedTrue(projectIds)).thenReturn(List.of(mockProject1, mockProject2));
+
         // When
+        doNothing().when(mockProject1).setDeleted(false);
+        doNothing().when(mockProject2).setDeleted(false);
+
         assertDoesNotThrow(() -> projectService.restoreProjects(projectIds, mockUser));
 
         // Then
@@ -730,9 +740,13 @@ public class ProjectServiceTest {
         when(mockProject1.getId()).thenReturn(1L);
         when(mockProject2.getId()).thenReturn(2L);
 
-        when(projectRepository.findAllById(projectIds)).thenReturn(List.of(mockProject1, mockProject2));
         when(mockProject1.getUser()).thenReturn(mockUser);
         when(mockProject2.getUser()).thenReturn(mockUser);
+
+        when(mockProject1.isDeleted()).thenReturn(true);
+        when(mockProject2.isDeleted()).thenReturn(true);
+
+        when(projectRepository.findAllByIdAndIsDeletedTrue(projectIds)).thenReturn(List.of(mockProject1, mockProject2));
 
         // 스킬 및 툴 삭제 Mock 설정
         doNothing().when(skillService).deleteProjectSkills(projectIds);
