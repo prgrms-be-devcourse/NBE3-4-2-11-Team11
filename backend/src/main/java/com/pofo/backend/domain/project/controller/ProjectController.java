@@ -4,6 +4,8 @@ import com.pofo.backend.common.base.Empty;
 import com.pofo.backend.common.rsData.RsData;
 import com.pofo.backend.common.security.CustomUserDetails;
 import com.pofo.backend.domain.project.dto.request.ProjectCreateRequest;
+import com.pofo.backend.domain.project.dto.request.ProjectDeleteRequest;
+import com.pofo.backend.domain.project.dto.request.ProjectRestoreRequest;
 import com.pofo.backend.domain.project.dto.request.ProjectUpdateRequest;
 import com.pofo.backend.domain.project.dto.response.ProjectCreateResponse;
 import com.pofo.backend.domain.project.dto.response.ProjectDetailResponse;
@@ -100,5 +102,58 @@ public class ProjectController {
 
         return ResponseEntity.status(HttpStatus.OK).body(new RsData<>("200", "프로젝트 삭제가 완료되었습니다.", new Empty()));
     }
+
+    //휴지통으로 이동할 프로젝트 다중 선택
+    @DeleteMapping("/projects")
+    public ResponseEntity<RsData<Empty>> deleteMultipleProjects(
+            @RequestBody ProjectDeleteRequest request,
+            @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+
+        User user = customUserDetails.getUser();
+        projectService.moveToTrash(request.getProjectIds(), user);
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new RsData<>("200", "선택한 프로젝트가 휴지통으로 이동되었습니다.", new Empty()));
+    }
+
+    //휴지통 프로젝트 목록 조회
+    @GetMapping("/projects/trash")
+    public ResponseEntity<RsData<List<ProjectDetailResponse>>> getDeletedProjects(
+            @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+
+        User user = customUserDetails.getUser();
+        List<ProjectDetailResponse> deletedProjects = projectService.getDeletedProjects(user);
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new RsData<>("200", "휴지통 조회가 완료되었습니다.", deletedProjects));
+    }
+
+    //휴지통 복원
+    @PostMapping("/projects/restore")
+    public ResponseEntity<RsData<String>> restoreProjects(
+            @RequestBody ProjectRestoreRequest request,
+            @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+
+        User user = customUserDetails.getUser();
+        projectService.restoreProjects(request.getProjectIds(), user);
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new RsData<>("200", "선택한 프로젝트가 복원되었습니다.", "success"));
+    }
+
+    //영구삭제
+    @DeleteMapping("/projects/permanent")
+    public ResponseEntity<RsData<String>> permanentlyDeleteProjects(
+            @RequestBody ProjectDeleteRequest request,
+            @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+
+        User user = customUserDetails.getUser();
+        projectService.permanentlyDeleteProjects(request.getProjectIds(), user);
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new RsData<>("200", "선택한 프로젝트가 영구 삭제되었습니다.", "success"));
+    }
+
+
 
 }
