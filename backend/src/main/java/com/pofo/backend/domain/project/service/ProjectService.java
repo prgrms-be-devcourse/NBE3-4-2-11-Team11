@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -56,6 +57,7 @@ public class ProjectService {
                     .repositoryLink(projectRequest.getRepositoryLink())
                     .description(projectRequest.getDescription())
                     .imageUrl(projectRequest.getImageUrl())
+                    .isDeleted(false)
                     .build();
 
             projectRepository.save(project);
@@ -213,7 +215,8 @@ public class ProjectService {
                     project.getDescription(),
                     project.getImageUrl(),
                     project.getProjectSkills().stream().map(ps -> ps.getSkill().getName()).collect(Collectors.toList()),
-                    project.getProjectTools().stream().map(pt -> pt.getTool().getName()).collect(Collectors.toList())
+                    project.getProjectTools().stream().map(pt -> pt.getTool().getName()).collect(Collectors.toList()),
+                    project.isDeleted()
             );
 
         }catch (DataAccessException ex){
@@ -240,10 +243,8 @@ public class ProjectService {
             }
 
             //중간 테이블 데이터 먼저 삭제
-            skillService.deleteProjectSkills(projectId);
-            toolService.deleteProjectTools(projectId);
-
-            projectRepository.delete(project);
+            project.setDeleted(true);
+            projectRepository.save(project);
 
         } catch (DataAccessException ex) {
             throw ProjectCreationException.serverError("프로젝트 삭제 중 데이터베이스 오류가 발생했습니다.");
@@ -253,6 +254,78 @@ public class ProjectService {
             throw ProjectCreationException.badRequest("프로젝트 삭제 중 오류가 발생했습니다.");
         }
 
+    }
+
+    public void moveToTrash(List<Long> projectIds, User user){
+        try {
+            List<Project> projects = projectRepository.findAllById(projectIds);
+
+            for (Project project : projects) {
+                if (!project.getUser().equals(user)) {
+                    throw ProjectCreationException.forbidden("프로젝트 삭제 할 권한이 없습니다.");
+                }
+                project.setDeleted(true); // 휴지통 이동
+            }
+
+            projectRepository.saveAll(projects);  // 저장 시도 (이 부분에서 예외 발생 가능)
+
+        } catch (DataAccessException ex) {
+            throw ProjectCreationException.serverError("프로젝트 삭제 중 데이터베이스 오류가 발생했습니다.");
+        }catch (ProjectCreationException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw ProjectCreationException.badRequest("프로젝트 삭제 중 오류가 발생했습니다.");
+        }
+    }
+
+    public List<ProjectDetailResponse> getDeletedProjects(User user){
+        List<Project> deletedProjects = projectRepository.findByUserAndIsDeletedTrue(user);
+
+        return deletedProjects.stream()
+                .map(projectMapper::projectToProjectDetailResponse)
+                .collect(Collectors.toList());
+    }
+
+    //요청된 프로젝트 ID 중에서, 휴지통에 있는 프로젝트만 조회하고 검증하는 메서드
+    private List<Project> validateTrashProjects(List<Long> projectIds) {
+
+        List<Project> trashProjects = projectRepository.findAllByIdAndIsDeletedTrue(projectIds);
+
+        Set<Long> validTrashIds = trashProjects.stream()
+                .map(Project::getId)
+                .collect(Collectors.toSet());
+
+        List<Long> invalidIds = projectIds.stream()
+                .filter(id -> !validTrashIds.contains(id))
+                .collect(Collectors.toList());
+
+        if (!invalidIds.isEmpty()) {
+            throw ProjectCreationException.badRequest(
+                    "휴지통에 없는 프로젝트가 포함되어 있습니다: " + invalidIds
+            );
+        }
+
+        return trashProjects;
+
+    }
+
+    public void restoreProjects(List<Long> projectIds, User user) {
+        List<Project> trashProjects = validateTrashProjects(projectIds);
+
+        trashProjects.forEach(project -> project.setDeleted(false));
+        projectRepository.saveAll(trashProjects);
+    }
+
+    public void permanentlyDeleteProjects(List<Long> projectIds, User user) {
+        List<Project> trashProjects = validateTrashProjects(projectIds);
+
+        List<Long> userProjectIds = trashProjects.stream()
+                .map(Project::getId)
+                .collect(Collectors.toList());
+        // 다중 삭제 한 번에 처리
+        skillService.deleteProjectSkills(userProjectIds);
+        toolService.deleteProjectTools(userProjectIds);
+        projectRepository.deleteAll(trashProjects);
     }
 
 }
