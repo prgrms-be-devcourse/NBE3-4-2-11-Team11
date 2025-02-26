@@ -59,4 +59,7 @@ public class Project extends BaseTime {
         this.imageUrl = imageUrl;
 
     }
+
+    @Column(nullable = false)
+    private boolean isDeleted = false; // 기본값 false: 활성화, true: 휴지통 상태
 }
