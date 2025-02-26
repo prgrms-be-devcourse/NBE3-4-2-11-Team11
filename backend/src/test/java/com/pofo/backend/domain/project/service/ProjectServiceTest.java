@@ -78,6 +78,7 @@ public class ProjectServiceTest {
 
         when(mockUser.getId()).thenReturn(1L);
         when(mockProject.getId()).thenReturn(1L);
+
         when(mockProject.getName()).thenReturn("원두 주문 웹페이지");
         when(mockProject.getStartDate()).thenReturn(startDate);
         when(mockProject.getEndDate()).thenReturn(endDate);
@@ -87,7 +88,7 @@ public class ProjectServiceTest {
         when(mockProject.getDescription()).thenReturn("커피 원두를 주문할 수 있는 웹페이지");
         when(mockProject.getImageUrl()).thenReturn("test.img");
         when(mockProject.getUser()).thenReturn(mockUser);
-
+        when(mockProject.isDeleted()).thenReturn(false);
 
         // Mock Skill & Tool 객체 생성
         when(skillService.getSkillByName("Java")).thenReturn(new Skill("Java"));
@@ -138,6 +139,7 @@ public class ProjectServiceTest {
                 .imageUrl(request.getImageUrl())
                 .projectSkills(projectSkills)
                 .projectTools(projectTools)
+                .isDeleted(false)
                 .build());
 
         when(projectRepository.save(any(Project.class))).thenReturn(realProject);
@@ -167,9 +169,12 @@ public class ProjectServiceTest {
     @Test
     @DisplayName("프로젝트 등록 실패 - 예외 발생")
     void t3(){
-        doThrow(new ProjectCreationException("400","프로젝트 등록 중 오류가 발생했습니다."))
-                .when(mockUser).getId();
+
         ProjectCreateRequest request = projectCreateRequest();
+
+        doThrow(new ProjectCreationException("400", "프로젝트 등록 중 오류가 발생했습니다."))
+                .when(projectRepository).save(any(Project.class));  // 저장 시 예외 발생
+
 
         // when & then
         ProjectCreationException exception = assertThrows(ProjectCreationException.class, () -> {
@@ -606,7 +611,7 @@ public class ProjectServiceTest {
     }
 
     @Test
-    @DisplayName("프로젝트 삭제 성공")
+    @DisplayName("프로젝트 삭제 성공 - 휴지통으로 이동")
     void t13() {
         Long projectId=1L;
 
@@ -618,7 +623,8 @@ public class ProjectServiceTest {
         assertDoesNotThrow(() -> projectService.deleteProject(projectId, mockUser));
 
         // Then
-        verify(projectRepository).delete(mockProject); // 삭제 확인
+        verify(mockProject).setDeleted(true);
+        verify(projectRepository).save(mockProject);
 
     }
 
@@ -645,7 +651,7 @@ public class ProjectServiceTest {
     }
 
     @Test
-    @DisplayName("프로젝트 삭제 실패 - 데이터베이스 오류 발생")
+    @DisplayName("프로젝트 삭제 실패 - 데이터베이스 오류 발생(휴지통 이동 실패)")
     void t15(){
 
         Long projectId=1L;
@@ -654,7 +660,8 @@ public class ProjectServiceTest {
         Project mockProject = Mockito.mock(Project.class);
         when(projectRepository.findById(projectId)).thenReturn(Optional.of(mockProject));
         when(mockProject.getUser()).thenReturn(mockUser);
-        doThrow(new DataAccessException("DB 오류"){}).when(projectRepository).delete(mockProject);
+
+        doThrow(new DataAccessException("DB 오류"){}).when(projectRepository).save(mockProject);
 
         // When & Then
         ProjectCreationException exception = assertThrows(ProjectCreationException.class, () -> {
@@ -666,4 +673,136 @@ public class ProjectServiceTest {
         assertEquals("프로젝트 삭제 중 데이터베이스 오류가 발생했습니다.", rsData.getMessage());
 
     }
+
+    @Test
+    @DisplayName("다중 프로젝트 삭제 성공 - 휴지통으로 이동")
+    void t20() {
+        List<Long> projectIds = List.of(1L, 2L, 3L);
+
+        Project mockProject1 = Mockito.mock(Project.class);
+        Project mockProject2 = Mockito.mock(Project.class);
+        Project mockProject3 = Mockito.mock(Project.class);
+
+        when(projectRepository.findAllById(projectIds)).thenReturn(List.of(mockProject1, mockProject2, mockProject3));
+        when(mockProject1.getUser()).thenReturn(mockUser);
+        when(mockProject2.getUser()).thenReturn(mockUser);
+        when(mockProject3.getUser()).thenReturn(mockUser);
+
+        // When
+        assertDoesNotThrow(() -> projectService.moveToTrash(projectIds, mockUser));
+
+        // Then
+        verify(mockProject1).setDeleted(true);
+        verify(mockProject2).setDeleted(true);
+        verify(mockProject3).setDeleted(true);
+        verify(projectRepository).saveAll(List.of(mockProject1, mockProject2, mockProject3));  // 저장 확인
+    }
+
+    @Test
+    @DisplayName("휴지통 복원 성공")
+    void t21() {
+        List<Long> projectIds = List.of(1L, 2L);
+
+        Project mockProject1 = Mockito.mock(Project.class);
+        Project mockProject2 = Mockito.mock(Project.class);
+
+        when(projectRepository.findAllById(projectIds)).thenReturn(List.of(mockProject1, mockProject2));
+        when(mockProject1.getUser()).thenReturn(mockUser);
+        when(mockProject2.getUser()).thenReturn(mockUser);
+
+        // When
+        assertDoesNotThrow(() -> projectService.restoreProjects(projectIds, mockUser));
+
+        // Then
+        verify(mockProject1).setDeleted(false);
+        verify(mockProject2).setDeleted(false);
+        verify(projectRepository).saveAll(List.of(mockProject1, mockProject2));  // 저장 확인
+    }
+
+    @Test
+    @DisplayName("프로젝트 영구 삭제 성공")
+    void t22() {
+        List<Long> projectIds = List.of(1L, 2L);
+
+        Project mockProject1 = Mockito.mock(Project.class);
+        Project mockProject2 = Mockito.mock(Project.class);
+
+        when(mockProject1.getId()).thenReturn(1L);
+        when(mockProject2.getId()).thenReturn(2L);
+
+        when(projectRepository.findAllById(projectIds)).thenReturn(List.of(mockProject1, mockProject2));
+        when(mockProject1.getUser()).thenReturn(mockUser);
+        when(mockProject2.getUser()).thenReturn(mockUser);
+
+        // 스킬 및 툴 삭제 Mock 설정
+        doNothing().when(skillService).deleteProjectSkills(projectIds);
+        doNothing().when(toolService).deleteProjectTools(projectIds);
+
+        // When
+        assertDoesNotThrow(() -> projectService.permanentlyDeleteProjects(projectIds, mockUser));
+
+        // Then
+        verify(skillService).deleteProjectSkills(projectIds);
+        verify(toolService).deleteProjectTools(projectIds);
+        verify(projectRepository).deleteAll(List.of(mockProject1, mockProject2));  // 실제 삭제 확인
+    }
+
+    @Test
+    @DisplayName("다중 프로젝트 삭제 실패 - 삭제 권한 없음")
+    void t23() {
+        List<Long> projectIds = List.of(1L, 2L);
+
+        Project mockProject1 = Mockito.mock(Project.class);
+        Project mockProject2 = Mockito.mock(Project.class);
+
+        User differentUser = Mockito.mock(User.class);
+
+        when(mockProject1.getId()).thenReturn(1L);
+        when(mockProject2.getId()).thenReturn(2L);
+
+
+        when(projectRepository.findAllById(projectIds)).thenReturn(List.of(mockProject1, mockProject2));
+        when(mockProject1.getUser()).thenReturn(differentUser); // 다른 사용자
+        when(mockProject2.getUser()).thenReturn(mockUser);      // 일치 사용자
+
+        // When & Then
+        ProjectCreationException exception = assertThrows(ProjectCreationException.class, () -> {
+            projectService.moveToTrash(projectIds, mockUser);
+        });
+
+        RsData<Void> rsData = exception.getRsData();
+        assertEquals("403", rsData.getResultCode());
+        assertEquals("프로젝트 삭제 할 권한이 없습니다.", rsData.getMessage());
+    }
+
+    @Test
+    @DisplayName("다중 프로젝트 삭제 실패 - 데이터베이스 오류 발생")
+    void t24() {
+        List<Long> projectIds = List.of(1L, 2L);
+
+        Project mockProject1 = Mockito.mock(Project.class);
+        Project mockProject2 = Mockito.mock(Project.class);
+
+        when(mockProject1.getId()).thenReturn(1L);
+        when(mockProject2.getId()).thenReturn(2L);
+
+
+        when(projectRepository.findAllById(projectIds)).thenReturn(List.of(mockProject1, mockProject2));
+        when(mockProject1.getUser()).thenReturn(mockUser);
+        when(mockProject2.getUser()).thenReturn(mockUser);
+
+        // DB 삭제 실패 발생
+        doThrow(new DataAccessException("DB 오류"){}).when(projectRepository).saveAll(anyList());
+
+        // When & Then
+        ProjectCreationException exception = assertThrows(ProjectCreationException.class, () -> {
+            projectService.moveToTrash(projectIds, mockUser);
+        });
+
+        RsData<Void> rsData = exception.getRsData();
+        assertEquals("500", rsData.getResultCode());
+        assertEquals("프로젝트 삭제 중 데이터베이스 오류가 발생했습니다.", rsData.getMessage());
+    }
+
+
 }
