@@ -27,4 +27,5 @@ public class ProjectDetailResponse {
     private List<String> skills;
     private List<String> tools;
 
+    private boolean isDeleted;
 }
