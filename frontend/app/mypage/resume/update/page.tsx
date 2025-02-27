@@ -133,6 +133,21 @@ export default function ResumeUpdatePage() {
         if (!response.ok) {
           throw new Error('이력서 데이터를 불러오는데 실패했습니다.');
         }
+        const calculateAge = (birthDateString: string): number => {
+          const birthDate = new Date(birthDateString);
+          const today = new Date();
+          
+          let age = today.getFullYear() - birthDate.getFullYear();
+          const isBeforeBirthday = 
+            today.getMonth() < birthDate.getMonth() || 
+            (today.getMonth() === birthDate.getMonth() && today.getDate() < birthDate.getDate());
+        
+          if (isBeforeBirthday) {
+            age--;
+          }
+        
+          return age;
+        };
         const skillsResponse = await fetch('http://localhost:8080/api/v1/user/resume/skills', {
           headers: {
             'Authorization': `Bearer ${accessToken}`,
@@ -443,7 +458,7 @@ export default function ResumeUpdatePage() {
         </div>
 
         <div className="mb-4">
-          <label htmlFor="birth" className="block text-sm font-medium">생년월일</label>
+        <p>생년월일: {formatDate(resumeData.birth)} (만 {calculateAge(resumeData.birth)}세)</p>
           <input
             type="date"
             id="birth"
