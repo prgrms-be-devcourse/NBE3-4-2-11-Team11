@@ -27,18 +27,32 @@ export default function LoginPage() {
         providerName = "구글";
     }
 
-    const handleLogin = (provider: string) => {
+//     const handleLogin = (provider: string) => {
+//         setLoading(true);
+//
+//         if (provider === "NAVER") {
+//             window.location.href = NAVER_AUTH_URL;
+//         } else if (provider === "ADMIN") {
+//             window.location.href = "/api/v1/admin/login"; // ✅ 관리자 로그인 요청을 보낼 URL
+//         } else {
+//             window.location.href = `/api/v1/user/${provider}/login`; // 일반 OAuth 로그인 요청
+//         }
+//     };
+    const handleLogin = async (provider: string) => {
         setLoading(true);
 
         if (provider === "NAVER") {
             window.location.href = NAVER_AUTH_URL;
         } else if (provider === "ADMIN") {
-            window.location.href = "/api/v1/admin/login"; // ✅ 관리자 로그인 요청을 보낼 URL
+            window.location.href = "/api/v1/admin/login"; // ✅ 관리자 로그인 요청
         } else {
-            window.location.href = `/api/v1/user/${provider}/login`; // 일반 OAuth 로그인 요청
+            // ✅ 일반 OAuth 로그인 요청
+            window.location.href = `/api/v1/user/${provider}/login`;
+
+            // ✅ 로그인 성공 후 role을 "user"로 저장
+            await login("user");
         }
     };
-
     useEffect(() => {
         // ✅ 마지막 로그인했던 플랫폼 가져오기
         const fetchLastLoginProvider = async () => {

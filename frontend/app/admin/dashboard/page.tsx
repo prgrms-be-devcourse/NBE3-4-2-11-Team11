@@ -31,16 +31,32 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleLogout = async () => {
-    try {
-      await api.post("/admin/logout");
-    } catch (error) {
-      console.error("로그아웃 API 호출 실패:", error);
-    } finally {
-      logout();
-      router.push("/login");
-    }
-  };
+//   const handleLogout = async () => {
+//     try {
+//       await api.post("/admin/logout");
+//     } catch (error) {
+//       console.error("로그아웃 API 호출 실패:", error);
+//     } finally {
+//       logout();
+//       router.push("/login");
+//     }
+//   };
+    const handleLogout = async () => {
+      try {
+        await api.post("/admin/logout");
+      } catch (error) {
+        console.error("로그아웃 API 호출 실패:", error);
+      } finally {
+        logout();
+        setAuthState(false);
+
+        setTimeout(() => {
+          router.replace("/login"); // ✅ `replace` 사용하여 강제 이동
+        }, 50);
+      }
+    };
+
+
 
   if (isLoading) return <p>Loading...</p>;
   if (error) return <p>{error}</p>;

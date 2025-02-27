@@ -34,7 +34,9 @@ const Header = () => {
 
   const handleLogout = async () => {
     await logout();
-    setAuthState(false); // ✅ 상태 즉시 반영
+    router.replace("/login"); // ✅ 로그아웃 후 login 페이지로 이동
+
+//     setAuthState(false); // ✅ 상태 즉시 반영
   };
 
 
