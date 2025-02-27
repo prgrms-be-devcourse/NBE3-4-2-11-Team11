@@ -132,6 +132,21 @@ export default function ResumePage() {
     fetchResumeData();
   }, []);
 
+  const calculateAge = (birthDateString: string): number => {
+    const birthDate = new Date(birthDateString);
+    const today = new Date();
+    
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const isBeforeBirthday = 
+      today.getMonth() < birthDate.getMonth() || 
+      (today.getMonth() === birthDate.getMonth() && today.getDate() < birthDate.getDate());
+  
+    if (isBeforeBirthday) {
+      age--;
+    }
+  
+    return age;
+  };
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
     return date.toLocaleDateString('ko-KR', { 
@@ -179,7 +194,7 @@ export default function ResumePage() {
       <section className="personal-info mb-6">
         <h1 className="text-2xl font-bold mb-4">{resumeData.name}의 이력서</h1>
         <div className="grid grid-cols-2 gap-4">
-          <p>생년월일: {formatDate(resumeData.birth)}</p>
+          <p>생년월일: {formatDate(resumeData.birth)} (만 {calculateAge(resumeData.birth)}세)</p>
           <p>연락처: {resumeData.number}</p>
           <p>이메일: {resumeData.email}</p>
           <p>주소: {resumeData.address}</p>
