@@ -464,17 +464,22 @@ export default function ResumeUpdatePage() {
         </div>
 
         <div className="mb-4">
-          <label htmlFor="number" className="block text-sm font-medium">전화번호</label>
-          <input
-            type="tel"
-            id="number"
-            name="number"
-            value={formData.number}
-            onChange={handleChange}
-            required
-            className="w-full p-2 border border-gray-300 rounded"
-          />
-        </div>
+  <label htmlFor="number" className="block text-sm font-medium">전화번호</label>
+  <input
+    type="tel"
+    id="number"
+    name="number"
+    value={formData.number}
+    onChange={handleChange}
+    required
+    pattern="^(01[0-9])-([0-9]{3,4})-([0-9]{4})$"
+    title="전화번호는 010-1234-5678 형식으로 입력해주세요."
+    placeholder="010-1234-5678"
+    className="w-full p-2 border border-gray-300 rounded"
+  />
+</div>
+
+
 
         <div className="mb-4">
           <label htmlFor="email" className="block text-sm font-medium">이메일</label>
