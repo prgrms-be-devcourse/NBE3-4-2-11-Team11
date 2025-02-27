@@ -12,7 +12,6 @@ export async function GET(request: Request) {
       },
     });
     if (response.status === 400) {
-      console.log('[API] 이력서가 없습니다. 생성 페이지로 리디렉션합니다.');
       return NextResponse.json({ error: '이력서가 없습니다.', redirectTo: '/mypage/resume/create' }, { status: 400 });
     }
     if (!response.ok) {
@@ -23,11 +22,9 @@ export async function GET(request: Request) {
     if (!data.data) {
       return NextResponse.json({ error: '이력서가 없습니다.' }, { status: 404 });
     }
-    console.log('[API] 응답 데이터:', data); // 응답 데이터 확인용 로그
 
     return NextResponse.json(data);
   } catch (err) {
-    console.error('[API] 에러 발생:', err); // 콘솔에 에러 메시지 출력
     return NextResponse.json({ error: err instanceof Error ? err.message : '알 수 없는 오류' }, { status: 500 });
   }
 }
