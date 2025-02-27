@@ -177,8 +177,6 @@ export default function ResumePage() {
       if (!response.ok) {
         throw new Error('Failed to delete resume');
       }
-
-      alert('이력서가 삭제되었습니다.');
       window.location.href = 'http://localhost:3000/mypage/resume/create'; // 삭제 후 생성 페이지로 리디렉션
     } catch (err) {
       alert('삭제에 실패했습니다. 다시 시도해주세요.');
@@ -197,7 +195,7 @@ export default function ResumePage() {
           <p>생년월일: {formatDate(resumeData.birth)} (만 {calculateAge(resumeData.birth)}세)</p>
           <p>연락처: {resumeData.number}</p>
           <p>이메일: {resumeData.email}</p>
-          <p>주소: {resumeData.address}</p>
+          <p>주소: {resumeData.address} ({resumeData.addressDetail})</p>
           {resumeData.gitAddress && (
       <div>
         <p>GitHub: <a href={resumeData.gitAddress} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{resumeData.gitAddress}</a></p>

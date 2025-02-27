@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-
+import Postcode from "../../../../components/Postcode";
 interface Award {
   name: string;
   institution: string;
@@ -69,6 +69,7 @@ interface ResumeData {
   number: string;
   email: string;
   address: string;
+  addressDetail: string;
   gitAddress: string;
   blogAddress: string;
   activities: Activity[];
@@ -88,6 +89,7 @@ export default function ResumeUpdatePage() {
     number: '',
     email: '',
     address: '',
+    addressDetail: '',
     gitAddress: '',
     blogAddress: '',
     activities: [],
@@ -171,6 +173,12 @@ export default function ResumeUpdatePage() {
     setFormData((prevData) => ({
       ...prevData,
       [name]: value,
+    }));
+  };
+  const handleAddressComplete = (roadAddress: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      address: roadAddress, 
     }));
   };
   const handleSkillChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -482,17 +490,32 @@ export default function ResumeUpdatePage() {
         </div>
 
         <div className="mb-4">
-          <label htmlFor="address" className="block text-sm font-medium">주소</label>
-          <input
-            type="text"
-            id="address"
-            name="address"
-            value={formData.address}
-            onChange={handleChange}
-            required
-            className="w-full p-2 border border-gray-300 rounded"
-          />
-        </div>
+  <label htmlFor="address" className="block text-sm font-medium">주소</label>
+  <div className="flex gap-2">
+    <input
+      type="text"
+      id="address"
+      name="address"
+      value={formData.address}
+      readOnly
+      required
+      className="w-1/2 p-2 border border-gray-300 rounded bg-gray-100 cursor-not-allowed"
+    />
+    <input
+      type="text"
+      id="addressDetail"
+      name="addressDetail"
+      value={formData.addressDetail}
+      onChange={handleChange}
+      required
+      className="w-1/2 p-2 border border-gray-300 rounded"
+      placeholder="상세 주소 입력"
+    />
+    <Postcode onComplete={handleAddressComplete} />
+  </div>
+</div>
+
+
 
         <div className="mb-4">
           <label htmlFor="gitAddress" className="block text-sm font-medium">GitHub 주소</label>
