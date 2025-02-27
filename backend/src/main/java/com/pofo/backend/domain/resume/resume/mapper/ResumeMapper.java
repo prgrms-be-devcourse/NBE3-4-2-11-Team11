@@ -25,6 +25,7 @@ import org.mapstruct.Mapping;
 public interface ResumeMapper {
     @Mapping(target = "skills", expression = "java(mapSkills(resume))")
     @Mapping(target = "tools", expression = "java(mapTools(resume))")
+    @Mapping(target = "addressDetail", source = "resume.addressDetail")
     ResumeResponse resumeToResumeResponse(Resume resume);
 
     default Set<SkillResponse> mapSkills(Resume resume) {
