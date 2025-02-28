@@ -1,69 +1,59 @@
+
 // /utils/api.ts
-import axios, { AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from "axios";
-import { getAccessToken, getRefreshToken, setTokens, removeTokens, isAccessTokenExpired } from "./token";
+
+import axios, { type AxiosResponse, type InternalAxiosRequestConfig } from "axios";
 import { useAuthStore } from "../store/authStore";
+
+// ✅ Refresh Token 응답 타입 정의
+export interface RefreshTokenResponse {
+    accessToken: string;
+    refreshToken: string;
+}
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
 
 const api = axios.create({
     baseURL: API_URL,
+    withCredentials: true, // ✅ 모든 요청에 자동으로 쿠키 포함
 });
 
 // ✅ 요청 인터셉터: Access Token 만료 시 자동으로 Refresh Token 요청
 api.interceptors.request.use(
-    async (config: InternalAxiosRequestConfig<any>) => {
-        let token = getAccessToken();
-
-        if (isAccessTokenExpired()) {  // ✅ Access Token 만료 여부 체크
-            console.warn("🔄 Access Token 만료 감지 → Refresh Token 요청 실행");
-            const refreshed = await useAuthStore.getState().refreshAccessToken();
-            if (!refreshed) {
-                console.error("❌ Access Token 갱신 실패 → 요청 중단");
-                return Promise.reject(new Error("Access Token 갱신 실패"));
-            }
-            token = getAccessToken(); // ✅ 갱신된 토큰 가져오기
-        }
-
-        if (token && config.headers) {
-            config.headers["Authorization"] = `Bearer ${token}`;
-        }
-        return config;
+    async (config: InternalAxiosRequestConfig) => {
+        return config; // ✅ 쿠키 기반 인증이므로 별도 토큰 추가 필요 없음
     },
+
     (error) => Promise.reject(error)
 );
 
 // ✅ 응답 인터셉터: 401 또는 403 응답 시 Refresh Token으로 재요청
 api.interceptors.response.use(
-    async (response: AxiosResponse<any, any>) => response,
+    async (response: AxiosResponse) => response,
     async (error) => {
         const originalRequest = error.config;
         if (!originalRequest) {
             return Promise.reject(error);
         }
 
-        if (error.response?.status === 401 && !originalRequest._retry) {  // ✅ 401 에러 감지
-            originalRequest._retry = true; // ✅ 재요청 방지 플래그 추가
-            const refreshToken: string | null = getRefreshToken();
-            if (refreshToken) {
-                try {
-                    // ✅ RefreshToken을 사용하여 새로운 AccessToken 요청
-                    const refreshResponse = await axios.post(
-                        `${API_URL}/auth/refresh-token`,
-                        { refreshToken },
-                        { headers: { "Content-Type": "application/json" } }
-                    );
+        if (error.response?.status === 401 && !originalRequest._retry) {
+            originalRequest._retry = true;
 
-                    const { accessToken, refreshToken: newRefreshToken } = refreshResponse.data;
-                    setTokens(accessToken, newRefreshToken);
+            const { refreshAccessToken, login, logout } = useAuthStore.getState();
+            const refreshed = await refreshAccessToken();
 
-                    // ✅ 새 AccessToken으로 요청 다시 보내기
-                    originalRequest.headers["Authorization"] = `Bearer ${accessToken}`;
-                    return api(originalRequest);
-                } catch (refreshError) {
-                    console.error("❌ RefreshToken 갱신 실패:", refreshError);
-                    removeTokens();
-                    return Promise.reject(refreshError);
-                }
+            if (refreshed) {
+                console.log("✅ Refresh Token으로 Access Token 갱신 성공, 요청 재시도");
+                login(); // ✅ 로그인 상태 업데이트
+
+                // ✅ 기존 요청을 재시도, withCredentials 유지
+                return api({
+                    ...originalRequest,
+                    withCredentials: true, // ✅ 쿠키 포함 유지
+                });
+            } else {
+                console.error("❌ Refresh Token 갱신 실패 → 로그아웃 처리");
+                logout(); // ✅ 로그아웃 상태로 전환
+                return Promise.reject(error);
             }
         }
 
@@ -72,3 +62,4 @@ api.interceptors.response.use(
 );
 
 export default api;
+

@@ -1,26 +1,29 @@
 package com.pofo.backend.domain.skill.entity;
 
 import com.pofo.backend.common.jpa.entity.BaseEntity;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Builder
 @Entity
-@AllArgsConstructor
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name="skills")
 @Getter
-@Setter
 public class Skill extends BaseEntity {
 
-    @Column(nullable = false)
-    private String skill;
+    @Column(nullable = false ,  unique = true)
+    private String name;
+    @OneToMany(mappedBy = "skill", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ResumeSkill> resumeSkills = new ArrayList<>();
+    @OneToMany(mappedBy = "skill", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProjectSkill> projectSkills = new ArrayList<>();
 
-
-    public Skill(long id, String skill) {
-        super();
-        this.skill = skill;
+    //테스트 코드에서 사용 가능한 public한 생성자 추가
+    public Skill(String name){
+        this.name = name;
     }
 }

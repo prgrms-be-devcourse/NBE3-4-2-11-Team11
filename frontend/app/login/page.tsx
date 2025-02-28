@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import {useEffect, useState} from "react";
 import Link from "next/link";
 import {useSearchParams} from "next/navigation";
 
 export default function LoginPage() {
     const [loading, setLoading] = useState(false);
+    //const [lastLoginProvider, setLastLoginProvider] = useState<string | null>(null); // ✅ 상태 추가
+    const [lastLoginProvider, setLastLoginProvider] = useState("NULL"); // ✅ 상태 추가
     const searchParams = useSearchParams();
     const error = searchParams.get("error");
     const provider = searchParams.get("provider")?.toUpperCase() ;
@@ -14,6 +16,16 @@ export default function LoginPage() {
     const NAVER_CLIENT_ID  = process.env.NEXT_PUBLIC_CLIENT_ID;
     const NAVER_REDIRECT_URI = process.env.NEXT_PUBLIC_REDIRECT_URI;
     const NAVER_AUTH_URL = `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${NAVER_CLIENT_ID}&redirect_uri=${NAVER_REDIRECT_URI}&state=12345`;
+
+    let providerName = "";
+
+    if (lastLoginProvider  === "NAVER") {
+        providerName = "네이버";
+    } else if (lastLoginProvider  === "KAKAO") {
+        providerName = "카카오";
+    } else if (lastLoginProvider  === "GOOGLE") {
+        providerName = "구글";
+    }
 
     const handleLogin = (provider: string) => {
         setLoading(true);
@@ -26,6 +38,26 @@ export default function LoginPage() {
             window.location.href = `/api/v1/user/${provider}/login`; // 일반 OAuth 로그인 요청
         }
     };
+
+    useEffect(() => {
+        // ✅ 마지막 로그인했던 플랫폼 가져오기
+        const fetchLastLoginProvider = async () => {
+            try {
+                const response = await fetch("/api/v1/user/last-login-provider", {
+                    method: "GET",
+                    credentials: "include", // ✅ 쿠키 포함 요청
+                });
+                const data = await response.json();
+
+                setLastLoginProvider(data.lastLoginProvider);
+
+            } catch (error) {
+                console.error("❌ 마지막 로그인 제공자 정보를 가져오지 못함:", error);
+            }
+        };
+
+        fetchLastLoginProvider();
+    }, []);
 
 
     return (
@@ -40,6 +72,23 @@ export default function LoginPage() {
                     : `${provider} 로그인 중 오류가 발생했습니다.`}
                 </div>
             )}
+
+            {/* ✅ 마지막 로그인 플랫폼 안내 메시지 추가 */}
+            {lastLoginProvider !== "NONE" && (
+                <>
+                    <p className="mb-2 text-gray-700">📝 마지막으로 {providerName} 계정으로 로그인했어요!</p>
+                    <button
+                        onClick={() => handleLogin(lastLoginProvider.toLowerCase())}
+                        disabled={loading}
+                        className="bg-blue-500 text-white px-6 py-3 rounded-lg shadow-md hover:bg-blue-600 mb-4 w-64"
+                    >
+                        {loading ? "로그인 중..." : `${providerName} 계정으로 빠른 로그인`}
+                    </button>
+                    <hr className="my-6 border-t border-gray-600 w-64" />
+                </>
+            )}
+
+            {/* 일반 로그인 버튼들 (기존 방식 유지) */}
 
             <button
                 onClick={() => handleLogin("naver")}

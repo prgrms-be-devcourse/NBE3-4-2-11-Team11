@@ -13,6 +13,8 @@ import com.pofo.backend.domain.resume.resume.exception.ResumeCreationException;
 import com.pofo.backend.domain.resume.resume.exception.UnauthorizedActionException;
 import com.pofo.backend.domain.resume.resume.mapper.ResumeMapper;
 import com.pofo.backend.domain.resume.resume.repository.ResumeRepository;
+import com.pofo.backend.domain.skill.service.ResumeSkillService;
+import com.pofo.backend.domain.tool.service.ResumeToolService;
 import com.pofo.backend.domain.user.join.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataAccessException;
@@ -31,6 +33,8 @@ public class ResumeService {
     private final LicenseService licenseService;
     private final LanguageService languageService;
     private final ResumeMapper resumeMapper;
+    private final ResumeSkillService resumeSkillService;
+    private final ResumeToolService resumeToolService;
 
     @Transactional
     public Resume createResume(ResumeCreateRequest request, User user) {
@@ -46,9 +50,9 @@ public class ResumeService {
         if (resume.getId() != null && !resume.getUser().equals(user)) {
             throw new UnauthorizedActionException("다른 사용자의 이력서를 수정할 수 없습니다.");
         }
+        resumeRepository.delete(resume);
 
-        updateResumeFields(resume, request);
-        return saveResumeAndRelatedEntities(resume, request);
+        return createResume(request, user);
     }
 
     @Transactional
@@ -105,18 +109,12 @@ public class ResumeService {
         if (request.getLanguages() != null) {
             languageService.updateLanguages(resume.getId(), request.getLanguages());
         }
-    }
-
-    private void updateResumeFields(Resume resume, ResumeCreateRequest request) {
-        resume.toBuilder()
-            .name(request.getName())
-            .birth(request.getBirth())
-            .number(request.getNumber())
-            .email(request.getEmail())
-            .address(request.getAddress())
-            .gitAddress(request.getGitAddress())
-            .blogAddress(request.getBlogAddress())
-            .build();
+        if (request.getSkills() != null) {
+            resumeSkillService.updateSkills(resume.getId(), request.getSkills());
+        }
+        if (request.getTools() != null) {
+            resumeToolService.updateTools(resume.getId(), request.getTools());
+        }
     }
 
     @Transactional(readOnly = true)

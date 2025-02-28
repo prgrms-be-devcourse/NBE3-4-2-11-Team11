@@ -2,13 +2,11 @@
 
 import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useAuthStore } from "@/store/authStore"; // ✅ Zustand 스토어 사용
+import {refreshAccessToken} from "@/utils/token"; // ✅ Access Token 갱신 함수 사용
 
 export default function OAuthCallback() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const { login } = useAuthStore();
-    let provider = searchParams.get("provider");
 
     useEffect(() => {
         const provider = searchParams.get("provider")?.toUpperCase();
@@ -41,17 +39,23 @@ export default function OAuthCallback() {
                 }
 
                 const data = await response.json();
-                console.log(`✅ ${provider} 로그인 성공`, data);
 
                 if (data.resultCode === "200") {
-                    if (data.data.token) {
-                        login(data.data.token,data.data.refreshToken);  // ✅ Zustand에 로그인 상태 반영
-                        router.push("/");
 
+                    console.log(`✅ ${provider} 로그인 성공, AccessToken 쿠키 저장 완료`);
+
+                    // ✅ AccessToken, RefreshToken은 쿠키에 저장되므로 별도 저장 불필요
+                    const success = await refreshAccessToken();  //  자동 갱신 트리거
+
+
+                    if (success) {
+                        console.log("✅ Access Token 자동 갱신 성공, 메인 페이지로 이동");
+                        router.push("/");
                     } else {
-                        console.error("❌ JWT 토큰이 없습니다.");
+                        console.warn("⚠️ Access Token 자동 갱신 실패, 로그인 페이지로 이동");
                         router.push("/login");
                     }
+
                 } else if (data.resultCode === "201") {
                     console.log(`📌 ${provider} 로그인 후 회원가입 필요`, data);
                     if (!data.data?.email || !data.data?.identify) {

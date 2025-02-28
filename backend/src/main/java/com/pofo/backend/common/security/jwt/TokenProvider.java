@@ -9,6 +9,7 @@ import com.pofo.backend.domain.user.join.entity.User;
 import com.pofo.backend.domain.user.join.repository.UserRepository;
 import io.jsonwebtoken.*;
 import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,6 +19,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -43,6 +45,9 @@ public class TokenProvider {
 
     @Value("${jwt.refresh-token.expiration-time}")
     private Long refreshTokenValidationTime;
+
+    private static final String AUTH_HEADER = "Authorization";
+    private static final String TOKEN_PREFIX = "Bearer ";
 
     private SecretKey key;
     private final AdminDetailsService adminDetailsService;
@@ -285,5 +290,16 @@ public class TokenProvider {
     public long getTokenExpirationTime(String token) {
         Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
         return claims.getExpiration().getTime() - System.currentTimeMillis();
+    }
+
+    // ✅ HTTP 요청에서 Access Token을 추출
+    public static String extractAccessTokenFromRequest(HttpServletRequest request) {
+        String authorizationHeader = request.getHeader(AUTH_HEADER);
+
+        if (StringUtils.hasText(authorizationHeader) && authorizationHeader.startsWith(TOKEN_PREFIX)) {
+            return authorizationHeader.substring(TOKEN_PREFIX.length());
+        }
+
+        return null; // ✅ Access Token이 없으면 null 반환
     }
 }
