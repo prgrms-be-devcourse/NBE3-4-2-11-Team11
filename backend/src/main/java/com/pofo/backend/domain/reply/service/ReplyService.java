@@ -91,6 +91,12 @@ public class ReplyService {
     }
 
     @Transactional(readOnly = true)
+    public ReplyDetailResponse findByInquiryId(Long inquiryId) {
+        Reply reply = replyRepository.findByInquiryId(inquiryId).orElseThrow(() -> new ReplyException("답변을 찾을 수 없습니다."));
+        return new ReplyDetailResponse(reply.getId(), reply.getContent());
+    }
+
+    @Transactional(readOnly = true)
     public ReplyDetailResponse findById(Long id) {
 
         Reply reply = this.replyRepository.findById(id)

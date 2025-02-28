@@ -50,3 +50,9 @@ coverage/
 # ✅ 기타 로그 파일
 *.log
 
+
+# frontend/.gitignore
+../backend/*
+
+node_modules/
+

@@ -1,64 +1,65 @@
-// /utils/api.ts
-import axios, { AxiosError, AxiosRequestConfig } from 'axios';
-import { getAccessToken, getRefreshToken, setTokens, removeTokens } from './token';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
+// /utils/api.ts
+
+import axios, { type AxiosResponse, type InternalAxiosRequestConfig } from "axios";
+import { useAuthStore } from "../store/authStore";
+
+// ✅ Refresh Token 응답 타입 정의
+export interface RefreshTokenResponse {
+    accessToken: string;
+    refreshToken: string;
+}
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
 
 const api = axios.create({
-  baseURL: API_URL,
+    baseURL: API_URL,
+    withCredentials: true, // ✅ 모든 요청에 자동으로 쿠키 포함
 });
 
-// 요청 인터셉터: localStorage에 저장된 Access Token을 헤더에 자동 첨부
+// ✅ 요청 인터셉터: Access Token 만료 시 자동으로 Refresh Token 요청
 api.interceptors.request.use(
-  (config: AxiosRequestConfig) => {
-    const token = getAccessToken();
-    if (token && config.headers) {
-      config.headers['Authorization'] = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
+    async (config: InternalAxiosRequestConfig) => {
+        return config; // ✅ 쿠키 기반 인증이므로 별도 토큰 추가 필요 없음
+    },
+
+    (error) => Promise.reject(error)
 );
 
-// 응답 인터셉터: 401 또는 403 에러 발생 시 Refresh Token으로 토큰 갱신 후 원래 요청 재시도
+// ✅ 응답 인터셉터: 401 또는 403 응답 시 Refresh Token으로 재요청
 api.interceptors.response.use(
-  (response) => response,
-  async (error: AxiosError) => {
-    const originalRequest = error.config;
-    if (
-      (error.response?.status === 401 || error.response?.status === 403) &&
-      !originalRequest._retry
-    ) {
-      originalRequest._retry = true;
-      const refreshToken = getRefreshToken();
-      if (refreshToken) {
-        try {
-          const refreshResponse = await axios.post(
-            `${API_URL}/admin/refresh-token`,
-            null,
-            { headers: { 'Refresh-Token': refreshToken } }
-          );
-          const { accessToken, refreshToken: newRefreshToken } = refreshResponse.data.data;
-          setTokens(accessToken, newRefreshToken);
-          originalRequest.headers = originalRequest.headers || {};
-          originalRequest.headers['Authorization'] = `Bearer ${accessToken}`;
-          return axios(originalRequest);
-        } catch (refreshError) {
-          removeTokens();
-          if (typeof window !== 'undefined') {
-            window.location.href = '/admin/login';
-          }
-          return Promise.reject(refreshError);
+    async (response: AxiosResponse) => response,
+    async (error) => {
+        const originalRequest = error.config;
+        if (!originalRequest) {
+            return Promise.reject(error);
         }
-      } else {
-        removeTokens();
-        if (typeof window !== 'undefined') {
-          window.location.href = '/admin/login';
+
+        if (error.response?.status === 401 && !originalRequest._retry) {
+            originalRequest._retry = true;
+
+            const { refreshAccessToken, login, logout } = useAuthStore.getState();
+            const refreshed = await refreshAccessToken();
+
+            if (refreshed) {
+                console.log("✅ Refresh Token으로 Access Token 갱신 성공, 요청 재시도");
+                login(); // ✅ 로그인 상태 업데이트
+
+                // ✅ 기존 요청을 재시도, withCredentials 유지
+                return api({
+                    ...originalRequest,
+                    withCredentials: true, // ✅ 쿠키 포함 유지
+                });
+            } else {
+                console.error("❌ Refresh Token 갱신 실패 → 로그아웃 처리");
+                logout(); // ✅ 로그아웃 상태로 전환
+                return Promise.reject(error);
+            }
         }
-      }
+
+        return Promise.reject(error);
     }
-    return Promise.reject(error);
-  }
 );
 
 export default api;
+

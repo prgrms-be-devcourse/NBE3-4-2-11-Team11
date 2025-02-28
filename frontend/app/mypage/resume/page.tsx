@@ -147,6 +147,7 @@ export default function ResumePage() {
   
     return age;
   };
+
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
     return date.toLocaleDateString('ko-KR', { 
@@ -196,6 +197,7 @@ export default function ResumePage() {
           <p>연락처: {resumeData.number}</p>
           <p>이메일: {resumeData.email}</p>
           <p>주소: {resumeData.address} ({resumeData.addressDetail})</p>
+
           {resumeData.gitAddress && (
       <div>
         <p>GitHub: <a href={resumeData.gitAddress} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{resumeData.gitAddress}</a></p>

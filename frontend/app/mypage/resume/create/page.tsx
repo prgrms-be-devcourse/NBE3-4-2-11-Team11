@@ -4,6 +4,7 @@ import React, { useState, useEffect} from 'react';
 import { PlusCircle, MinusCircle } from "lucide-react";
 import Postcode from "../../../../components/Postcode";
 
+
 interface Skill {
     id: number;
     name: string;
@@ -80,6 +81,7 @@ interface ResumeData {
   email: string;
   address: string;
   addressDetail: string;
+
   gitAddress: string;
   blogAddress: string;
   activities: Activity[];
@@ -100,6 +102,7 @@ export default function ResumeCreatePage() {
     email: '',
     address: '',
     addressDetail: '',
+
     gitAddress: '',
     blogAddress: '',
     activities: [],
@@ -166,6 +169,7 @@ export default function ResumeCreatePage() {
       address: roadAddress, 
     }));
   };
+
   const handleSkillChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
       const selectedId = Number(event.target.value);
       const selectedSkill = skillOptions.find(skill => skill.id === selectedId);
@@ -374,6 +378,7 @@ export default function ResumeCreatePage() {
     if (!formData.address) {
       alert("주소와 상세 주소를 모두 입력해주세요.");
     }
+
     const accessToken = localStorage.getItem('accessToken');
     if (!accessToken) {
       alert('로그인이 필요합니다.');
@@ -456,6 +461,7 @@ export default function ResumeCreatePage() {
   />
 </div>
 
+
         <div className="mb-4">
           <label htmlFor="email" className="block text-sm font-medium">이메일</label>
           <input
@@ -494,6 +500,7 @@ export default function ResumeCreatePage() {
     <Postcode onComplete={handleAddressComplete} />
   </div>
 </div>
+
 
         <div className="mb-4">
           <label htmlFor="gitAddress" className="block text-sm font-medium">GitHub 주소</label>
@@ -1076,3 +1083,4 @@ export default function ResumeCreatePage() {
     </div>
   );
 }
+

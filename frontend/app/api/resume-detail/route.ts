@@ -22,9 +22,9 @@ export async function GET(request: Request) {
     if (!data.data) {
       return NextResponse.json({ error: '이력서가 없습니다.' }, { status: 404 });
     }
-
     return NextResponse.json(data);
   } catch (err) {
+
     return NextResponse.json({ error: err instanceof Error ? err.message : '알 수 없는 오류' }, { status: 500 });
   }
 }

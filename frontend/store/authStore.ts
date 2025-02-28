@@ -1,68 +1,102 @@
 import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
 
 type AuthState = {
     isLoggedIn: boolean;
-    login: (token: string) => void;
-    logout: () => void;
+    login: () => Promise<void>;
+    logout: () => Promise<void>;
+    refreshAccessToken: () => Promise<boolean>;
+    checkAuthStatus: () => Promise<void>;
 };
 
 export const useAuthStore = create<AuthState>()(
-    persist(
-        (set) => ({
-            isLoggedIn: false,
+    (set, get) => ({
+        isLoggedIn: false,
 
-            login: (token) => {
+        login: async () => {
+            set({ isLoggedIn: true });
+
+            await get().checkAuthStatus(); // ✅ 서버 상태 확인
+
+            if (typeof window !== "undefined") {
+                localStorage.setItem("isLoggedIn", "true");
+                window.dispatchEvent(new Event("authChange")); // ✅ 커스텀 이벤트 발생
+            }
+        },
+
+        logout: async () => {
+            if (typeof window === "undefined") return;
+
+            try {
+                await fetch("/api/v1/user/logout", {
+                    method: "POST",
+                    credentials: "include",
+                });
+            } catch (error) {
+                console.error("로그아웃 API 호출 실패:", error);
+            } finally {
+                set({ isLoggedIn: false });
+
                 if (typeof window !== "undefined") {
-                    localStorage.setItem("accessToken", token);
+                    localStorage.removeItem("isLoggedIn");
+                    window.dispatchEvent(new Event("authChange")); // ✅ 커스텀 이벤트 발생
                 }
-                set({ isLoggedIn: true });
-            },
+            }
+        },
 
-            logout: async () => {
-                if (typeof window === "undefined") return;
+        refreshAccessToken: async () => {
+            try {
+                const response = await fetch("/api/v1/token/refresh", {
+                    method: "POST",
+                    credentials: "include",
+                });
 
-                const accessToken = localStorage.getItem("accessToken");
-                if (!accessToken) {
-                    console.warn("❌ 로그아웃 요청 실패: 저장된 accessToken 없음");
-                    set({ isLoggedIn: false });
+                if (!response.ok) {
+                    console.warn("❌ Refresh Token 만료됨, 로그아웃 진행");
+                    get().logout(); // ✅ 실패 시 로그아웃 실행
+                    return false;
+                }
+
+                console.log("✅ Access Token 갱신 완료");
+
+                // ✅ 갱신 후 로그인 상태 재확인 (불필요한 상태 변경 방지)
+                await get().checkAuthStatus();
+                return true;
+
+            } catch (error) {
+                console.error("❌ Access Token 갱신 실패:", error);
+                return false;
+            }
+        },
+
+        checkAuthStatus: async () => {
+            try {
+                const response = await fetch("/api/v1/auth/status", {
+                    method: "GET",
+                    credentials: "include",
+                });
+
+                if (!response.ok) {
+                    console.warn("❌ 로그인 상태 확인 실패, 로그아웃 처리");
                     return;
                 }
 
-                try {
-                    // ✅ 백엔드 로그아웃 API 호출 (토큰을 블랙리스트에 등록)
-                    const response = await fetch("/api/v1/user/logout", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            Authorization: `Bearer ${accessToken}`,
-                        },
-                        body: JSON.stringify({ token: accessToken })
-                    });
+                const data = await response.json();
 
-                    if (!response.ok) {
-                        throw new Error("❌ 로그아웃 API 요청 실패");
-                    }
-
-                    console.log("✅ 로그아웃 성공: 백엔드 블랙리스트 등록 완료");
-
-                    // ✅ Local Storage에서 토큰 삭제
-                    localStorage.removeItem("accessToken");
-                    localStorage.removeItem("refreshToken");
-
-                    // ✅ 로그인 상태 변경
-                    set({ isLoggedIn: false });
-
-                } catch (error) {
-                    console.error("❌ 로그아웃 실패:", error);
+                // ✅ 상태가 변경될 때만 `set()` 실행 (불필요한 UI 리렌더링 방지)
+                if (get().isLoggedIn !== data.isLoggedIn) {
+                    set({ isLoggedIn: data.isLoggedIn });
                 }
-            },
-        }),
-        {
-            name: "auth-storage", // localStorage에 저장될 키 이름
-            storage: typeof window !== "undefined"
-                ? createJSONStorage(() => localStorage)
-                : undefined, // 서버 환경에서는 localStorage 사용 X
-        }
-    )
+
+                if (typeof window !== "undefined") {
+                    localStorage.setItem("isLoggedIn", data.isLoggedIn ? "true" : "false");
+                    window.dispatchEvent(new Event("authChange")); // ✅ 커스텀 이벤트 발생
+                }
+
+            } catch (error) {
+                console.error("❌ 로그인 상태 확인 중 오류 발생:", error);
+                set({ isLoggedIn: false });
+                localStorage.removeItem("isLoggedIn");
+            }
+        },
+    })
 );
