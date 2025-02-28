@@ -31,14 +31,11 @@ public class TokenRefreshController {
 
     @PostMapping("/refresh")
     public ResponseEntity<RsData<TokenDto>> refreshToken(HttpServletRequest request,  HttpServletResponse response) {
-        log.info("토큰 재발급 시작");
 
         String  refreshToken = extractRefreshTokenFromCookies(request);
-        log.info("🔍 쿠키에서 Refresh Token 가져옴: {}", refreshToken);
 
         // Refresh Token 유효성 검사
         if (refreshToken == null || refreshToken.isEmpty() || !tokenProvider.validateToken(refreshToken)) {
-            log.warn("❌ Refresh Token이 유효하지 않음.");
             return ResponseEntity.status(401).body(
                     new RsData<>("401", "Refresh Token이 유효하지 않음",
                             TokenDto.builder()
@@ -55,14 +52,12 @@ public class TokenRefreshController {
         // 토큰에서 인증 정보 획득 (관리자/일반 사용자를 구분하여 조회)
         Authentication authentication = tokenProvider.getAuthenticationFromRefreshToken(refreshToken);
         if (authentication == null) {
-            log.warn("❌ 인증 정보를 가져올 수 없음.");
             return ResponseEntity.status(401)
                     .body(new RsData<>("401", "인증 정보를 가져올 수 없음", null));
         }
 
         // 새 Access Token 발급
         String newAccessToken = tokenProvider.generateAccessToken(authentication);
-        log.info("✅ 새로운 Access Token 발급 완료: {}", newAccessToken);
 
         // ✅ Set-Cookie로 새로운 accessCookie 설정
 //        response.addHeader("Set-Cookie", "accessCookie=" + newAccessToken + "; Path=/; HttpOnly; Secure; SameSite=None");
@@ -91,18 +86,15 @@ public class TokenRefreshController {
     private String extractRefreshTokenFromCookies(HttpServletRequest request) {
         Cookie[] cookies = request.getCookies();
         if (cookies == null) {
-            log.warn("⚠️ 쿠키가 존재하지 않음.");
             return null;
         }
 
         for (Cookie cookie : cookies) {
             if (cookie.getName().equals("refreshCookie")) {
-                log.info("🔍 쿠키에서 Refresh Token 가져옴: {}", cookie.getValue());
                 return cookie.getValue();
             }
         }
 
-        log.warn("⚠️ Refresh Token 쿠키를 찾을 수 없음.");
         return null;
     }
 

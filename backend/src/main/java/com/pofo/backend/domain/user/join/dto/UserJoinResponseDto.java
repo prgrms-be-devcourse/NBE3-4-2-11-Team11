@@ -7,5 +7,6 @@ import lombok.Getter;
 @Builder
 public class UserJoinResponseDto {
     private final String message;
+    private final String email;
     private final String resultCode;
 }

@@ -11,4 +11,8 @@ public interface OauthRepository extends JpaRepository<Oauth, Long> {
     Optional<Oauth> findByProviderAndIdentify(Oauth.@NotNull(message = "provider 값이 없습니다. ") Provider provider, @NotNull(message = "identify 값이 필요합니다.") String identify);
 
     Optional<Oauth> findByUserAndProvider(User nowUser, Oauth.Provider provider);
+
+    Optional<Oauth> findByUser(User user);
+
+    Optional<Oauth> findByIdentifyAndProvider(String identify, Oauth.Provider provider);
 }

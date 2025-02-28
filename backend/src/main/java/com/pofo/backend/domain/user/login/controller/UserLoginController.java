@@ -91,7 +91,6 @@ public class UserLoginController {
         String storedState = (String) session.getAttribute("naver_state");
 
         if (storedState == null || !storedState.equals(state)) {
-            log.error(" 네이버 OAuth 실패 - 세션 state 불일치 | 요청 state: {} | 저장된 state: {}", state, storedState);
             session.removeAttribute("naver_state"); // 불일치 시 세션 값 제거
             throw new SocialLoginException("잘못된 접근입니다.");
         }
@@ -153,7 +152,6 @@ public class UserLoginController {
         String storedState = (String) session.getAttribute("kakao_state");
 
         if (storedState == null || !storedState.equals(state)) {
-            log.error(" 카카오 OAuth 실패 - 세션 state 불일치 | 요청 state: {} | 저장된 state: {}", state, storedState);
             session.removeAttribute("kakao_state"); // 불일치 시 세션 값 제거
             throw new SocialLoginException("잘못된 접근입니다.");
         }

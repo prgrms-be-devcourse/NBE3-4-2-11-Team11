@@ -24,7 +24,6 @@ public class AuthStatusController {
     public ResponseEntity<?> checkAuthStatus(@CookieValue(value = "accessCookie", required = false) String accessToken) {
 
         if (accessToken == null) {
-            //log.info("🚫 Access Token 없음 → 로그인 상태: false");
             return ResponseEntity.ok(Collections.singletonMap("isLoggedIn", false));
         }
 
@@ -32,11 +31,9 @@ public class AuthStatusController {
         boolean isValid = tokenProvider.validateToken(accessToken);
 
         if (!isValid) {
-            //log.warn("⚠️ Access Token이 유효하지 않음 → 로그인 상태: false");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Collections.singletonMap("isLoggedIn", false));
         }
 
-        //log.info("✅ 유효한 Access Token 확인 → 로그인 상태: true");
         return ResponseEntity.ok(Collections.singletonMap("isLoggedIn", true));
     }
 }

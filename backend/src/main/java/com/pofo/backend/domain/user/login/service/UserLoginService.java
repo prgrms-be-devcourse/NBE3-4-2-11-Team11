@@ -77,7 +77,6 @@ public class UserLoginService {
 
     public UserLoginResponseDto processNaverLogin(Oauth.Provider provider, String code, String state) {
         try {
-            log.info("🛠 네이버 로그인 처리 시작! code: {}, state: {}", code, state);
 
             // 1. 토큰 발급 : 네이버
             String naverAccessToken = getAccessToken(provider, code, state);
@@ -202,6 +201,26 @@ public class UserLoginService {
         String naverId = userInfo.getIdentify();
         String email = userInfo.getEmail();
 
+        // ✅ identify 기반으로 OAuth 계정 찾기
+        Optional<Oauth> existingOauthByIdentify = oauthRepository.findByIdentifyAndProvider(naverId, Oauth.Provider.NAVER);
+
+        if (existingOauthByIdentify.isPresent()) {
+            // ✅ 기존 OAuth 계정이 존재하면 로그인 성공 처리
+            User existingUser = existingOauthByIdentify.get().getUser();
+            TokenDto jwtToken = authenticateUser(existingUser);
+
+            return UserLoginResponseDto.builder()
+                    .message("로그인이 완료 되었습니다.")
+                    .resultCode("200")
+                    .provide(Oauth.Provider.KAKAO.name())
+                    .identify(naverId)
+                    .email(email)
+                    .username(existingUser.getName())
+                    .token(jwtToken.getAccessToken())
+                    .refreshToken(jwtToken.getRefreshToken())
+                    .build();
+        }
+
         // 이메일을 기반으로 기존 사용자(User) 조회
         Optional<User> existingUser = userRepository.findByEmail(email);
 
@@ -220,11 +239,9 @@ public class UserLoginService {
                         .build();
 
                 oauthRepository.save(newOauth);
-                log.info("🔗 Oauths 테이블에 네이버 로그인 정보 추가 - 이메일({})", email);
             }
 
             TokenDto jwtToken = authenticateUser(nowUser);
-            log.info("✅ 기존 회원: 이메일({}) - 로그인 완료", email);
 
             return UserLoginResponseDto.builder()
                     .message("로그인이 완료 되었습니다.")
@@ -250,7 +267,6 @@ public class UserLoginService {
 
     public UserLoginResponseDto processKakaoLogin(Oauth.Provider provider, String code, String state) {
         try {
-            log.info("🛠 카카오 로그인 처리 시작! code: {}, state: {}", code, state);
 
             // 1. 토큰 발급 : 카카오
             String kakaoAccessToken = getAccessToken(provider, code, state);
@@ -309,6 +325,26 @@ public class UserLoginService {
         String kakoId = userInfo.getIdentify();
         String email = userInfo.getEmail();
 
+        // ✅ identify 기반으로 OAuth 계정 찾기
+        Optional<Oauth> existingOauthByIdentify = oauthRepository.findByIdentifyAndProvider(kakoId, Oauth.Provider.KAKAO);
+
+        if (existingOauthByIdentify.isPresent()) {
+            // ✅ 기존 OAuth 계정이 존재하면 로그인 성공 처리
+            User existingUser = existingOauthByIdentify.get().getUser();
+            TokenDto jwtToken = authenticateUser(existingUser);
+
+            return UserLoginResponseDto.builder()
+                    .message("로그인이 완료 되었습니다.")
+                    .resultCode("200")
+                    .provide(Oauth.Provider.KAKAO.name())
+                    .identify(kakoId)
+                    .email(email)
+                    .username(existingUser.getName())
+                    .token(jwtToken.getAccessToken())
+                    .refreshToken(jwtToken.getRefreshToken())
+                    .build();
+        }
+
         // 이메일을 기반으로 기존 사용자(User) 조회
         Optional<User> existingUser = userRepository.findByEmail(email);
 
@@ -327,11 +363,9 @@ public class UserLoginService {
                         .build();
 
                 oauthRepository.save(newOauth);
-                log.info("🔗 Oauths 테이블에 카카오 로그인 정보 추가 - 이메일({})", email);
             }
 
             TokenDto jwtToken = authenticateUser(nowUser);
-            log.info("✅ 기존 회원: 이메일({}) - 로그인 완료", email);
 
             return UserLoginResponseDto.builder()
                     .message("로그인이 완료 되었습니다.")
@@ -356,7 +390,6 @@ public class UserLoginService {
 
     public UserLoginResponseDto processGoogleLogin(Oauth.Provider provider, String code) {
         try {
-            log.info("🛠 구글 로그인 처리 시작! code: {}, state: {}", code);
 
             // 1. 토큰 발급 : 구글
             String googleAccessToken = getAccessToken(provider, code, null);
@@ -420,6 +453,26 @@ public class UserLoginService {
         String googleId = userInfo.getIdentify();
         String email = userInfo.getEmail();
 
+        // ✅ identify 기반으로 OAuth 계정 찾기
+        Optional<Oauth> existingOauthByIdentify = oauthRepository.findByIdentifyAndProvider(googleId, Oauth.Provider.GOOGLE);
+
+        if (existingOauthByIdentify.isPresent()) {
+            // ✅ 기존 OAuth 계정이 존재하면 로그인 성공 처리
+            User existingUser = existingOauthByIdentify.get().getUser();
+            TokenDto jwtToken = authenticateUser(existingUser);
+
+            return UserLoginResponseDto.builder()
+                    .message("로그인이 완료 되었습니다.")
+                    .resultCode("200")
+                    .provide(Oauth.Provider.KAKAO.name())
+                    .identify(googleId)
+                    .email(email)
+                    .username(existingUser.getName())
+                    .token(jwtToken.getAccessToken())
+                    .refreshToken(jwtToken.getRefreshToken())
+                    .build();
+        }
+
         Optional<User> existingUser = userRepository.findByEmail(email);
 
         if (existingUser.isPresent()) {
@@ -435,11 +488,9 @@ public class UserLoginService {
                         .build();
 
                 oauthRepository.save(newOauth);
-                log.info("🔗 Oauths 테이블에 GOOGLE 로그인 정보 추가 - 이메일({})", email);
             }
 
             TokenDto jwtToken = authenticateUser(nowUser);
-            log.info("✅ 기존 회원: 이메일({}) - 로그인 완료", email);
 
             return UserLoginResponseDto.builder()
                     .message("로그인이 완료되었습니다.")
@@ -452,7 +503,6 @@ public class UserLoginService {
                     .refreshToken(jwtToken.getRefreshToken())
                     .build();
         } else {
-            log.info("🆕 신규 회원: 이메일({}) - 구글 로그인 최초 시도, 추가 정보 입력 필요", email);
             return UserLoginResponseDto.builder()
                     .message("소셜 로그인을 위한 구글 계정 등록이 완료되었습니다. 나머지 정보를 입력해 주세요.")
                     .resultCode("201")
@@ -475,9 +525,6 @@ public class UserLoginService {
         request.getSession().setAttribute("SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext());
 
         TokenDto jwtToken = tokenProvider.createToken(authentication);
-
-        log.info("✅ JWT Access Token: {}", jwtToken.getAccessToken());
-        log.info("✅ JWT Refresh Token: {}", jwtToken.getRefreshToken());
 
         return jwtToken;
     }
