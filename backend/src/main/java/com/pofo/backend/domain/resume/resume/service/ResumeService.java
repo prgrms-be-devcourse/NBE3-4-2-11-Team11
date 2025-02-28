@@ -75,6 +75,7 @@ public class ResumeService {
             .number(request.getNumber())
             .email(request.getEmail())
             .address(request.getAddress())
+            .addressDetail(request.getAddressDetail())
             .gitAddress(request.getGitAddress())
             .blogAddress(request.getBlogAddress())
             .build();
@@ -121,7 +122,8 @@ public class ResumeService {
     public ResumeResponse getResumeResponse(User user) {
         Resume resume = resumeRepository.findByUser(user)
             .orElseThrow(() -> new ResumeCreationException("이력서를 찾을 수 없습니다."));
+        ResumeResponse response = resumeMapper.resumeToResumeResponse(resume);
 
-        return resumeMapper.resumeToResumeResponse(resume);
+        return response;
     }
 }

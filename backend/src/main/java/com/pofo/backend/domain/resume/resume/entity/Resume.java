@@ -48,6 +48,8 @@ public class Resume extends BaseTime {
     private String email;
     @Column(nullable = false)
     private String address;
+    @Column(nullable = false)
+    private String addressDetail;
     private String gitAddress;
     private String blogAddress;
 

@@ -27,6 +27,8 @@ public class ResumeCreateRequest {
     private String email;
     @NotBlank
     private String address;
+    @NotBlank
+    private String addressDetail;
     private String gitAddress;
     private String blogAddress;
     private List<ActivityRequest> activities;
