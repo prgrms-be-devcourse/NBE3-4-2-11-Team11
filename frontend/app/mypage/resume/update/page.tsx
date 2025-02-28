@@ -467,7 +467,7 @@ export default function ResumeUpdatePage() {
         </div>
 
         <div className="mb-4">
-        <p>생년월일: {formatDate(resumeData.birth)} (만 {calculateAge(resumeData.birth)}세)</p>
+        <label htmlFor="birth" className="block text-sm font-medium">생년월일</label>
           <input
             type="date"
             id="birth"
