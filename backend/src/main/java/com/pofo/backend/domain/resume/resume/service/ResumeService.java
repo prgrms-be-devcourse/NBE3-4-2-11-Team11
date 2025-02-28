@@ -122,9 +122,7 @@ public class ResumeService {
     public ResumeResponse getResumeResponse(User user) {
         Resume resume = resumeRepository.findByUser(user)
             .orElseThrow(() -> new ResumeCreationException("이력서를 찾을 수 없습니다."));
-        System.out.println("상세 주소: " + resume.getAddressDetail());
         ResumeResponse response = resumeMapper.resumeToResumeResponse(resume);
-        System.out.println("Response 상세 주소: " + response.getAddressDetail()); // 여기도 null인지 확인
 
         return response;
     }
