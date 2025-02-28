@@ -295,4 +295,23 @@ public class TokenProvider {
 
         return null; // ✅ Access Token이 없으면 null 반환
     }
+
+
+    public String getRoleFromToken(String token) {
+        Claims claims = parseData(token);
+        if (claims == null) {
+            return null;
+        }
+        // 토큰에 저장된 권한 문자열(ex: "ROLE_ADMIN,ROLE_USER")을 읽어옵니다.
+        String authorities = claims.get(AUTHORIZATION_KEY, String.class);
+        if (authorities != null) {
+            if (authorities.contains("ROLE_ADMIN")) {
+                return "admin";
+            } else if (authorities.contains("ROLE_USER")) {
+                return "user";
+            }
+        }
+        return null;
+    }
+
 }

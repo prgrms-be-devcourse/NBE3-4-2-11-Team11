@@ -31,16 +31,6 @@ export default function AdminDashboard() {
     }
   };
 
-//   const handleLogout = async () => {
-//     try {
-//       await api.post("/admin/logout");
-//     } catch (error) {
-//       console.error("로그아웃 API 호출 실패:", error);
-//     } finally {
-//       logout();
-//       router.push("/login");
-//     }
-//   };
     const handleLogout = async () => {
       try {
         await api.post("/admin/logout");

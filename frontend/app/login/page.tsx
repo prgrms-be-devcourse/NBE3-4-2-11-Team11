@@ -33,17 +33,6 @@ export default function LoginPage() {
         providerName = "구글";
     }
 
-//     const handleLogin = (provider: string) => {
-//         setLoading(true);
-//
-//         if (provider === "NAVER") {
-//             window.location.href = NAVER_AUTH_URL;
-//         } else if (provider === "ADMIN") {
-//             window.location.href = "/api/v1/admin/login"; // ✅ 관리자 로그인 요청을 보낼 URL
-//         } else {
-//             window.location.href = `/api/v1/user/${provider}/login`; // 일반 OAuth 로그인 요청
-//         }
-//     };
     const handleLogin = async (provider: string) => {
         try {
             setLoading(true);

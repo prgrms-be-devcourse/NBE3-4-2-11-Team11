@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collections;
+import java.util.Map;
 
 @RestController
 @Slf4j
@@ -31,12 +32,16 @@ public class AuthStatusController {
         // ✅ Token 유효성 검증
         boolean isValid = tokenProvider.validateToken(accessToken);
 
+
+
         if (!isValid) {
-            //log.warn("⚠️ Access Token이 유효하지 않음 → 로그인 상태: false");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Collections.singletonMap("isLoggedIn", false));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("isLoggedIn", false, "role", null));
         }
 
-        //log.info("✅ 유효한 Access Token 확인 → 로그인 상태: true");
-        return ResponseEntity.ok(Collections.singletonMap("isLoggedIn", true));
+        // 토큰에서 역할 정보 추출
+        String role = tokenProvider.getRoleFromToken(accessToken);
+
+        return ResponseEntity.ok(Map.of("isLoggedIn", true, "role", role));
     }
 }
