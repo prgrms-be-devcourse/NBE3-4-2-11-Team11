@@ -105,23 +105,24 @@ import { create } from "zustand";
 
 type AuthState = {
     isLoggedIn: boolean;
-    role: "user" | "admin" | null; // ✅ 역할 추가
+    role: "user" | "admin" | null;
     login: (role: "user" | "admin") => Promise<void>;
     logout: () => Promise<void>;
     checkAuthStatus: () => Promise<void>;
+    refreshAccessToken: () => Promise<boolean>; // ✅ refreshAccessToken 추가
 };
 
 export const useAuthStore = create<AuthState>()(
     (set, get) => ({
         isLoggedIn: false,
-        role: null, // ✅ 기본값: null
+        role: null,
 
         login: async (role) => {
-            set({ isLoggedIn: true, role }); // ✅ 역할 저장
+            set({ isLoggedIn: true, role });
 
             if (typeof window !== "undefined") {
                 localStorage.setItem("isLoggedIn", "true");
-                localStorage.setItem("role", role); // ✅ 역할 저장
+                localStorage.setItem("role", role);
                 window.dispatchEvent(new Event("authChange"));
             }
         },
@@ -130,7 +131,7 @@ export const useAuthStore = create<AuthState>()(
             if (typeof window === "undefined") return;
 
             try {
-                const role = get().role; // ✅ 현재 사용자 역할 가져오기
+                const role = get().role;
                 const logoutEndpoint = role === "admin" ? "/api/v1/admin/logout" : "/api/v1/user/logout";
 
                 await fetch(logoutEndpoint, {
@@ -140,11 +141,11 @@ export const useAuthStore = create<AuthState>()(
             } catch (error) {
                 console.error("로그아웃 API 호출 실패:", error);
             } finally {
-                set({ isLoggedIn: false, role: null }); // ✅ 역할도 초기화
+                set({ isLoggedIn: false, role: null });
 
                 if (typeof window !== "undefined") {
                     localStorage.removeItem("isLoggedIn");
-                    localStorage.removeItem("role"); // ✅ 역할 삭제
+                    localStorage.removeItem("role");
                     window.dispatchEvent(new Event("authChange"));
                 }
             }
@@ -164,7 +165,7 @@ export const useAuthStore = create<AuthState>()(
 
                 const data = await response.json();
 
-                set({ isLoggedIn: data.isLoggedIn, role: data.role }); // ✅ role 정보도 업데이트
+                set({ isLoggedIn: data.isLoggedIn, role: data.role });
 
                 if (typeof window !== "undefined") {
                     localStorage.setItem("isLoggedIn", data.isLoggedIn ? "true" : "false");
@@ -179,5 +180,31 @@ export const useAuthStore = create<AuthState>()(
                 localStorage.removeItem("role");
             }
         },
+
+        // ✅ refreshAccessToken 추가 (기존 코드에서 누락됨)
+        refreshAccessToken: async () => {
+            try {
+                const response = await fetch("/api/v1/token/refresh", {
+                    method: "POST",
+                    credentials: "include",
+                });
+
+                if (!response.ok) {
+                    console.warn("❌ Refresh Token 만료됨, 로그아웃 진행");
+                    get().logout();
+                    return false;
+                }
+
+                console.log("✅ Access Token 갱신 완료");
+
+                await get().checkAuthStatus(); // ✅ 갱신 후 로그인 상태 재확인
+                return true;
+
+            } catch (error) {
+                console.error("❌ Access Token 갱신 실패:", error);
+                return false;
+            }
+        },
     })
 );
+
