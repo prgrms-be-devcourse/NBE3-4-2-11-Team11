@@ -1,21 +1,32 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import {redirect, useParams, useRouter } from 'next/navigation';
-import axios from 'axios';
-import styles from './inquiryDetail.module.css';
+import React, { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import axios from "axios";
+import EditPopup from "./editPopup";
+import styles from "./inquiryDetail.module.css";
+
+// 전역적으로 선언하여 다른 함수에서도 호출 가능
+const checkIfAdminFromToken = (token: string | null): boolean => {
+  if (!token) return false; // 토큰이 없는 경우 관리자 아님
+
+  try {
+    const decodedToken = JSON.parse(atob(token.split(".")[1])); // JWT Payload 디코드
+    return decodedToken.auth === "ROLE_ADMIN"; // ROLE_ADMIN일 경우 관리자 true 반환
+  } catch (err) {
+    console.error("Invalid token:", err);
+    return false; // 디코딩 실패 시 관리자 아님
+  }
+};
 
 type ReplyDetailResponse = {
   id: number;
   createdAt: string;
   content: string;
+  type?: "comment" | "reply";
 };
 
-type CommentDetailResponse = {
-  id: number;
-  createdAt: string;
-  content: string;
-};
+type CommentDetailResponse = ReplyDetailResponse;
 
 type InquiryDetailResponse = {
   userId: number;
@@ -37,70 +48,145 @@ const InquiryDetailPage = () => {
   const router = useRouter();
 
   const [inquiry, setInquiry] = useState<InquiryDetailResponse | null>(null);
-  const [token, setToken] = useState(null);
-  const [repliesAndComments, setRepliesAndComments] = useState<Array<ReplyDetailResponse | CommentDetailResponse>>([]);
+  const [token, setToken] = useState<string | null>(null);
+  const [repliesAndComments, setRepliesAndComments] = useState<
+    Array<ReplyDetailResponse | CommentDetailResponse>
+  >([]);
   const [newContent, setNewContent] = useState(""); // 새 댓글/답변 입력값
-  const [error, setError] = useState<string | null>(null); // 에러 상태 추가
   const [editingId, setEditingId] = useState<number | null>(null); // 현재 수정 중인 댓글/답변 ID
+  const [editingContent, setEditingContent] = useState<string>(""); // 수정 중인 content
+  const [error, setError] = useState<string | null>(null); // 에러 상태 추가
+  const [showEditPopup, setShowEditPopup] = useState<boolean>(false);
 
-const handleCreate = async () => {
+  useEffect(() => {
+    const storedToken = localStorage.getItem("accessToken");
+    setToken(storedToken);
+  }, []);
+
+  const handleCreate = async () => {
     if (!newContent.trim()) {
       alert("내용을 입력해주세요!");
       return;
     }
 
-  if (!token) {
-    alert("로그인이 필요합니다."); // 토큰 값이 없는 경우 처리
+    if (!token) {
+      alert("로그인이 필요합니다."); // 토큰 값이 없는 경우 처리
+      return;
+    }
+
+    // 토큰 권한 확인 및 엔드포인트 결정
+    const isAdmin = checkIfAdminFromToken(token); // 관리자 여부 확인
+    const endpoint = isAdmin
+      ? `/api/v1/admin/inquiries/${id}/reply`
+      : `/api/v1/user/inquiries/${id}/comment`;
+
+    try {
+      const payload = { inquiryId: id, content: newContent };
+
+      const response = await axios.post(endpoint, payload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      // 리스트 초기화 및 성공 메시지
+      setNewContent("");
+      setError(null);
+      alert(
+        isAdmin
+          ? "답변이 성공적으로 등록되었습니다!"
+          : "댓글이 성공적으로 등록되었습니다!"
+      );
+      window.location.reload();
+    } catch (err: any) {
+      // 주어진 에러 객체를 분석
+      if (err.response) {
+        // 서버가 반환한 에러 응답 (status 코드 & data)
+        console.error(
+          "Server response error:",
+          err.response.status,
+          err.response.data
+        );
+        setError(
+          err.response.data?.message || "서버 오류가 발생했습니다."
+        );
+      } else if (err.request) {
+        // 서버에 요청이 도달하지 못한 경우
+        console.error("No response received:", err.request);
+        setError(
+          "서버로부터 응답이 없습니다. 잠시 후 다시 시도해주세요."
+        );
+      } else {
+        // 기타 클라이언트 측 에러
+        console.error("Axios request error:", err.message);
+        setError("요청 중 문제가 발생했습니다.");
+      }
+    }
+  };
+
+  const handleEdit = (replyOrComment: ReplyDetailResponse) => {
+    setEditingId(replyOrComment.id);
+    setEditingContent(replyOrComment.content); // 기존 내용을 편집 폼에 반영
+    setShowEditPopup(true);
+  };
+
+  // 수정 내용 제출
+  const handleEditSubmit = async (newContent: string) => {
+    if (!editingId) return;
+
+    // isAdmin 선언
+    const isAdmin = checkIfAdminFromToken(token);
+
+    const endpoint = isAdmin
+      ? `/api/v1/admin/inquiries/${id}/reply/${editingId}`
+      : `/api/v1/user/inquiries/${id}/comment/${editingId}`;
+
+    try {
+      await axios.patch(endpoint, { content: newContent },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      alert("성공적으로 수정되었습니다!");
+      setEditingId(null);
+      window.location.reload();
+    } catch (err) {
+      console.error(err);
+      alert("수정에 실패했습니다.");
+    }
+  };
+
+  // 삭제 버튼 로직
+const handleDelete = async (id: number, type: 'comment' | 'reply',  editingId: number ) => {
+    const confirmDelete = confirm(
+      type === 'comment'
+        ? '댓글을 삭제하시겠습니까?'
+        : '답변을 삭제하시겠습니까?'
+    );
+  if (!id) {
+    alert("유효하지 않은 요청입니다.");
     return;
   }
 
-const checkIfAdminFromToken = (token: string | null): boolean => {
-  if (!token) return false; // 토큰이 없는 경우 관리자 아님
 
-  try {
-    const decodedToken = JSON.parse(atob(token.split(".")[1])); // JWT Payload 디코드
-    console.log("Decoded Token:", decodedToken); // 디코딩된 토큰 정보 로그로 확인
-    return decodedToken.auth === "ROLE_ADMIN"; // ROLE_ADMIN일 경우 관리자 true 반환
-  } catch (err) {
-    console.error("Invalid token:", err);
-    return false; // 디코딩 실패 시 관리자 아님
-  }
-};
+    // 댓글/답변 타입에 따라 다른 엔드포인트 설정
+    const endpoint =
+      type === 'comment'
+        ? `/api/v1/user/inquiries/${id}/comment/${editingId}` // 댓글 삭제
+        : `/api/v1/admin/inquiries/${id}/reply/${editingId}`; // 답변 삭제
 
-  // 토큰 권한 확인 및 엔드포인트 결정
-  const isAdmin = checkIfAdminFromToken(token); // 관리자 여부 확인
-  const endpoint = isAdmin
-    ? `/api/v1/admin/inquiries/${id}/reply` : `/api/v1/user/inquiries/${id}/comment`;
-
-  try {
-    const payload = { inquiryId: id, content: newContent };
-
-    const response = await axios.post(endpoint, payload, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      }
-    });
-
-    // 리스트 초기화 및 성공 메시지
-    setNewContent("");
-    setError(null);
-    alert(isAdmin ? "답변이 성공적으로 등록되었습니다!" : "댓글이 성공적으로 등록되었습니다!");
-    window.location.reload();
- } catch (err: any) {
-   // 주어진 에러 객체를 분석
-  if (err.response) {
-     // 서버가 반환한 에러 응답 (status 코드 & data)
-     console.error("Server response error:", err.response.status, err.response.data);
-     setError(err.response.data?.message || "서버 오류가 발생했습니다.");
-    } else if (err.request) {
-    // 서버에 요청이 도달하지 못한 경우
-     console.error("No response received:", err.request);
-     setError("서버로부터 응답이 없습니다. 잠시 후 다시 시도해주세요.");
-    } else {
-      // 기타 클라이언트 측 에러
-      console.error("Axios request error:", err.message);
-      setError("요청 중 문제가 발생했습니다.");
-      }
+console.log("DELETE Request Endpoint:", endpoint);
+    try {
+      await axios.delete(endpoint, {
+        headers: { Authorization: `Bearer ${token}` }, // 인증 헤더 추가
+      });
+      alert('성공적으로 삭제되었습니다!');
+      window.location.reload();
+    } catch (error) {
+      console.error('삭제 중 오류 발생:', error);
+      alert('삭제에 실패했습니다.');
     }
   };
 
@@ -168,59 +254,142 @@ const checkIfAdminFromToken = (token: string | null): boolean => {
           {/* 구분선 */}
           <hr className={styles.inquiryDetailDivider}/>
           {/* 본문 출력 */}
-             <div className={styles.inquiryDetailContent}>{inquiry.content}</div>
+          <div className={styles.inquiryDetailContent}>{inquiry.content}</div>
       </div>
 
-      {/* 댓글과 답변 */}
-      <div className={styles.replyContainer}>
-        <h2 className={styles.replyHeader}>댓글 및 답변</h2>
-        {inquiry.repliesAndComments.map((replyOrComment) => {
-                  if (replyOrComment.type === 'comment') {
-                    return (
-                      <div key={replyOrComment.id} className={styles.replyContainer}>
-                       <div className={styles.replyContent}>
-                         <strong style={{ fontSize: '20px' }}>댓글</strong>
-                         <br />
-                         {replyOrComment.content}
-                       </div>
-                        <span className={styles.replyDate}>{replyOrComment.createdAt}</span>
-                      </div>
-                    );
-                  } else if (replyOrComment.type === 'reply') {
-                    return (
-                      <div key={replyOrComment.id} className={styles.replyContainer}>
-                        <div className={styles.replyContent}>
-                          <strong style={{ fontSize: '20px' }}>답변</strong>
-                          <br />
-                          {replyOrComment.content}
-                        </div>
-                        <span className={styles.replyDate}>{replyOrComment.createdAt}</span>
-                      </div>
-                    );
-                  }
-                })}
-              </div>
-              {/* 댓글/답변 작성 UI */}
-                <div className="mt-4 text-right">
-                    <textarea
-                        value={newContent}
-                        onChange={(e) => setNewContent(e.target.value)}
-                        placeholder="댓글 또는 답변을 입력하세요"
-                        rows={4}
-                        className="w-full px-4 py-2 border rounded"
-                    ></textarea>
-                <button
-                    onClick={handleCreate}
-                    className="mt-2 bg-blue-500 text-white px-4 py-2 rounded"
-                >
-                작성하기
-                </button>
-                    {error && <p className="mt-2 text-red-500">{error}</p>}
+{/* 댓글과 답변 */}
+<div className={styles.replyContainer}>
+  <h2 className={styles.replyAndCommentHeader}>댓글 및 답변</h2>
+  {inquiry.repliesAndComments.map((replyOrComment) => {
+    if (replyOrComment.type === 'comment') {
+      return (
+        <div key={replyOrComment.id} className={styles.replyContainer}>
+          <div className={styles.replyHeader}>
+
+            {/* 수정/삭제 버튼 추가 */}
+            <div className="flex justify-end space-x-2">
+              <button
+                className="text-blue-500 text-sm hover:underline"
+                onClick={() => handleEdit(replyOrComment)}
+              >
+                수정
+              </button>
+              <button
+                className="text-red-500 text-sm hover:underline"
+                onClick={() => handleDelete(inquiry.id, 'comment', replyOrComment.id)}
+              >
+                삭제
+              </button>
             </div>
-       </div>
+          </div>
+          {/* 댓글 내용 */}
+          {editingId === replyOrComment.id ? (
+            <>
+              <textarea
+                value={editingContent}
+                onChange={(e) => setEditingContent(e.target.value)}
+                className="w-full px-4 py-2 border rounded"
+              />
+              <div className="flex justify-end space-x-2 mt-2">
+                <button
+                  onClick={() => handleEditSubmit(editingContent)}
+                  className="bg-green-500 text-white px-4 py-2 rounded"
+                >
+                  확인
+                </button>
+                <button
+                  onClick={() => setEditingId(null)}
+                  className="bg-gray-500 text-white px-4 py-2 rounded"
+                >
+                  취소
+                </button>
+              </div>
+            </>
+          ) : (
+            <div className={styles.replyContent}>
+              <strong style={{ fontSize: '20px' }}>댓글</strong>
+              <br />
+              {replyOrComment.content}
+            </div>
+          )}
+          <span className={styles.replyDate}>{replyOrComment.createdAt}</span>
+        </div>
+      );
+    } else if (replyOrComment.type === 'reply') {
+      return (
+        <div key={replyOrComment.id} className={styles.replyContainer}>
+          <div className={styles.replyHeader}>
+            {/* 수정/삭제 버튼 추가 */}
+            <div className="flex justify-end space-x-2">
+              <button
+                className="text-blue-500 text-sm hover:underline"
+                onClick={() => handleEdit(replyOrComment)}
+              >
+                수정
+              </button>
+              <button
+                className="text-red-500 text-sm hover:underline"
+                onClick={() => handleDelete(inquiry.id, 'reply', replyOrComment.id)}
+              >
+                삭제
+              </button>
+            </div>
+          </div>
+          {/* 답변 내용 */}
+          {editingId === replyOrComment.id ? (
+            <>
+              <textarea
+                value={editingContent}
+                onChange={(e) => setEditingContent(e.target.value)}
+                className="w-full px-4 py-2 border rounded"
+              />
+              <div className="flex justify-end space-x-2 mt-2">
+                <button
+                  onClick={() => handleEditSubmit(editingContent)}
+                  className="bg-green-500 text-white px-4 py-2 rounded"
+                >
+                  확인
+                </button>
+                <button
+                  onClick={() => setEditingId(null)}
+                  className="bg-gray-500 text-white px-4 py-2 rounded"
+                >
+                  취소
+                </button>
+              </div>
+            </>
+          ) : (
+            <div className={styles.replyContent}>
+              <strong style={{ fontSize: '20px' }}>답변</strong>
+              <br />
+              {replyOrComment.content}
+            </div>
+          )}
+          <span className={styles.replyDate}>{replyOrComment.createdAt}</span>
+        </div>
+      );
+    }
+  })}
+</div>
+{/* 댓글/답변 작성 UI */}
+<div className="mt-4 text-right">
+  <textarea
+    value={newContent}
+    onChange={(e) => setNewContent(e.target.value)}
+    placeholder="내용을 입력해주세요."
+    rows={4}
+    className="w-full px-4 py-2 border rounded"
+  ></textarea>
+  <button
+    onClick={handleCreate}
+    className="mt-2 bg-blue-500 text-white px-4 py-2 rounded"
+  >
+    작성하기
+  </button>
+  {error && <p className="mt-2 text-red-500">{error}</p>}
+</div>
+</div>
    );
 };
-
-
 
 export default InquiryDetailPage;
