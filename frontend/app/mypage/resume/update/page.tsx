@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { PlusCircle, MinusCircle } from "lucide-react";
 import Postcode from "../../../../components/Postcode";
 interface Award {
   name: string;
@@ -135,6 +136,21 @@ export default function ResumeUpdatePage() {
         if (!response.ok) {
           throw new Error('이력서 데이터를 불러오는데 실패했습니다.');
         }
+        const calculateAge = (birthDateString: string): number => {
+          const birthDate = new Date(birthDateString);
+          const today = new Date();
+          
+          let age = today.getFullYear() - birthDate.getFullYear();
+          const isBeforeBirthday = 
+            today.getMonth() < birthDate.getMonth() || 
+            (today.getMonth() === birthDate.getMonth() && today.getDate() < birthDate.getDate());
+        
+          if (isBeforeBirthday) {
+            age--;
+          }
+        
+          return age;
+        };
         const skillsResponse = await fetch('http://localhost:8080/api/v1/user/resume/skills', {
           headers: {
             'Authorization': `Bearer ${accessToken}`,
@@ -451,7 +467,7 @@ export default function ResumeUpdatePage() {
         </div>
 
         <div className="mb-4">
-          <label htmlFor="birth" className="block text-sm font-medium">생년월일</label>
+        <p>생년월일: {formatDate(resumeData.birth)} (만 {calculateAge(resumeData.birth)}세)</p>
           <input
             type="date"
             id="birth"
@@ -464,7 +480,7 @@ export default function ResumeUpdatePage() {
         </div>
 
         <div className="mb-4">
-  <label htmlFor="number" className="block text-sm font-medium">전화번호</label>
+        <label htmlFor="number" className="block text-sm font-medium">전화번호</label>
   <input
     type="tel"
     id="number"
@@ -478,8 +494,6 @@ export default function ResumeUpdatePage() {
     className="w-full p-2 border border-gray-300 rounded"
   />
 </div>
-
-
 
         <div className="mb-4">
           <label htmlFor="email" className="block text-sm font-medium">이메일</label>
@@ -495,7 +509,7 @@ export default function ResumeUpdatePage() {
         </div>
 
         <div className="mb-4">
-  <label htmlFor="address" className="block text-sm font-medium">주소</label>
+        <label htmlFor="address" className="block text-sm font-medium">주소</label>
   <div className="flex gap-2">
     <input
       type="text"
@@ -520,8 +534,6 @@ export default function ResumeUpdatePage() {
   </div>
 </div>
 
-
-
         <div className="mb-4">
           <label htmlFor="gitAddress" className="block text-sm font-medium">GitHub 주소</label>
           <input
@@ -545,128 +557,270 @@ export default function ResumeUpdatePage() {
             className="w-full p-2 border border-gray-300 rounded"
           />
         </div>
-
-        {/* 활동 추가 */}
         <div className="mb-4">
-          <h3 className="text-lg font-semibold">대외 활동</h3>
-          {formData.activities.map((activity, activityIndex) => (
-            <div key={activityIndex} className="mb-4">
-                <button
-                type="button"
-                onClick={() => handleDeleteActivity(activityIndex)}
-                className="bg-red-500 text-white p-2 rounded hover:bg-red-600"
-              >
-                활동 삭제
-              </button>
-              <input
-                type="text"
-                name={`activityName_${activityIndex}`}
-                value={activity.name}
-                onChange={(e) => {
-                  const updatedActivities = [...formData.activities];
-                  updatedActivities[activityIndex].name = e.target.value;
-                  setFormData({ ...formData, activities: updatedActivities });
-                }}
-                placeholder="활동명"
-                className="w-full p-2 border border-gray-300 rounded mb-2"
-              />
-              <textarea
-                name={`activityHistory_${activityIndex}`}
-                value={activity.history}
-                onChange={(e) => {
-                  const updatedActivities = [...formData.activities];
-                  updatedActivities[activityIndex].history = e.target.value;
-                  setFormData({ ...formData, activities: updatedActivities });
-                }}
-                placeholder="활동 내용"
-                className="w-full p-2 border border-gray-300 rounded mb-2"
-              />
-              <div className="flex space-x-2">
-                <input
-                  type="date"
-                  name={`activityStartDate_${activityIndex}`}
-                  value={activity.startDate}
-                  onChange={(e) => {
-                    const updatedActivities = [...formData.activities];
-                    updatedActivities[activityIndex].startDate = e.target.value;
-                    setFormData({ ...formData, activities: updatedActivities });
-                  }}
-                  placeholder="시작일"
-                  className="w-full p-2 border border-gray-300 rounded mb-2"
-                />
-                <input
-                  type="date"
-                  name={`activityEndDate_${activityIndex}`}
-                  value={activity.endDate}
-                  onChange={(e) => {
-                    const updatedActivities = [...formData.activities];
-                    updatedActivities[activityIndex].endDate = e.target.value;
-                    setFormData({ ...formData, activities: updatedActivities });
-                  }}
-                  placeholder="종료일"
-                  className="w-full p-2 border border-gray-300 rounded mb-2"
-                />
-              </div>
-              <button
-                type="button"
-                onClick={() => handleAddAward(activityIndex)}
-                className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
-              >
-                수상 내역 추가
-              </button>
-              {activity.awards.map((award, awardIndex) => (
-                <div key={awardIndex} className="mt-2">
-                    <button
-                    type="button"
-                    onClick={() => handleDeleteAward(activityIndex, awardIndex)}
-                    className="bg-red-500 text-white p-2 rounded hover:bg-red-600"
-                  >
-                    수상 삭제
-                  </button>
-                  <input
-                    type="text"
-                    value={award.name}
-                    onChange={(e) => handleAwardChange(activityIndex, awardIndex, 'name', e.target.value)}
-                    placeholder="수상명"
-                    className="w-full p-2 border border-gray-300 rounded mb-2"
-                  />
-                  <input
-                    type="text"
-                    value={award.institution}
-                    onChange={(e) => handleAwardChange(activityIndex, awardIndex, 'institution', e.target.value)}
-                    placeholder="기관명"
-                    className="w-full p-2 border border-gray-300 rounded mb-2"
-                  />
-                  <input
-                    type="date"
-                    value={award.awardDate}
-                    onChange={(e) => handleAwardChange(activityIndex, awardIndex, 'awardDate', e.target.value)}
-                    placeholder="수상일"
-                    className="w-full p-2 border border-gray-300 rounded mb-2"
-                  />
-                </div>
-              ))}
-            </div>
-          ))}
-          <button
-            type="button"
-            onClick={handleAddActivity}
-            className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
-          >
-            활동 추가
-          </button>
-        </div>
-  <div className="mb-4">
-    <h3 className="text-lg font-semibold">교육 내역</h3>
-    {formData.courses.map((course, courseIndex) => (
-      <div key={courseIndex} className="mb-4">
+      <h3 className="text-lg font-semibold">기술 스킬</h3>
+      <select
+        onChange={handleSkillChange}
+        className="w-full p-2 border border-gray-300 rounded mb-2"
+      >
+        <option value="">스킬 선택</option>
+        {skillOptions.map(skill => (
+          <option key={skill.id} value={skill.id}>
+            {skill.name}
+          </option>
+        ))}
+      </select>
+      <div className="flex flex-wrap gap-2">
+        {formData.skills.map(skill => (
+          <div key={skill.id} className="flex items-center bg-gray-100 px-3 py-1 rounded">
+            <span>{skill.name}</span>
+            <button
+              onClick={() => handleRemoveSkill(skill.id)}
+              className="ml-2 text-red-500 hover:text-red-700"
+            >
+              ×
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <div className="mb-4">
+      <h3 className="text-lg font-semibold">사용 툴</h3>
+      <select
+        onChange={handleToolChange}
+        className="w-full p-2 border border-gray-300 rounded mb-2"
+      >
+        <option value="">툴 선택</option>
+        {toolOptions.map(tool => (
+          <option key={tool.id} value={tool.id}>
+            {tool.name}
+          </option>
+        ))}
+      </select>
+      <div className="flex flex-wrap gap-2">
+        {formData.tools.map(tool => (
+          <div key={tool.id} className="flex items-center bg-gray-100 px-3 py-1 rounded">
+            <span>{tool.name}</span>
+            <button
+              onClick={() => handleRemoveTool(tool.id)}
+              className="ml-2 text-red-500 hover:text-red-700"
+            >
+              ×
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <div className="mb-4">
+  <h3 className="text-lg font-semibold">대외 활동</h3>
+  {formData.activities.map((activity, activityIndex) => (
+    <div key={activityIndex} className="mb-4 p-4 bg-white shadow-md rounded-lg border border-gray-200">
+      <div className="flex justify-between items-center">
         <button
-                    type="button"
-                    onClick={() => handleDeleteCourse(courseIndex)}
-                    className="bg-red-500 text-white p-2 rounded hover:bg-red-600"
-                  >
-                    교육 내역 삭제
-                  </button>
+          type="button"
+          onClick={() => handleDeleteActivity(activityIndex)}
+          className="text-red-500 text-xl p-2 rounded-full hover:bg-red-100 transition"
+        >
+          <MinusCircle />
+        </button>
+        <input
+          type="text"
+          name={`activityName_${activityIndex}`}
+          value={activity.name}
+          onChange={(e) => {
+            const updatedActivities = [...formData.activities];
+            updatedActivities[activityIndex].name = e.target.value;
+            setFormData({ ...formData, activities: updatedActivities });
+          }}
+          placeholder="활동명"
+          className="w-full p-2 border border-gray-300 rounded"
+        />
+      </div>
+      <textarea
+        name={`activityHistory_${activityIndex}`}
+        value={activity.history}
+        onChange={(e) => {
+          const updatedActivities = [...formData.activities];
+          updatedActivities[activityIndex].history = e.target.value;
+          setFormData({ ...formData, activities: updatedActivities });
+        }}
+        placeholder="활동 내용"
+        className="w-full p-2 border border-gray-300 rounded mt-2"
+      />
+      <div className="flex space-x-2 mt-2">
+        <input
+          type="date"
+          name={`activityStartDate_${activityIndex}`}
+          value={activity.startDate}
+          onChange={(e) => {
+            const updatedActivities = [...formData.activities];
+            updatedActivities[activityIndex].startDate = e.target.value;
+            setFormData({ ...formData, activities: updatedActivities });
+          }}
+          className="w-full p-2 border border-gray-300 rounded"
+        />
+        <input
+          type="date"
+          name={`activityEndDate_${activityIndex}`}
+          value={activity.endDate}
+          onChange={(e) => {
+            const updatedActivities = [...formData.activities];
+            updatedActivities[activityIndex].endDate = e.target.value;
+            setFormData({ ...formData, activities: updatedActivities });
+          }}
+          className="w-full p-2 border border-gray-300 rounded"
+        />
+      </div>
+      <button
+        type="button"
+        onClick={() => handleAddAward(activityIndex)}
+        className="flex items-center text-blue-500 text-xl p-2 rounded-full hover:bg-blue-100 transition mt-2"
+      >
+        <PlusCircle className="mr-2" />
+        <span>수상 추가</span>
+      </button>
+      {activity.awards.map((award, awardIndex) => (
+        <div key={awardIndex} className="mt-2 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+          <div className="flex justify-between items-center">
+            <button
+              type="button"
+              onClick={() => handleDeleteAward(activityIndex, awardIndex)}
+              className="text-red-500 text-xl p-2 rounded-full hover:bg-red-100 transition"
+            >
+              <MinusCircle />
+            </button>
+            <input
+              type="text"
+              value={award.name}
+              onChange={(e) => handleAwardChange(activityIndex, awardIndex, 'name', e.target.value)}
+              placeholder="수상명"
+              className="w-full p-2 border border-gray-300 rounded"
+            />
+          </div>
+          <input
+            type="text"
+            value={award.institution}
+            onChange={(e) => handleAwardChange(activityIndex, awardIndex, 'institution', e.target.value)}
+            placeholder="기관명"
+            className="w-full p-2 border border-gray-300 rounded mt-2"
+          />
+          <input
+            type="date"
+            value={award.awardDate}
+            onChange={(e) => handleAwardChange(activityIndex, awardIndex, 'awardDate', e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded mt-2"
+          />
+        </div>
+      ))}
+    </div>
+  ))}
+  <button
+    type="button"
+    onClick={handleAddActivity}
+    className="flex items-center text-blue-500 text-xl p-2 rounded-full hover:bg-blue-100 transition"
+  >
+    <PlusCircle className="mr-2" />
+    <span>대외 활동 추가</span>
+  </button>
+</div>
+<div className="mb-4">
+  <h3 className="text-lg font-semibold">학력</h3>
+  {formData.educations.map((education, educationIndex) => (
+    <div key={educationIndex} className="mb-4 p-4 bg-white shadow-md rounded-lg border border-gray-200">
+      <div className="flex justify-between items-center">
+        <button
+          type="button"
+          onClick={() => handleDeleteEducation(educationIndex)}
+          className="text-red-500 text-xl p-2 rounded-full hover:bg-red-100 transition"
+        >
+          <MinusCircle />
+        </button>
+        <input
+          type="text"
+          value={education.name}
+          onChange={(e) => {
+            const updatedEducations = [...formData.educations];
+            updatedEducations[educationIndex].name = e.target.value;
+            setFormData({ ...formData, educations: updatedEducations });
+          }}
+          placeholder="학교명"
+          className="w-full p-2 border border-gray-300 rounded"
+        />
+      </div>
+      <input
+        type="text"
+        value={education.major}
+        onChange={(e) => {
+          const updatedEducations = [...formData.educations];
+          updatedEducations[educationIndex].major = e.target.value;
+          setFormData({ ...formData, educations: updatedEducations });
+        }}
+        placeholder="전공"
+        className="w-full p-2 border border-gray-300 rounded mt-2"
+      />
+      <div className="flex space-x-2 mt-2">
+        <input
+          type="date"
+          value={education.startDate}
+          onChange={(e) => {
+            const updatedEducations = [...formData.educations];
+            updatedEducations[educationIndex].startDate = e.target.value;
+            setFormData({ ...formData, educations: updatedEducations });
+          }}
+          className="w-full p-2 border border-gray-300 rounded"
+        />
+        <input
+          type="date"
+          value={education.endDate}
+          onChange={(e) => {
+            const updatedEducations = [...formData.educations];
+            updatedEducations[educationIndex].endDate = e.target.value;
+            setFormData({ ...formData, educations: updatedEducations });
+          }}
+          className="w-full p-2 border border-gray-300 rounded"
+        />
+      </div>
+      <select
+        value={education.status|| "EXPECTED"}
+        onChange={(e) => {
+          const updatedEducations = [...formData.educations];
+          updatedEducations[educationIndex].status = e.target.value;
+          setFormData({ ...formData, educations: updatedEducations });
+        }}
+        className="w-full p-2 border border-gray-300 rounded mt-2"
+      >
+        <option value="EXPECTED">졸업 예정</option>
+        <option value="GRADUATED">졸업</option>
+        <option value="ENROLLED">재학</option>
+        <option value="REST">휴학</option>
+      </select>
+    </div>
+  ))}
+  <button
+    type="button"
+    onClick={handleAddEducation}
+    className="flex items-center text-blue-500 text-xl p-2 rounded-full hover:bg-blue-100 transition"
+  >
+    <PlusCircle className="mr-2" />
+    <span>학력 추가</span>
+  </button>
+</div>
+
+{/* 교육 내역 */}
+<div className="mb-4">
+  <h3 className="text-lg font-semibold">교육 내역</h3>
+  {formData.courses.map((course, courseIndex) => (
+    <div key={courseIndex} className="mb-4 p-4 bg-white shadow-md rounded-lg border border-gray-200">
+      <div className="flex justify-between items-center">
+        <button
+          type="button"
+          onClick={() => handleDeleteCourse(courseIndex)}
+          className="text-red-500 text-xl p-2 rounded-full hover:bg-red-100 transition"
+        >
+          <MinusCircle />
+        </button>
         <input
           type="text"
           value={course.name}
@@ -678,73 +832,79 @@ export default function ResumeUpdatePage() {
           placeholder="과정명"
           className="w-full p-2 border border-gray-300 rounded mb-2"
         />
+      </div>
+      <input
+        type="text"
+        value={course.institution}
+        onChange={(e) => {
+          const updatedCourses = [...formData.courses];
+          updatedCourses[courseIndex].institution = e.target.value;
+          setFormData({ ...formData, courses: updatedCourses });
+        }}
+        placeholder="교육기관명"
+        className="w-full p-2 border border-gray-300 rounded mb-2"
+      />
+      <div className="flex space-x-2">
         <input
-          type="text"
-          value={course.institution}
+          type="date"
+          value={course.startDate}
           onChange={(e) => {
             const updatedCourses = [...formData.courses];
-            updatedCourses[courseIndex].institution = e.target.value;
+            updatedCourses[courseIndex].startDate = e.target.value;
             setFormData({ ...formData, courses: updatedCourses });
           }}
-          placeholder="교육기관명"
+          placeholder="시작일"
           className="w-full p-2 border border-gray-300 rounded mb-2"
         />
-        <div className="flex space-x-2">
-          <input
-            type="date"
-            value={course.startDate}
-            onChange={(e) => {
-              const updatedCourses = [...formData.courses];
-              updatedCourses[courseIndex].startDate = e.target.value;
-              setFormData({ ...formData, courses: updatedCourses });
-            }}
-            placeholder="시작일"
-            className="w-full p-2 border border-gray-300 rounded mb-2"
-          />
-          <input
-            type="date"
-            value={course.endDate}
-            onChange={(e) => {
-              const updatedCourses = [...formData.courses];
-              updatedCourses[courseIndex].endDate = e.target.value;
-              setFormData({ ...formData, courses: updatedCourses });
-            }}
-            placeholder="종료일"
-            className="w-full p-2 border border-gray-300 rounded mb-2"
-          />
-        </div>
+        <input
+          type="date"
+          value={course.endDate}
+          onChange={(e) => {
+            const updatedCourses = [...formData.courses];
+            updatedCourses[courseIndex].endDate = e.target.value;
+            setFormData({ ...formData, courses: updatedCourses });
+          }}
+          placeholder="종료일"
+          className="w-full p-2 border border-gray-300 rounded mb-2"
+        />
       </div>
-    ))}
-    <button
-      type="button"
-      onClick={handleAddCourse}
-      className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
-    >
-      교육 내역 추가
-    </button>
-  </div>
+    </div>
+  ))}
+  <button
+    type="button"
+    onClick={handleAddCourse}
+    className="inline-flex items-center text-blue-500 text-xl p-2 rounded-full hover:bg-blue-100 transition"
+>
+  <PlusCircle className="mr-2" />
+  <span>교육 내역</span>
+  </button>
+</div>
+
+{/* 경력 */}
 <div className="mb-4">
   <h3 className="text-lg font-semibold">경력</h3>
   {formData.experiences.map((experience, experienceIndex) => (
-    <div key={experienceIndex} className="mb-4">
+    <div key={experienceIndex} className="mb-4 p-4 bg-white shadow-md rounded-lg border border-gray-200">
+      <div className="flex justify-between items-center">
         <button
-                    type="button"
-                    onClick={() => handleDeleteExperience(experienceIndex)}
-                    className="bg-red-500 text-white p-2 rounded hover:bg-red-600"
-                  >
-                    경력 삭제
-                  </button>
-      <input
-        type="text"
-        value={experience.name}
-        onChange={(e) => {
-          const updatedExperiences = [...formData.experiences];
-          updatedExperiences[experienceIndex].name = e.target.value;
-          setFormData({ ...formData, experiences: updatedExperiences });
-        }}
-        placeholder="회사명"
-        className="w-full p-2 border border-gray-300 rounded mb-2"
-      />
+          type="button"
+          onClick={() => handleDeleteExperience(experienceIndex)}
+          className="text-red-500 text-xl p-2 rounded-full hover:bg-red-100 transition"
+        >
+          <MinusCircle />
+        </button>
+        <input
+          type="text"
+          value={experience.name}
+          onChange={(e) => {
+            const updatedExperiences = [...formData.experiences];
+            updatedExperiences[experienceIndex].name = e.target.value;
+            setFormData({ ...formData, experiences: updatedExperiences });
+          }}
+          placeholder="회사명"
+          className="w-full p-2 border border-gray-300 rounded mb-2"
+        />
+      </div>
       <input
         type="text"
         value={experience.department}
@@ -806,269 +966,142 @@ export default function ResumeUpdatePage() {
   <button
     type="button"
     onClick={handleAddExperience}
-    className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
-  >
-    경력 추가
+    className="inline-flex items-center text-blue-500 text-xl p-2 rounded-full hover:bg-blue-100 transition"
+>
+  <PlusCircle className="mr-2" />
+  <span>경력</span>
   </button>
 </div>
 
+
+
 <div className="mb-4">
-  <h3 className="text-lg font-semibold">학력</h3>
-  {formData.educations.map((education, educationIndex) => (
-    <div key={educationIndex} className="mb-4">
+  <h3 className="text-lg font-semibold">자격증</h3>
+  {formData.licenses.map((license, licenseIndex) => (
+    <div key={licenseIndex} className="mb-4 p-4 bg-white shadow-md rounded-lg border border-gray-200">
+      <div className="flex justify-between items-center">
         <button
-                    type="button"
-                    onClick={() => handleDeleteEducation(educationIndex)}
-                    className="bg-red-500 text-white p-2 rounded hover:bg-red-600"
-                  >
-                    학력 삭제
-                  </button>
-      <input
-        type="text"
-        value={education.name}
-        onChange={(e) => {
-          const updatedEducations = [...formData.educations];
-          updatedEducations[educationIndex].name = e.target.value;
-          setFormData({ ...formData, educations: updatedEducations });
-        }}
-        placeholder="학교명"
-        className="w-full p-2 border border-gray-300 rounded mb-2"
-      />
-      <input
-        type="text"
-        value={education.major}
-        onChange={(e) => {
-          const updatedEducations = [...formData.educations];
-          updatedEducations[educationIndex].major = e.target.value;
-          setFormData({ ...formData, educations: updatedEducations });
-        }}
-        placeholder="전공"
-        className="w-full p-2 border border-gray-300 rounded mb-2"
-      />
-      <div className="flex space-x-2">
-        <input
-          type="date"
-          value={education.startDate}
-          onChange={(e) => {
-            const updatedEducations = [...formData.educations];
-            updatedEducations[educationIndex].startDate = e.target.value;
-            setFormData({ ...formData, educations: updatedEducations });
-          }}
-          placeholder="시작일"
-          className="w-full p-2 border border-gray-300 rounded mb-2"
-        />
-        <input
-          type="date"
-          value={education.endDate}
-          onChange={(e) => {
-            const updatedEducations = [...formData.educations];
-            updatedEducations[educationIndex].endDate = e.target.value;
-            setFormData({ ...formData, educations: updatedEducations });
-          }}
-          placeholder="졸업일"
-          className="w-full p-2 border border-gray-300 rounded mb-2"
-        />
+          type="button"
+          onClick={() => handleDeleteLicense(licenseIndex)}
+          className="text-red-500 hover:text-red-600 p-2"
+        >
+          <MinusCircle size={24} />
+        </button>
       </div>
-      <select
-        value={education.status}
+      <input
+        type="text"
+        value={license.name}
         onChange={(e) => {
-          const updatedEducations = [...formData.educations];
-          updatedEducations[educationIndex].status = e.target.value;
-          setFormData({ ...formData, educations: updatedEducations });
+          const updatedLicenses = [...formData.licenses];
+          updatedLicenses[licenseIndex].name = e.target.value;
+          setFormData({ ...formData, licenses: updatedLicenses });
         }}
+        placeholder="자격증명"
         className="w-full p-2 border border-gray-300 rounded mb-2"
-      >
-        <option value="EXPECTED">졸업 예정</option>
-        <option value="GRADUATED">졸업</option>
-        <option value="ENROLLED">재학</option>
-        <option value="REST">휴학</option>
-      </select>
+      />
+      <input
+        type="text"
+        value={license.institution}
+        onChange={(e) => {
+          const updatedLicenses = [...formData.licenses];
+          updatedLicenses[licenseIndex].institution = e.target.value;
+          setFormData({ ...formData, licenses: updatedLicenses });
+        }}
+        placeholder="기관명"
+        className="w-full p-2 border border-gray-300 rounded mb-2"
+      />
+      <input
+        type="date"
+        value={license.certifiedDate}
+        onChange={(e) => {
+          const updatedLicenses = [...formData.licenses];
+          updatedLicenses[licenseIndex].certifiedDate = e.target.value;
+          setFormData({ ...formData, licenses: updatedLicenses });
+        }}
+        placeholder="수여일"
+        className="w-full p-2 border border-gray-300 rounded mb-2"
+      />
     </div>
   ))}
   <button
     type="button"
-    onClick={handleAddEducation}
-    className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
-  >
-    학력 추가
+    onClick={handleAddLicense}
+    className="inline-flex items-center text-blue-500 text-xl p-2 rounded-full hover:bg-blue-100 transition"
+>
+  <PlusCircle className="mr-2" />
+  <span>자격증</span>
   </button>
 </div>
-        <div className="mb-4">
-          <h3 className="text-lg font-semibold">자격증</h3>
-          {formData.licenses.map((license, licenseIndex) => (
-            <div key={licenseIndex} className="mb-4">
-                <button
-                    type="button"
-                    onClick={() => handleDeleteLicense(licenseIndex)}
-                    className="bg-red-500 text-white p-2 rounded hover:bg-red-600"
-                  >
-                    자격증 삭제
-                  </button>
-              <input
-                type="text"
-                value={license.name}
-                onChange={(e) => {
-                  const updatedLicenses = [...formData.licenses];
-                  updatedLicenses[licenseIndex].name = e.target.value;
-                  setFormData({ ...formData, licenses: updatedLicenses });
-                }}
-                placeholder="자격증명"
-                className="w-full p-2 border border-gray-300 rounded mb-2"
-              />
-              <input
-                type="text"
-                value={license.institution}
-                onChange={(e) => {
-                  const updatedLicenses = [...formData.licenses];
-                  updatedLicenses[licenseIndex].institution = e.target.value;
-                  setFormData({ ...formData, licenses: updatedLicenses });
-                }}
-                placeholder="기관명"
-                className="w-full p-2 border border-gray-300 rounded mb-2"
-              />
-              <input
-                type="date"
-                value={license.certifiedDate}
-                onChange={(e) => {
-                  const updatedLicenses = [...formData.licenses];
-                  updatedLicenses[licenseIndex].certifiedDate = e.target.value;
-                  setFormData({ ...formData, licenses: updatedLicenses });
-                }}
-                placeholder="수여일"
-                className="w-full p-2 border border-gray-300 rounded mb-2"
-              />
-            </div>
-          ))}
-          <button
-            type="button"
-            onClick={handleAddLicense}
-            className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
-          >
-            자격증 추가
-          </button>
-        </div>
-        <div className="mb-4">
-          <h3 className="text-lg font-semibold">언어 능력</h3>
-          {formData.languages.map((language, languageIndex) => (
-            <div key={languageIndex} className="mb-4">
-                <button
-                    type="button"
-                    onClick={() => handleDeleteLanguage(languageIndex)}
-                    className="bg-red-500 text-white p-2 rounded hover:bg-red-600"
-                  >
-                    언어 능력 삭제
-                  </button>
-              <input
-                type="text"
-                value={language.language}
-                onChange={(e) => {
-                  const updatedLanguages = [...formData.languages];
-                  updatedLanguages[languageIndex].language = e.target.value;
-                  setFormData({ ...formData, languages: updatedLanguages });
-                }}
-                placeholder="언어"
-                className="w-full p-2 border border-gray-300 rounded mb-2"
-              />
-              <input
-                type="text"
-                value={language.name}
-                onChange={(e) => {
-                  const updatedLanguages = [...formData.languages];
-                  updatedLanguages[languageIndex].name = e.target.value;
-                  setFormData({ ...formData, languages: updatedLanguages });
-                }}
-                placeholder="시험명"
-                className="w-full p-2 border border-gray-300 rounded mb-2"
-              />
-              <input
-                type="text"
-                value={language.result}
-                onChange={(e) => {
-                  const updatedLanguages = [...formData.languages];
-                  updatedLanguages[languageIndex].result = e.target.value;
-                  setFormData({ ...formData, languages: updatedLanguages });
-                }}
-                placeholder="결과"
-                className="w-full p-2 border border-gray-300 rounded mb-2"
-              />
-              <input
-                type="date"
-                value={language.certifiedDate}
-                onChange={(e) => {
-                  const updatedLanguages = [...formData.languages];
-                  updatedLanguages[languageIndex].certifiedDate = e.target.value;
-                  setFormData({ ...formData, languages: updatedLanguages });
-                }}
-                placeholder="인증일"
-                className="w-full p-2 border border-gray-300 rounded mb-2"
-              />
-            </div>
-          ))}
-          <button
-            type="button"
-            onClick={handleAddLanguage}
-            className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
-          >
-            언어 능력 추가
-          </button>
-        </div>
 
-        {/* 기술 스킬 추가 */}
-        <div className="mb-4">
-      <h3 className="text-lg font-semibold">기술 스킬</h3>
-      <select
-        onChange={handleSkillChange}
-        className="w-full p-2 border border-gray-300 rounded mb-2"
-      >
-        <option value="">스킬 선택</option>
-        {skillOptions.map(skill => (
-          <option key={skill.id} value={skill.id}>
-            {skill.name}
-          </option>
-        ))}
-      </select>
-      <div className="flex flex-wrap gap-2">
-        {formData.skills.map(skill => (
-          <div key={skill.id} className="flex items-center bg-gray-100 px-3 py-1 rounded">
-            <span>{skill.name}</span>
-            <button
-              onClick={() => handleRemoveSkill(skill.id)}
-              className="ml-2 text-red-500 hover:text-red-700"
-            >
-              ×
-            </button>
-          </div>
-        ))}
+<div className="mb-4">
+  <h3 className="text-lg font-semibold">어학</h3>
+  {formData.languages.map((language, languageIndex) => (
+    <div key={languageIndex} className="mb-4 p-4 bg-white shadow-md rounded-lg border border-gray-200">
+      <div className="flex justify-between items-center">
+        <button
+          type="button"
+          onClick={() => handleDeleteLanguage(languageIndex)}
+          className="text-red-500 hover:text-red-600 p-2"
+        >
+          <MinusCircle />
+        </button>
       </div>
-    </div>
-
-    <div className="mb-4">
-      <h3 className="text-lg font-semibold">사용 툴</h3>
-      <select
-        onChange={handleToolChange}
+      <input
+        type="text"
+        value={language.language}
+        onChange={(e) => {
+          const updatedLanguages = [...formData.languages];
+          updatedLanguages[languageIndex].language = e.target.value;
+          setFormData({ ...formData, languages: updatedLanguages });
+        }}
+        placeholder="언어"
         className="w-full p-2 border border-gray-300 rounded mb-2"
-      >
-        <option value="">툴 선택</option>
-        {toolOptions.map(tool => (
-          <option key={tool.id} value={tool.id}>
-            {tool.name}
-          </option>
-        ))}
-      </select>
-      <div className="flex flex-wrap gap-2">
-        {formData.tools.map(tool => (
-          <div key={tool.id} className="flex items-center bg-gray-100 px-3 py-1 rounded">
-            <span>{tool.name}</span>
-            <button
-              onClick={() => handleRemoveTool(tool.id)}
-              className="ml-2 text-red-500 hover:text-red-700"
-            >
-              ×
-            </button>
-          </div>
-        ))}
-      </div>
+      />
+      <input
+        type="text"
+        value={language.name}
+        onChange={(e) => {
+          const updatedLanguages = [...formData.languages];
+          updatedLanguages[languageIndex].name = e.target.value;
+          setFormData({ ...formData, languages: updatedLanguages });
+        }}
+        placeholder="시험명"
+        className="w-full p-2 border border-gray-300 rounded mb-2"
+      />
+      <input
+        type="text"
+        value={language.result}
+        onChange={(e) => {
+          const updatedLanguages = [...formData.languages];
+          updatedLanguages[languageIndex].result = e.target.value;
+          setFormData({ ...formData, languages: updatedLanguages });
+        }}
+        placeholder="점수/등급"
+        className="w-full p-2 border border-gray-300 rounded mb-2"
+      />
+      <input
+        type="date"
+        value={language.certifiedDate}
+        onChange={(e) => {
+          const updatedLanguages = [...formData.languages];
+          updatedLanguages[languageIndex].certifiedDate = e.target.value;
+          setFormData({ ...formData, languages: updatedLanguages });
+        }}
+        placeholder="인증일"
+        className="w-full p-2 border border-gray-300 rounded mb-2"
+      />
     </div>
+  ))}
+  <button
+    type="button"
+    onClick={handleAddLanguage}
+    className="inline-flex items-center text-blue-500 text-xl p-2 rounded-full hover:bg-blue-100 transition"
+>
+  <PlusCircle className="mr-2" />
+  <span>어학</span>
+  </button>
+</div>
+        
 
         <button
           type="submit"
