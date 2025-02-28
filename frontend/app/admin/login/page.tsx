@@ -64,6 +64,7 @@ export default function AdminLoginPage() {
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         className="w-64 px-4 py-2 mb-4 border rounded-md"
+        autoComplete="current-password" // 현재 비밀번호를 의미
       />
       <button
         onClick={handleAdminLogin}

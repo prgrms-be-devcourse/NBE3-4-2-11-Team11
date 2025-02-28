@@ -67,7 +67,7 @@ export const useAuthStore = create<AuthState>()(
                 if (typeof window !== "undefined") {
                     localStorage.setItem("isLoggedIn", data.isLoggedIn ? "true" : "false");
                     localStorage.setItem("role", data.role);
-                    window.dispatchEvent(new Event("authChange"));
+//                     window.dispatchEvent(new Event("authChange"));
                 }
 
             } catch (error) {
