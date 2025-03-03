@@ -7,6 +7,11 @@ spring:
   config:
     import: optional:file:.env[.properties]  # .env 파일을 .properties 형식으로 로드
 
+  servlet:
+    multipart:
+      enabled: true
+      max-request-size: 20MB
+      max-file-size: 10MB
 
   datasource:
     url: ${DB_URL}  # .env에서 로드한 DB_URL 사용
@@ -79,6 +84,7 @@ spring:
 
   profiles:
     active: oauth
+
 
 springdoc:
   default-produces-media-type: application/json;charset=UTF-8  # 기본 JSON 미디어 타입

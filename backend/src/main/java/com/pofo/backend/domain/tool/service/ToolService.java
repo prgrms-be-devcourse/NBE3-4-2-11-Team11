@@ -24,6 +24,7 @@ public class ToolService {
     private final ProjectRepository projectRepository;
     private final ProjectToolRepository projectToolRepository;
 
+
     private final EntityManager entityManager;
 
     public void save() {
@@ -92,8 +93,8 @@ public class ToolService {
         entityManager.clear();
     }
 
-    public void deleteProjectTools(Long projectId) {
-        projectToolRepository.deleteByProjectId(projectId);
+    public void deleteProjectTools(List<Long> projectIds) {
+        projectToolRepository.deleteByProjectIdIn(projectIds);
     }
 
     public Tool getToolByName(String toolName) {
