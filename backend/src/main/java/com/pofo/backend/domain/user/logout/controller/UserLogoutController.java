@@ -27,7 +27,6 @@ public class UserLogoutController {
             HttpServletResponse httpServletResponse
     ) {
         if (accessToken == null || accessToken.isEmpty()) {
-            log.warn("❌ 로그아웃 실패 - accessToken 쿠키 없음");
            return ResponseEntity.badRequest().body(new RsData<>("400", "accessToken 쿠키 없음", null));
         }
 

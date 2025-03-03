@@ -14,12 +14,9 @@ export default function OAuthCallback() {
         const state = searchParams.get("state");
 
         if (!provider || !code) {
-            console.error("❌ OAuth 로그인 콜백 파라미터 누락!");
             router.push("/login?error=missing_params");
             return;
         }
-
-        console.log(`✅ ${provider} 로그인 콜백 수신: `, code, state);
 
         const handleOAuthLogin = async () => {
             try {
@@ -57,7 +54,6 @@ export default function OAuthCallback() {
                     }
 
                 } else if (data.resultCode === "201") {
-                    console.log(`📌 ${provider} 로그인 후 회원가입 필요`, data);
                     if (!data.data?.email || !data.data?.identify) {
                         console.error("⚠️ 회원가입에 필요한 정보가 부족합니다:", data);
                         router.push("/login?error=missing_user_info");

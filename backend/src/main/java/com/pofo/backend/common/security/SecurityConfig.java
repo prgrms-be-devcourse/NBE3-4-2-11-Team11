@@ -29,10 +29,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final TokenProvider tokenProvider;
     private final JwtSecurityConfig jwtSecurityConfig;
-    private final CustomOAuth2UserService customOAuth2UserService;
-    private final OAuth2AuthenticationSuccessHandler successHandler;
     private final AdminDetailsService adminDetailsService;
     private final CustomUserDetailsService customUserDetailsService;
 
@@ -77,7 +74,8 @@ public class SecurityConfig {
 
         http
                 // '/api/v1/user/**' 경로에만 적용
-                .cors(withDefaults())
+                //.cors(withDefaults())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .securityMatcher("/api/v1/user/**")
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -97,6 +95,8 @@ public class SecurityConfig {
                                 "/api/v1/user/google/login/google/callback",
                                 "/api/v1/user/google/login/process",
                                 "/api/v1/user/logout",
+                                "/api/v1/user/send-verification/**",
+                                "/api/v1/user/verify-code",
                                 "/api/v1/token/refresh",
                                 "/api/v1/user/oauth2/**"
                         ).permitAll()

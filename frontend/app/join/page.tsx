@@ -9,7 +9,7 @@ export default function UserJoinForm() {
 
     const email = searchParams.get("email") || "";
     const identify = searchParams.get("identify") || "";
-    const provider = searchParams.get("provider") || "NAVER"; // 기본값 NAVER
+    const provider = searchParams.get("provider");
 
     const [formData, setFormData] = useState({
         name: "",
@@ -20,6 +20,9 @@ export default function UserJoinForm() {
         identify: identify,
         provider: provider
     });
+
+    const [existingEmail, setExistingEmail] = useState<string | null>(null);
+    const [showMergePrompt, setShowMergePrompt] = useState(false);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -32,7 +35,6 @@ export default function UserJoinForm() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        console.log("회원가입 데이터:", formData);
 
         try {
             const response = await fetch("/api/v1/user/join", {
@@ -41,11 +43,35 @@ export default function UserJoinForm() {
                 body: JSON.stringify(formData),
             });
 
-            if (!response.ok) throw new Error("회원가입 실패");
+            const result = await response.json();
 
-            console.log("회원가입 성공!");
-            alert("회원가입이 완료되었습니다!");
-            router.push("/login");
+            if (response.status === 202) {
+                // ✅ 기존 계정이 존재하면 confirm 창 띄우기
+                const isConfirmed = window.confirm(
+                    `⚠️ 기존 계정(${result.data.email})이 존재합니다.\n\n본인 계정이 맞다면 통합을 진행해주세요.`
+                );
+
+                if (isConfirmed) {
+                    // ✅ 이메일 인증 요청 추가 (자동 전송)
+                    fetch(`/api/v1/user/send-verification/${result.data.email}`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                    })
+                        .then((res) => res.json())
+                    router.push(`/join/verify_email?email=${result.data.email}&provider=${provider}&identify=${identify}`);
+                } else {
+                    alert("다른 이메일을 사용하여 가입을 진행해주세요.");
+                }
+                return;
+            }
+
+            if (response.status === 200) {
+                console.log("✅ 회원가입 성공!");
+                alert("회원가입이 완료되었습니다!");
+                router.push("/login");
+            } else {
+                throw new Error("회원가입 실패");
+            }
         } catch (error) {
             console.error("회원가입 오류:", error);
             alert("회원가입 중 오류가 발생했습니다.");
@@ -55,6 +81,23 @@ export default function UserJoinForm() {
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
             <h1 className="text-3xl font-bold mb-6">회원가입</h1>
+
+            {/* ✅ 기존 계정이 있을 경우 안내 메시지 */}
+            {showMergePrompt && (
+                <div className="bg-yellow-300 p-4 mb-4 text-black rounded-md shadow-md">
+                    <p>⚠ 기존 계정이 존재합니다.</p>
+                    <p>이전 계정 이메일: {existingEmail}</p>
+                    <p>본인 계정이 맞다면 인증을 진행해주세요.</p>
+                    <button
+                        className="bg-blue-500 text-white px-4 py-2 rounded-md mt-2"
+                        onClick={() => router.push(`/verify-email?email=${existingEmail}`)}
+                    >
+                        인증 후 통합하기
+                    </button>
+                </div>
+            )}
+
+            {/* ✅ 기존 계정 여부와 관계없이 폼은 항상 표시 */}
             <form onSubmit={handleSubmit} className="bg-gray-800 text-white p-6 rounded-lg shadow-lg w-96">
                 {/* 이름 */}
                 <div className="mb-4">
