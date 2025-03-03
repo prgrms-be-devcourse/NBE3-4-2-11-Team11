@@ -45,6 +45,8 @@ out/
 
 # backend/.gitignore
 ../frontend/*
+frontend/
+
 
 # MapStruct에서 자동 생성된 구현체 파일 무시
 src/main/java/**/mapper/*Impl.java

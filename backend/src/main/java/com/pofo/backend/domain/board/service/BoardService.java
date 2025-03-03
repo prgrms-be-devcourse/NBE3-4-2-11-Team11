@@ -85,6 +85,19 @@ public class BoardService {
         return new RsData<>("200", "게시글 삭제 성공", new BoardDeleteResponseDto("게시글이 삭제되었습니다."));
     }
 
+    // 게시글 다중 삭제
+    @Transactional
+    public RsData<String> deleteMultiplePosts(List<Long> ids) {
+        List<Board> boardsToDelete = boardRepository.findAllById(ids);
+
+        if (boardsToDelete.isEmpty()) {
+            return new RsData<>("400", "삭제할 게시글이 없습니다.", null);
+        }
+
+        boardRepository.deleteAll(boardsToDelete);
+        return new RsData<>("200", "선택한 게시글이 삭제되었습니다.", "success");
+    }
+
 
     // 공통 메서드: 엔티티 조회 & 예외 처리 (중복 코드 제거) 에러 400으로 고정
     private <T> T findEntityOrThrow(Optional<T> entity, String errorMessage) {

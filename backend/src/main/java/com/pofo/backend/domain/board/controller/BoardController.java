@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @CrossOrigin("*") // 모든 도메인에서 요청 허용 (Next.js 연동 가능)
 @RestController
 @RequiredArgsConstructor
@@ -48,4 +50,11 @@ public class BoardController {
     public ResponseEntity<RsData<BoardDeleteResponseDto>> deletePost(@PathVariable Long id) {
         return ResponseEntity.ok(boardService.deletePost(id));
     }
+
+    // 게시글 다중 삭제 (POST /api/v1/user/boards/batch-delete)
+    @DeleteMapping("/batch-delete")
+    public ResponseEntity<RsData<String>> deleteMultiplePosts(@RequestBody List<Long> ids) {
+        return ResponseEntity.ok(boardService.deleteMultiplePosts(ids));
+    }
+
 }
