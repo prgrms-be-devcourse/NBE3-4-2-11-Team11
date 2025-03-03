@@ -80,14 +80,24 @@ spring:
   profiles:
     active: oauth
 
-mail:
-  host: ${SPRING_MAIL_HOST}
-  port: ${SPRING_MAIL_PORT}
-  username: ${SPRING_MAIL_USERNAME}
-  password: ${SPRING_MAIL_PASSWORD}
-  properties:
-    mail.smtp.auth: true
-    mail.smtp.starttls.enable: true
+#mail:
+##  host: ${SPRING_MAIL_HOST}
+##  port: ${SPRING_MAIL_PORT}
+##  username: ${SPRING_MAIL_USERNAME}
+##  password: ${SPRING_MAIL_PASSWORD}
+##  properties:
+##    mail.smtp.auth: true
+##    mail.smtp.starttls.enable: true
+
+  mail:
+    host: smtp.naver.com
+    port: 587
+    username: wyzmqkr11@naver.com
+    password: cokr4586749!
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+
 
 springdoc:
   default-produces-media-type: application/json;charset=UTF-8  # 기본 JSON 미디어 타입
