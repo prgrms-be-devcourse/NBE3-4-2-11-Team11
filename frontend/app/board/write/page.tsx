@@ -8,6 +8,10 @@ import { getAccessToken } from '@/utils/token';    // 토큰 가져오기
 import { decodeJWT } from '@/utils/decodeJWT';     // JWT 디코딩
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import remarkBreaks from 'remark-breaks'; // 줄바꿈 처리 추가
+
+import rehypeHighlight from "rehype-highlight";
+import "highlight.js/styles/github.css";
 
 const WritePostPage = () => {
   const [title, setTitle] = useState('');
@@ -75,12 +79,20 @@ const WritePostPage = () => {
       </button>
     </div>
 
-    <div className="w-1/2 max-w-xl bg-white p-6 rounded shadow-md h-[80vh] flex flex-col">
-      <h2 className="text-2xl font-semibold mb-4">미리보기</h2>
-      <div className="p-4 border rounded bg-gray-50 flex-1 overflow-y-auto">
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-          {content || '내용을 입력하면 마크다운 형식으로 미리보기가 표시됩니다.'}
-        </ReactMarkdown>
+         {/* 미리보기 */}
+         <div className="w-1/2 max-w-xl bg-white p-6 rounded shadow-md h-[80vh] flex flex-col">
+        <h2 className="text-2xl font-semibold mb-4">미리보기</h2>
+        <div className="prose max-w-none p-4 border rounded bg-gray-50 flex-1 overflow-y-auto">
+          {content ? ( // 조건부 렌더링 
+            <ReactMarkdown 
+              remarkPlugins={[remarkGfm, remarkBreaks]} //줄바꿈 적용
+              rehypePlugins={[rehypeHighlight]} 
+            >
+              {content}
+            </ReactMarkdown>
+          ) : ( 
+            <p className="text-gray-400">내용을 입력하면 마크다운 형식으로 미리보기가 표시됩니다.</p> // ✅ 기본 메시지 색상 조정
+          )}
       </div>
     </div>
   </div>
