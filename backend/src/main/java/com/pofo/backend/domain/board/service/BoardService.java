@@ -11,6 +11,9 @@ import com.pofo.backend.domain.user.join.entity.User;
 import com.pofo.backend.domain.user.join.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -64,6 +67,23 @@ public class BoardService {
         return new RsData<>("201", "게시글 작성 성공", new BoardResponseDto(board));
     }
 
+//    @Transactional
+//    public RsData<BoardResponseDto> createPost(BoardRequestDto requestDto) {
+//        // 현재 SecurityContext에서 인증된 사용자의 이메일을 추출합니다.
+//        String email = getCurrentUserEmail();
+//        User user = findEntityOrThrow(usersRepository.findByEmail(email), "사용자를 찾을 수 없습니다.");
+//
+//        // 게시글 생성
+//        Board board = Board.builder()
+//                .user(user)
+//                .title(requestDto.getTitle())
+//                .content(requestDto.getContent())
+//                .build();
+//
+//        boardRepository.save(board);
+//        return new RsData<>("201", "게시글 작성 성공", new BoardResponseDto(board));
+//    }
+
     // 게시글 수정
     @Transactional
     public RsData<BoardResponseDto> updatePost(Long id, BoardRequestDto requestDto) {
@@ -83,6 +103,15 @@ public class BoardService {
 
         boardRepository.delete(board);
         return new RsData<>("200", "게시글 삭제 성공", new BoardDeleteResponseDto("게시글이 삭제되었습니다."));
+    }
+
+    // 현재 인증된 사용자의 이메일을 SecurityContextHolder를 통해 추출합니다.
+    private String getCurrentUserEmail() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
+            return ((UserDetails) authentication.getPrincipal()).getUsername();
+        }
+        throw new IllegalStateException("현재 인증된 사용자를 찾을 수 없습니다.");
     }
 
 
