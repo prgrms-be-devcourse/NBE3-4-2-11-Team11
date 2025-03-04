@@ -85,7 +85,6 @@ spring:
   profiles:
     active: oauth
 
-
 file:
   upload-dir: ${user.dir}/uploads/
 

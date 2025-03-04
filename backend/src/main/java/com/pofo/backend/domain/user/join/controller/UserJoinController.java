@@ -38,4 +38,11 @@ public class UserJoinController {
         return ResponseEntity.status(status)
                 .body(new RsData<>(response.getResultCode(),response.getMessage(),response));
     }
+
+    //  계정 통합을 진행하지 않는 경우
+    @PostMapping("/join/force")
+    public ResponseEntity<RsData<UserJoinResponseDto>> forceRegisterUser(@RequestBody UserJoinRequestDto userJoinRequestDto) {
+        UserJoinResponseDto responseDto = userJoinService.forceRegisterUser(userJoinRequestDto);
+        return ResponseEntity.ok(new RsData<>("200", "회원가입 완료", responseDto));
+    }
 }
