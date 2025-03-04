@@ -7,6 +7,7 @@ import com.pofo.backend.domain.user.join.service.UserJoinService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,11 +28,14 @@ public class UserJoinController {
             @Valid @RequestBody UserJoinRequestDto userJoinRequestDto) {
 
         //  파라미터 확인용 로깅
-        log.info("회원가입 요청 데이터: {}", userJoinRequestDto);
 
         //  회원 가입 서비스 호출
         UserJoinResponseDto response = this.userJoinService.registerUser(userJoinRequestDto);
 
-        return ResponseEntity.ok(new RsData<>("200",response.getMessage(),response));
+        // ✅ 응답 코드에 따라 HTTP 상태 코드를 동적으로 설정
+        HttpStatus status = response.getResultCode().equals("202") ? HttpStatus.ACCEPTED : HttpStatus.OK;
+
+        return ResponseEntity.status(status)
+                .body(new RsData<>(response.getResultCode(),response.getMessage(),response));
     }
 }

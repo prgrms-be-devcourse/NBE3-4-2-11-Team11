@@ -14,19 +14,12 @@ const CreateNoticePage = () => {
     event.preventDefault();
 
     try {
-      const token = localStorage.getItem("accessToken");
-      if (!token) {
-        throw new Error("인증 토큰이 없습니다.");
-      }
-
-      const response = await axios.post("/api/v1/admin/notice", {
-        subject,
-        content,
-      }, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      // HTTP-only 쿠키 기반 인증이므로 토큰을 직접 다루지 않습니다.
+      const response = await axios.post(
+        "/api/v1/admin/notice",
+        { subject, content },
+        { withCredentials: true }
+      );
 
       if (response.status === 200) {
         alert("공지사항이 성공적으로 생성되었습니다!");

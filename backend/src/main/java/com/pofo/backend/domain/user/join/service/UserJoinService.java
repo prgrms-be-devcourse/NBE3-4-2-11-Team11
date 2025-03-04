@@ -25,11 +25,6 @@ public class UserJoinService {
     @Transactional
     public UserJoinResponseDto registerUser(UserJoinRequestDto userJoinRequestDto) {
 
-        System.out.println("Debug - identify: " + userJoinRequestDto.getIdentify());
-        System.out.println("Debug - name: " + userJoinRequestDto.getName());
-        System.out.println("Debug - nickname: " + userJoinRequestDto.getNickname());
-        System.out.println("Debug - sex: " + userJoinRequestDto.getSex());
-
         //  1.  oauth테이블의 provider, identify 항목 취득 : 2025-01-31 반영
         Optional<Oauth> existingOauths = oauthRepository.findByProviderAndIdentify(
                 userJoinRequestDto.getProvider(),
@@ -38,6 +33,7 @@ public class UserJoinService {
 
         //  2.  users 테이블에 이메일이 존재 하는지 확인.
         Optional<User> existingUser = userRepository.findByEmail(userJoinRequestDto.getEmail());
+
 
         //  3.  Users 테이블에서 같은 이름 + 생년월일 + 성별 + 닉네임이 있는지 확인
         List<User> possibleExistingUser = userRepository.findByNameAndSexAndAgeAndNickname(
@@ -62,6 +58,7 @@ public class UserJoinService {
         if (existingOauths.isPresent() && existingUser.isPresent()) {
             return UserJoinResponseDto.builder()
                     .message("로그인이 완료 되었습니다.")
+                    .resultCode("200")
                     .build();
         } else if (existingOauths.isEmpty() && existingUser.isPresent()) {
             Oauth newOauth = Oauth.builder()
@@ -73,10 +70,15 @@ public class UserJoinService {
 
             return UserJoinResponseDto.builder()
                     .message("기존 유저에 새로운 소셜 로그인 연동 성공")
+                    .resultCode("200")
                     .build();
         } else if (possibleExistingUser.size() == 1) {
+            User foundUser = possibleExistingUser.stream().findFirst().orElseThrow();
+
             return UserJoinResponseDto.builder()
-                    .message("이전에 이용한 소셜 로그인이 있을 가능성이 있습니다. 연동을 진행하겠습니까? ")
+                    .message("기존 계정이 존재합니다. 본인 계정이 맞다면 인증을 진행해주세요.")
+                    .email(foundUser.getEmail()) // 기존 유저의 이메일 정보 제공
+                    .resultCode("202") // "기존 계정이 있음"을 나타내는 코드
                     .build();
         } else {
             //  소셜 로그인을 최초로 진행 하는 경우 : Users 테이블에 이메일, 이름, 닉네임, 성별, 나이대 입력
@@ -99,6 +101,7 @@ public class UserJoinService {
 
             return UserJoinResponseDto.builder()
                     .message("회원 가입 성공")
+                    .resultCode("200")
                     .build();
         }
     }

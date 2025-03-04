@@ -3,6 +3,7 @@
 import {useEffect, useState} from "react";
 import Link from "next/link";
 import {useSearchParams} from "next/navigation";
+import { useAuthStore } from "@/store/authStore"; // ✅ useAuthStore import 추가
 
 export default function LoginPage() {
     const [loading, setLoading] = useState(false);
@@ -11,6 +12,11 @@ export default function LoginPage() {
     const searchParams = useSearchParams();
     const error = searchParams.get("error");
     const provider = searchParams.get("provider")?.toUpperCase() ;
+
+
+ // ✅ useAuthStore에서 login 함수 가져오기
+    const { login } = useAuthStore();
+
 
     //  네이버 로그인 정보
     const NAVER_CLIENT_ID  = process.env.NEXT_PUBLIC_CLIENT_ID;
@@ -27,17 +33,26 @@ export default function LoginPage() {
         providerName = "구글";
     }
 
-    const handleLogin = (provider: string) => {
-        setLoading(true);
+    const handleLogin = async (provider: string) => {
+        try {
+            setLoading(true);
 
-        if (provider === "NAVER") {
-            window.location.href = NAVER_AUTH_URL;
-        } else if (provider === "ADMIN") {
-            window.location.href = "/api/v1/admin/login"; // ✅ 관리자 로그인 요청을 보낼 URL
-        } else {
-            window.location.href = `/api/v1/user/${provider}/login`; // 일반 OAuth 로그인 요청
+            if (provider === "NAVER") {
+                window.location.href = NAVER_AUTH_URL;
+            } else if (provider === "ADMIN") {
+                window.location.href = "/api/v1/admin/login";
+            } else {
+                window.location.href = `/api/v1/user/${provider}/login`;
+                await login("user"); // ✅ 로그인 상태 저장
+            }
+        } catch (error) {
+            console.error("❌ 로그인 중 오류 발생:", error);
+        } finally {
+            setLoading(false);
         }
     };
+
+
 
     useEffect(() => {
         // ✅ 마지막 로그인했던 플랫폼 가져오기
