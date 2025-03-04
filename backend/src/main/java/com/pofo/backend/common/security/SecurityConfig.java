@@ -99,7 +99,8 @@ public class SecurityConfig {
                                 "/api/v1/user/send-verification/**",
                                 "/api/v1/user/verify-code",
                                 "/api/v1/token/refresh",
-                                "/api/v1/user/oauth2/**"
+                                "/api/v1/user/oauth2/**",
+                                "/api/v1/user/mypage"
                         ).permitAll()
                         .anyRequest().authenticated()
                 );
