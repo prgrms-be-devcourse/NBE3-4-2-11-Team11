@@ -2,10 +2,9 @@ package com.pofo.backend.domain.inquiry.controller;
 
 import com.pofo.backend.common.rsData.RsData;
 import com.pofo.backend.common.security.CustomUserDetails;
-import com.pofo.backend.domain.admin.login.entitiy.Admin;
-import com.pofo.backend.domain.inquiry.dto.reponse.InquiryCreateResponse;
-import com.pofo.backend.domain.inquiry.dto.reponse.InquiryDetailResponse;
-import com.pofo.backend.domain.inquiry.dto.reponse.InquiryUpdateResponse;
+import com.pofo.backend.domain.inquiry.dto.response.InquiryCreateResponse;
+import com.pofo.backend.domain.inquiry.dto.response.InquiryDetailResponse;
+import com.pofo.backend.domain.inquiry.dto.response.InquiryUpdateResponse;
 import com.pofo.backend.domain.inquiry.dto.request.InquiryCreateRequest;
 import com.pofo.backend.domain.inquiry.dto.request.InquiryUpdateRequest;
 import com.pofo.backend.domain.inquiry.service.InquiryService;
@@ -39,12 +38,10 @@ public class InquiryController {
         return ResponseEntity.ok(new RsData<>("200", "문의사항 수정이 완료되었습니다.", inquiryUpdateResponse));
     }
 
-    @DeleteMapping("/common/inquiries/{id}")
-    public ResponseEntity<RsData<Void>> deleteInquiry(@PathVariable Long id, @AuthenticationPrincipal Object userOrAdmin) {
-        User user = (userOrAdmin instanceof User) ? (User) userOrAdmin : null;
-        Admin admin = (userOrAdmin instanceof Admin) ? (Admin) userOrAdmin : null;
-
-        this.inquiryService.delete(id, user, admin);
+    @DeleteMapping("/user/inquiries/{id}")
+    public ResponseEntity<RsData<Void>> deleteInquiry(@PathVariable Long id, @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        User user = customUserDetails.getUser();
+        this.inquiryService.delete(id, user);
         return ResponseEntity.ok(new RsData<>("200", "문의사항 삭제가 완료되었습니다."));
     }
 

@@ -1,7 +1,6 @@
 package com.pofo.backend.common.security.jwt;
 
 
-import com.pofo.backend.common.service.TokenBlacklistService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,21 +22,15 @@ class JwtFilterTest {
 
     private JwtFilter jwtFilter;
     private TokenProvider tokenProvider;
-    private RedisTemplate<String, String> redisTemplate;
     private HttpServletRequest request;
     private HttpServletResponse response;
     private FilterChain filterChain;
     private ValueOperations<String, String> valueOperations;
-    TokenBlacklistService tokenBlacklistService;
 
     @BeforeEach
     void setUp() {
         tokenProvider = mock(TokenProvider.class);
-        redisTemplate = mock(RedisTemplate.class);
         valueOperations = mock(ValueOperations.class);
-        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-
-        jwtFilter = new JwtFilter("Authorization", tokenProvider, tokenBlacklistService);
 
         request = mock(HttpServletRequest.class);
         response = mock(HttpServletResponse.class);

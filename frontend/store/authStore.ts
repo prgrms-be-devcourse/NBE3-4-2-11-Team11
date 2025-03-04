@@ -1,93 +1,107 @@
 import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
-
-import { getAccessToken, getRefreshToken,  setTokens, removeTokens } from "../utils/token"; // ✅ 토큰 유틸 함수 가져오기
 
 type AuthState = {
     isLoggedIn: boolean;
-    accessToken: string | null;
-    refreshToken: string | null;
-    login: (accessToken: string, refreshToken: string) => void;
-    logout: () => void;
-    refreshAccessToken: () => Promise<boolean>;
-
+    role: "user" | "admin" | null;
+    login: (role: "user" | "admin") => Promise<void>;
+    logout: () => Promise<void>;
+    checkAuthStatus: () => Promise<void>;
+    refreshAccessToken: () => Promise<boolean>; // ✅ refreshAccessToken 추가
 };
 
 export const useAuthStore = create<AuthState>()(
-    persist(
-        (set, get) => ({
-            isLoggedIn: false,
-            accessToken: getAccessToken(),
-            refreshToken: getRefreshToken(),
+    (set, get) => ({
+        isLoggedIn: false,
+        role: null,
 
-            login: (accessToken, refreshToken) => {
-                if (!refreshToken) {
-                    console.warn("❌ WARNING: refreshToken이 없습니다. 백엔드 응답 확인 필요!");
+        login: async (role) => {
+            set({ isLoggedIn: true, role });
+
+            if (typeof window !== "undefined") {
+                localStorage.setItem("isLoggedIn", "true");
+                localStorage.setItem("role", role);
+                window.dispatchEvent(new Event("authChange"));
+            }
+        },
+
+        logout: async () => {
+            if (typeof window === "undefined") return;
+
+            try {
+                const role = get().role;
+                const logoutEndpoint = role === "admin" ? "/api/v1/admin/logout" : "/api/v1/user/logout";
+
+                await fetch(logoutEndpoint, {
+                    method: "POST",
+                    credentials: "include",
+                });
+            } catch (error) {
+                console.error("로그아웃 API 호출 실패:", error);
+            } finally {
+                set({ isLoggedIn: false, role: null });
+
+                if (typeof window !== "undefined") {
+                    localStorage.removeItem("isLoggedIn");
+                    localStorage.removeItem("role");
+                    window.dispatchEvent(new Event("authChange"));
+                }
+            }
+        },
+
+        checkAuthStatus: async () => {
+            try {
+                const response = await fetch("/api/v1/auth/status", {
+                    method: "GET",
+                    credentials: "include",
+                });
+
+                if (!response.ok) {
+                    console.warn("❌ 로그인 상태 확인 실패, 로그아웃 처리");
+                    return;
                 }
 
-                setTokens(accessToken,refreshToken); // ✅ 유틸 함수 사용
+                const data = await response.json();
 
-                const payload: any = JSON.parse(atob(accessToken.split(".")[1]));
+                set({ isLoggedIn: data.isLoggedIn, role: data.role });
 
-                if (!payload.exp)  {
-                    console.error("❌ JWT payload에 exp 필드가 없습니다. 토큰을 확인하세요:", payload);
+                if (typeof window !== "undefined") {
+                    localStorage.setItem("isLoggedIn", data.isLoggedIn ? "true" : "false");
+                    localStorage.setItem("role", data.role);
+//                     window.dispatchEvent(new Event("authChange"));
                 }
 
-                set({ isLoggedIn: true, accessToken, refreshToken });
+            } catch (error) {
+                console.error("❌ 로그인 상태 확인 중 오류 발생:", error);
+                set({ isLoggedIn: false, role: null });
+                localStorage.removeItem("isLoggedIn");
+                localStorage.removeItem("role");
+            }
+        },
 
-            },
+        // ✅ refreshAccessToken 추가 (기존 코드에서 누락됨)
+        refreshAccessToken: async () => {
+            try {
+                const response = await fetch("/api/v1/token/refresh", {
+                    method: "POST",
+                    credentials: "include",
+                });
 
-            logout: async () => {
-                if (typeof window === "undefined") return;
-
-
-                removeTokens(); // ✅ 유틸 함수 사용
-                set({ isLoggedIn: false, accessToken: null, refreshToken: null });
-            },
-
-            refreshAccessToken: async () => {
-                const refreshToken = getRefreshToken();
-                if (!refreshToken) {
-                    console.warn("❌ Refresh Token 없음, 로그아웃 진행 필요");
+                if (!response.ok) {
+                    console.warn("❌ Refresh Token 만료됨, 로그아웃 진행");
                     get().logout();
                     return false;
                 }
 
-                try {
-                    const response = await fetch("/api/v1/token/refresh", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({ refreshToken }),
-                    });
+                console.log("✅ Access Token 갱신 완료");
 
-                    if (!response.ok) {
-                        console.warn("❌ Refresh Token이 만료됨, 로그아웃 진행");
-                        get().logout();
-                        return false;
-                    }
+                await get().checkAuthStatus(); // ✅ 갱신 후 로그인 상태 재확인
+                return true;
 
-                    const data = await response.json();
-                    console.log("✅ Access Token 갱신 완료:", data.accessToken);
-
-                    setTokens(data.data.accessToken,data.data.refreshToken); // ✅ 유틸 함수 사용
-                    set({ accessToken: data.data.accessToken });
-
-                    return true;
-                } catch (error) {
-                    console.error("❌ Access Token 갱신 실패:", error);
-                    get().logout();
-                    return false;
-                }
-            },
-        }),
-        {
-            name: "auth-storage",
-            storage: typeof window !== "undefined"
-                ? createJSONStorage(() => localStorage)
-                : undefined,
-
-        }
-    )
+            } catch (error) {
+                console.error("❌ Access Token 갱신 실패:", error);
+                return false;
+            }
+        },
+    })
 );
+

@@ -9,6 +9,7 @@ import com.pofo.backend.domain.user.join.entity.User;
 import com.pofo.backend.domain.user.join.repository.UserRepository;
 import io.jsonwebtoken.*;
 import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,6 +19,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -43,6 +45,9 @@ public class TokenProvider {
 
     @Value("${jwt.refresh-token.expiration-time}")
     private Long refreshTokenValidationTime;
+
+    private static final String AUTH_HEADER = "Authorization";
+    private static final String TOKEN_PREFIX = "Bearer ";
 
     private SecretKey key;
     private final AdminDetailsService adminDetailsService;
@@ -74,8 +79,6 @@ public class TokenProvider {
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","));
 
-//        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-//        String email = userDetails.getUsername();
 
         String subject;
         Object principal = authentication.getPrincipal();
@@ -175,12 +178,7 @@ public class TokenProvider {
      * @param token Refresh Token 문자열
      * @return Authentication 객체
      */
-//    public Authentication getAuthenticationFromRefreshToken(String token) {
-//        Claims claims = parseData(token);
-//        String username = claims.getSubject();
-//        UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
-//        return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
-//    }
+
 
     public Authentication getAuthenticationFromRefreshToken(String token) {
         Claims claims = parseData(token);
@@ -286,4 +284,34 @@ public class TokenProvider {
         Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
         return claims.getExpiration().getTime() - System.currentTimeMillis();
     }
+
+    // ✅ HTTP 요청에서 Access Token을 추출
+    public static String extractAccessTokenFromRequest(HttpServletRequest request) {
+        String authorizationHeader = request.getHeader(AUTH_HEADER);
+
+        if (StringUtils.hasText(authorizationHeader) && authorizationHeader.startsWith(TOKEN_PREFIX)) {
+            return authorizationHeader.substring(TOKEN_PREFIX.length());
+        }
+
+        return null; // ✅ Access Token이 없으면 null 반환
+    }
+
+
+    public String getRoleFromToken(String token) {
+        Claims claims = parseData(token);
+        if (claims == null) {
+            return null;
+        }
+        // 토큰에 저장된 권한 문자열(ex: "ROLE_ADMIN,ROLE_USER")을 읽어옵니다.
+        String authorities = claims.get(AUTHORIZATION_KEY, String.class);
+        if (authorities != null) {
+            if (authorities.contains("ROLE_ADMIN")) {
+                return "admin";
+            } else if (authorities.contains("ROLE_USER")) {
+                return "user";
+            }
+        }
+        return null;
+    }
+
 }

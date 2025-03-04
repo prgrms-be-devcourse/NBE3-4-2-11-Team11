@@ -16,6 +16,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 public class ReplyService {
@@ -32,10 +35,6 @@ public class ReplyService {
 
         Inquiry inquiry = this.inquiryRepository.findById(id)
                 .orElseThrow(() -> new ReplyException("문의사항을 찾을 수 없습니다."));
-
-        if (replyRepository.existsByInquiryId(id)) {
-            throw new ReplyException("해당 문의에 답변이 이미 존재합니다.");
-        }
 
         try {
             Reply reply = Reply.builder()
@@ -91,12 +90,21 @@ public class ReplyService {
     }
 
     @Transactional(readOnly = true)
+    public List<ReplyDetailResponse> findByInquiryId(Long inquiryId) {
+
+        List<Reply> replies = this.replyRepository.findByInquiryId(inquiryId);
+        return replies.stream()
+                .map(reply -> new ReplyDetailResponse(reply.getId(), reply.getContent(), reply.getCreatedAt()))
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
     public ReplyDetailResponse findById(Long id) {
 
         Reply reply = this.replyRepository.findById(id)
                 .orElseThrow(() -> new ReplyException("해당 답변을 찾을 수 없습니다."));
 
-        return new ReplyDetailResponse(reply.getId(), reply.getContent());
+        return new ReplyDetailResponse(reply.getId(), reply.getContent(), reply.getCreatedAt());
     }
 
     @Transactional(readOnly = true)

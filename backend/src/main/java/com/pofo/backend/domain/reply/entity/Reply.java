@@ -18,7 +18,7 @@ public class Reply extends BaseTime {
     @JoinColumn(name = "admin_id", nullable = false)
     private Admin admin;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "inquiry_id", nullable = false)
     private Inquiry inquiry;
 
