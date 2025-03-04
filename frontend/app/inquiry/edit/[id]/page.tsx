@@ -52,7 +52,7 @@ const InquiryEditPage = () => {
         },
       });
       alert('문의사항이 성공적으로 수정되었습니다!');
-      router.push("/inquiry");
+      router.push(`/inquiry/${id}`);
     } catch (error) {
       console.error('Error updating inquiry:', error);
       alert('수정 실패: 알 수 없는 오류가 발생했습니다.');
