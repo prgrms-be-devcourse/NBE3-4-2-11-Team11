@@ -16,6 +16,8 @@ export default function UserJoinForm() {
         nickname: "",
         sex: "",
         age: "",
+        jobInterest:"",
+        userStatus:"",
         email: email,   // URL에서 가져온 값 설정
         identify: identify,
         provider: provider
@@ -32,6 +34,10 @@ export default function UserJoinForm() {
     const handleSexChange = (sex: string) => {
         setFormData((prev) => ({ ...prev, sex }));
     };
+
+    const handleUserSatusChange = (userStatus: string) => {
+        setFormData((prev) => ({ ...prev, userStatus }));
+    }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -60,7 +66,28 @@ export default function UserJoinForm() {
                         .then((res) => res.json())
                     router.push(`/join/verify_email?email=${result.data.email}&provider=${provider}&identify=${identify}`);
                 } else {
-                    alert("다른 이메일을 사용하여 가입을 진행해주세요.");
+                    try {
+                        const registerResponse = await fetch("/api/v1/user/join/force", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(formData),
+                        });
+
+                        const registerResult = await registerResponse.json();
+
+                        console.log(registerResult);
+
+                        if (registerResponse.status === 200) {
+                            alert("회원가입이 완료되었습니다!");
+                            router.push("/login");
+                        } else {
+                            throw new Error("회원가입 실패");
+                        }
+
+                    }catch (error) {
+                        console.log(error);
+                        alert("회원가입 중 오류 발생")
+                    }
                 }
                 return;
             }
@@ -157,6 +184,47 @@ export default function UserJoinForm() {
                         className="w-full p-2 rounded-md bg-gray-700 text-white"
                         required
                     />
+                </div>
+
+                {/* 관심 직종 */}
+                <div className="mb-4">
+                    <label className="block mb-2">관심 직종</label>
+                    <input
+                        type="text"
+                        name="jobInterest"
+                        value={formData.jobInterest}
+                        onChange={handleChange}
+                        className="w-full p-2 rounded-md bg-gray-700 text-white"
+                        required
+                    />
+                </div>
+
+                {/* 취업 여부 */}
+                <div className="mb-4">
+                    <label className="block mb-2">취업 여부</label>
+                    <div className="flex gap-4">
+                        <button
+                            type="button"
+                            className={`p-2 w-1/3 rounded-md ${formData.userStatus === "UNEMPLOYED" ? "bg-red-500" : "bg-gray-600"}`}
+                            onClick={() => handleUserSatusChange("UNEMPLOYED")}
+                        >
+                            ⭕ 구직중
+                        </button>
+                        <button
+                            type="button"
+                            className={`p-2 w-1/3 rounded-md ${formData.userStatus === "EMPLOYED" ? "bg-blue-500" : "bg-gray-600"}`}
+                            onClick={() => handleUserSatusChange("EMPLOYED")}
+                        >
+                            ⭕ 재직중
+                        </button>
+                        <button
+                            type="button"
+                            className={`p-2 w-1/3 rounded-md ${formData.userStatus === "STUDENT" ? "bg-yellow-500" : "bg-gray-600"}`}
+                            onClick={() => handleUserSatusChange("STUDENT")}
+                        >
+                            ⭕ 학부생
+                        </button>
+                    </div>
                 </div>
 
                 {/* 회원가입 버튼 */}
