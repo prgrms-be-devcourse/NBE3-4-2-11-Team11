@@ -4,28 +4,23 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useParams } from "next/navigation";
-import { InquiryUpdateResponse } from './types'; // InquiryUpdateResponse 타입을 추가해야 합니다.
+
+type InquiryUpdateResponse = {
+    id: number;
+};
 
 const InquiryEditPage = () => {
   const { id } = useParams();
   const [inquiry, setInquiry] = useState<{ subject: string; content: string }>({ subject: "", content: "" });
   const [loading, setLoading] = useState(true);
+  const [token, setToken] = useState<string | null>(null); // token 상태 정의
   const router = useRouter();
 
   useEffect(() => {
     const fetchInquiry = async () => {
-      const token = localStorage.getItem('accessToken');
-      if (!token) {
-        console.error('No access token found');
-        return;
-      }
 
       try {
-        const response = await axios.get<InquiryUpdateResponse>(`/api/v1/common/inquiries/${id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await axios.get<InquiryUpdateResponse>(`/api/v1/common/inquiries/${id}`, { withCredentials: true });
         setInquiry(response.data.data);
       } catch (error) {
         console.error('Error fetching inquiry:', error);
@@ -38,19 +33,9 @@ const InquiryEditPage = () => {
   }, [id]);
 
   const handleUpdate = async (updatedData) => {
-    const token = localStorage.getItem('accessToken');
-    if (!token) {
-      console.error('No access token found');
-      alert('로그인이 필요합니다.');
-      return;
-    }
 
     try {
-      const response = await axios.patch(`/api/v1/user/inquiries/${id}`, updatedData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.patch(`/api/v1/user/inquiries/${id}`, updatedData, { withCredentials: true });
       alert('문의사항이 성공적으로 수정되었습니다!');
       router.push(`/inquiry/${id}`);
     } catch (error) {
