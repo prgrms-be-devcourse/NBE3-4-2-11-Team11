@@ -3,8 +3,6 @@ package com.pofo.backend.domain.project.controller;
 import com.pofo.backend.common.base.Empty;
 import com.pofo.backend.common.rsData.RsData;
 import com.pofo.backend.common.security.CustomUserDetails;
-import com.pofo.backend.domain.project.dto.request.ProjectDeleteRequest;
-import com.pofo.backend.domain.project.dto.request.ProjectRestoreRequest;
 import com.pofo.backend.domain.project.dto.response.ProjectCreateResponse;
 import com.pofo.backend.domain.project.dto.response.ProjectDetailResponse;
 import com.pofo.backend.domain.project.dto.response.ProjectUpdateResponse;
@@ -112,11 +110,11 @@ public class ProjectController {
     //휴지통으로 이동할 프로젝트 다중 선택
     @DeleteMapping("/projects")
     public ResponseEntity<RsData<Empty>> deleteMultipleProjects(
-            @RequestBody ProjectDeleteRequest request,
+            @RequestParam List<Long> projectIds,
             @AuthenticationPrincipal CustomUserDetails customUserDetails) {
 
         User user = customUserDetails.getUser();
-        projectService.moveToTrash(request.getProjectIds(), user);
+        projectService.moveToTrash(projectIds, user);
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new RsData<>("200", "선택한 프로젝트가 휴지통으로 이동되었습니다.", new Empty()));
@@ -137,11 +135,11 @@ public class ProjectController {
     //휴지통 복원
     @PostMapping("/projects/restore")
     public ResponseEntity<RsData<String>> restoreProjects(
-            @RequestBody ProjectRestoreRequest request,
+            @RequestParam List<Long> projectIds,
             @AuthenticationPrincipal CustomUserDetails customUserDetails) {
 
         User user = customUserDetails.getUser();
-        projectService.restoreProjects(request.getProjectIds(), user);
+        projectService.restoreProjects(projectIds, user);
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new RsData<>("200", "선택한 프로젝트가 복원되었습니다.", "success"));
@@ -150,11 +148,11 @@ public class ProjectController {
     //영구삭제
     @DeleteMapping("/projects/permanent")
     public ResponseEntity<RsData<String>> permanentlyDeleteProjects(
-            @RequestBody ProjectDeleteRequest request,
+            @RequestParam List<Long> projectIds,
             @AuthenticationPrincipal CustomUserDetails customUserDetails) {
 
         User user = customUserDetails.getUser();
-        projectService.permanentlyDeleteProjects(request.getProjectIds(), user);
+        projectService.permanentlyDeleteProjects(projectIds, user);
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new RsData<>("200", "선택한 프로젝트가 영구 삭제되었습니다.", "success"));
