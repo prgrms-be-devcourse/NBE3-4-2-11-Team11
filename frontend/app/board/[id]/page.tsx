@@ -84,9 +84,18 @@ const PostDetailPage = () => {  // params 제거
           </div>
         </div>
 
-        <div className="bg-white text-black p-6 mb-4 rounded h-[60vh] overflow-y-auto border">
+
+
+        {/* <div className="bg-white text-black p-6 mb-4 rounded h-[60vh] overflow-y-auto border">
           <MarkdownRenderer content={post.content} />
+        </div> */}
+
+         {/* 마크다운 적용된 본문 렌더링 */}
+         <div className="bg-white text-black p-6 mb-4 rounded h-[60vh] overflow-y-auto border">
+          <MarkdownRenderer content={post.content} /> {/* 마크다운 렌더링 적용 */}
         </div>
+
+
 
         <div className="flex justify-end space-x-4">
           <button

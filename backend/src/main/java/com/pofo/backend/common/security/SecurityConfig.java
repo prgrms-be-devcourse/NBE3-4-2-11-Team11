@@ -83,6 +83,7 @@ public class SecurityConfig {
                         // 유저 로그인, OAuth2 로그인은 인증 없이 접근 가능하도록 허용
                         .requestMatchers(
                                 "/api/v1/user/join",
+                                "/api/v1/user/join/force",
                                 "/api/v1/user/login",
                                 "/api/v1/user/last-login-provider",
                                 "/api/v1/user/naver/login",

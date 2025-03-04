@@ -42,6 +42,9 @@ public class Project extends BaseTime {
     @Column(nullable = false)
     private String imageUrl;
 
+    private String thumbnailPath; // 서버에 저장된 썸네일 파일 경로
+
+
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProjectTool> projectTools = new ArrayList<>();
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -59,4 +62,7 @@ public class Project extends BaseTime {
         this.imageUrl = imageUrl;
 
     }
+
+    @Column(nullable = false)
+    private boolean isDeleted = false; // 기본값 false: 활성화, true: 휴지통 상태
 }

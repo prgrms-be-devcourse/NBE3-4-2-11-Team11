@@ -34,4 +34,8 @@ public class UserJoinRequestDto {
     private User.Sex sex;
 
     private LocalDate age;
+
+    private String jobInterest;
+
+    private User.UserStatus userStatus;
 }

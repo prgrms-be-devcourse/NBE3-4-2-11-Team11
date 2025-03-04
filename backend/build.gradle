@@ -50,18 +50,15 @@ dependencies {
 	// https://mvnrepository.com/artifact/io.lettuce/lettuce-core
 	implementation 'io.lettuce:lettuce-core:6.3.1.RELEASE'
 
-	// Tomcat이 이미 필요한 서블릿 API를 제공하기 때문에 불필요.
-	//  compileOnly 'jakarta.servlet:jakarta.servlet-api:5.0.0'
-
 	implementation 'org.mapstruct:mapstruct:1.5.2.Final'
 	annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.2.Final'
 	annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
 	implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.16.1'
 	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
-
+	//smp
+	implementation 'org.springframework.boot:spring-boot-starter-mail'
 	implementation 'com.sun.mail:jakarta.mail:2.0.1'
-
 }
 
 tasks.named('test') {

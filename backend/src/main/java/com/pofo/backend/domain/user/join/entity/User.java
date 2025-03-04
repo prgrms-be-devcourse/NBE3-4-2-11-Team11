@@ -53,6 +53,33 @@ public class User extends BaseEntity {
         FEMALE;
     }
 
+    @Column(nullable = true)
+    private String jobInterest; // 관심 직종 (예: 백엔드 개발자, 데이터 분석가)
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = true)
+    private UserStatus userStatus; // 취업 상태 (구직 중, 재직 중, 학부생)
+
+    @Column(nullable = true, name = "dormant_flg")
+    private String dormantFlg; // 관심 직종 (예: 백엔드 개발자, 데이터 분석가)
+
+    @Setter(AccessLevel.PRIVATE)
+    @Column(name = "dormant_start_at")
+    private LocalDateTime dormantStartAt;
+
+    @Setter(AccessLevel.PRIVATE)
+    @Column(name = "dormant_end_at")
+    private LocalDateTime dormantEndAt;
+
+
+    @Getter
+    @AllArgsConstructor
+    public enum UserStatus {
+        UNEMPLOYED,
+        EMPLOYED,
+        STUDENT;
+    }
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Resume> resumes = new ArrayList<>();
 }

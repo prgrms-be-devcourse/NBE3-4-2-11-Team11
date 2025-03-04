@@ -88,6 +88,8 @@ public class UserJoinService {
                     .nickname(userJoinRequestDto.getNickname())
                     .sex(userJoinRequestDto.getSex())
                     .age(userJoinRequestDto.getAge())
+                    .jobInterest(userJoinRequestDto.getJobInterest())
+                    .userStatus(userJoinRequestDto.getUserStatus())
                     .build();
             userRepository.save(newUser);
 
@@ -104,5 +106,33 @@ public class UserJoinService {
                     .resultCode("200")
                     .build();
         }
+    }
+
+    @Transactional
+    public UserJoinResponseDto forceRegisterUser(UserJoinRequestDto userJoinRequestDto) {
+        // ✅ 새로운 사용자 생성 (기존 이메일, 이름, 성별, 나이대 중복 체크 X)
+        User newUser = User.builder()
+                .email(userJoinRequestDto.getEmail())
+                .name(userJoinRequestDto.getName())
+                .nickname(userJoinRequestDto.getNickname())
+                .sex(userJoinRequestDto.getSex())
+                .age(userJoinRequestDto.getAge())
+                .jobInterest(userJoinRequestDto.getJobInterest())  // 🔥 관심 직종 추가
+                .userStatus(userJoinRequestDto.getUserStatus())    // 🔥 취업 상태 추가
+                .build();
+        userRepository.save(newUser);
+
+        // ✅ Oauth 정보 등록 (소셜 로그인 연동)
+        Oauth oauth = Oauth.builder()
+                .user(newUser)
+                .provider(userJoinRequestDto.getProvider())
+                .identify(userJoinRequestDto.getIdentify())
+                .build();
+        oauthRepository.save(oauth);
+
+        return UserJoinResponseDto.builder()
+                .message("회원가입이 강제 완료되었습니다.")
+                .resultCode("200")
+                .build();
     }
 }

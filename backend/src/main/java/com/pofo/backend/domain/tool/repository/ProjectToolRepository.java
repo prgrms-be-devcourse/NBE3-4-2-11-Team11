@@ -10,5 +10,7 @@ import java.util.List;
 public interface ProjectToolRepository extends JpaRepository<ProjectTool, Long> {
     void deleteByProjectId(Long projectId);
     List<ProjectTool> findByProjectId(Long projectId);
+
+    void deleteByProjectIdIn(List<Long> projectIds);
 }
 
