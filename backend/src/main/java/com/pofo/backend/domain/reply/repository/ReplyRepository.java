@@ -10,4 +10,5 @@ public interface ReplyRepository extends JpaRepository<Reply, Long> {
     Optional<Reply> findByInquiryIdAndId(Long inquiryId, Long replyId);
     List<Reply> findByInquiryId(Long inquiryId);
     boolean existsByInquiryId(Long id);
+    void deleteByInquiryId(Long inquiryId);
 }
