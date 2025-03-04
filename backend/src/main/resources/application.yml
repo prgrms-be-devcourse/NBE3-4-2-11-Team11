@@ -85,6 +85,8 @@ spring:
   profiles:
     active: oauth
 
+file:
+  upload-dir: ${user.dir}/uploads/
 
 springdoc:
   default-produces-media-type: application/json;charset=UTF-8  # 기본 JSON 미디어 타입
@@ -112,7 +114,6 @@ auth:
 aes:
   secret:
     key: ${AES_SECRET_KEY}
-
 
 
 
