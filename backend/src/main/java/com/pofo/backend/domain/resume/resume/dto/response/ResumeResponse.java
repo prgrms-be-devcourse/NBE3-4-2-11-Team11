@@ -21,6 +21,7 @@ public class ResumeResponse {
     private String number;
     private String email;
     private String address;
+    private String addressDetail;
     private String gitAddress;
     private String blogAddress;
     private Set<ActivityResponse> activities;

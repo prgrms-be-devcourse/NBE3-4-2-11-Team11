@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect} from 'react';
 import { PlusCircle, MinusCircle } from "lucide-react";
+import Postcode from "../../../../components/Postcode";
+
 
 interface Skill {
     id: number;
@@ -78,6 +80,8 @@ interface ResumeData {
   number: string;
   email: string;
   address: string;
+  addressDetail: string;
+
   gitAddress: string;
   blogAddress: string;
   activities: Activity[];
@@ -97,6 +101,8 @@ export default function ResumeCreatePage() {
     number: '',
     email: '',
     address: '',
+    addressDetail: '',
+
     gitAddress: '',
     blogAddress: '',
     activities: [],
@@ -157,6 +163,13 @@ export default function ResumeCreatePage() {
       [name]: value,
     }));
   };
+  const handleAddressComplete = (roadAddress: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      address: roadAddress, 
+    }));
+  };
+
   const handleSkillChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
       const selectedId = Number(event.target.value);
       const selectedSkill = skillOptions.find(skill => skill.id === selectedId);
@@ -362,7 +375,10 @@ export default function ResumeCreatePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log('이력서 데이터:', formData);
-  
+    if (!formData.address) {
+      alert("주소와 상세 주소를 모두 입력해주세요.");
+    }
+
     const accessToken = localStorage.getItem('accessToken');
     if (!accessToken) {
       alert('로그인이 필요합니다.');
@@ -430,17 +446,21 @@ export default function ResumeCreatePage() {
         </div>
 
         <div className="mb-4">
-          <label htmlFor="number" className="block text-sm font-medium">전화번호</label>
-          <input
-            type="tel"
-            id="number"
-            name="number"
-            value={formData.number}
-            onChange={handleChange}
-            required
-            className="w-full p-2 border border-gray-300 rounded"
-          />
-        </div>
+        <label htmlFor="number" className="block text-sm font-medium">전화번호</label>
+  <input
+    type="tel"
+    id="number"
+    name="number"
+    value={formData.number}
+    onChange={handleChange}
+    required
+    pattern="^(01[0-9])-([0-9]{3,4})-([0-9]{4})$"
+    title="전화번호는 010-1234-5678 형식으로 입력해주세요."
+    placeholder="010-1234-5678"
+    className="w-full p-2 border border-gray-300 rounded"
+  />
+</div>
+
 
         <div className="mb-4">
           <label htmlFor="email" className="block text-sm font-medium">이메일</label>
@@ -456,17 +476,31 @@ export default function ResumeCreatePage() {
         </div>
 
         <div className="mb-4">
-          <label htmlFor="address" className="block text-sm font-medium">주소</label>
-          <input
-            type="text"
-            id="address"
-            name="address"
-            value={formData.address}
-            onChange={handleChange}
-            required
-            className="w-full p-2 border border-gray-300 rounded"
-          />
-        </div>
+        <label htmlFor="address" className="block text-sm font-medium">주소</label>
+  <div className="flex gap-2">
+    <input
+      type="text"
+      id="address"
+      name="address"
+      value={formData.address}
+      readOnly
+      required
+      className="w-1/2 p-2 border border-gray-300 rounded bg-gray-100 cursor-not-allowed"
+    />
+    <input
+      type="text"
+      id="addressDetail"
+      name="addressDetail"
+      value={formData.addressDetail}
+      onChange={handleChange}
+      required
+      className="w-1/2 p-2 border border-gray-300 rounded"
+      placeholder="상세 주소 입력"
+    />
+    <Postcode onComplete={handleAddressComplete} />
+  </div>
+</div>
+
 
         <div className="mb-4">
           <label htmlFor="gitAddress" className="block text-sm font-medium">GitHub 주소</label>
@@ -1049,3 +1083,4 @@ export default function ResumeCreatePage() {
     </div>
   );
 }
+

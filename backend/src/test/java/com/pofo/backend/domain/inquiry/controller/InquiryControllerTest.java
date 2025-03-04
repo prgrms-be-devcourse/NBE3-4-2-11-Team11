@@ -14,7 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pofo.backend.common.TestSecurityConfig;
-import com.pofo.backend.domain.inquiry.dto.reponse.InquiryDetailResponse;
+import com.pofo.backend.domain.inquiry.dto.response.InquiryDetailResponse;
 import com.pofo.backend.domain.inquiry.dto.request.InquiryCreateRequest;
 import com.pofo.backend.domain.inquiry.entity.Inquiry;
 import com.pofo.backend.domain.inquiry.exception.InquiryException;
