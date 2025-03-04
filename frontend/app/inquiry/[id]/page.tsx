@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import axios from "axios";
-import EditPopup from "./editPopup";
 import styles from "./inquiryDetail.module.css";
 
 type ReplyDetailResponse = {
@@ -45,30 +44,32 @@ const InquiryDetailPage = () => {
   const [token, setToken] = useState<string | null>(null); // token 상태 정의
   const [role, setRole] = useState<string | null>(null); // 역할 상태 추가
 
-   const checkIfAdminFromToken = (role) => {
-    return role === "ADMIN";  // 역할이 ADMIN이면 true 반환
-    };
+const checkIfAdminFromToken = (role) => {
+  return role === "admin";  // 역할이 ADMIN이면 true 반환
+  };
 
-useEffect(() => {
-  // 로그인 상태 체크 API 호출
-  axios.get('/api/v1/auth/status', { withCredentials: true })  // 쿠키를 자동으로 포함하도록 설정
-    .then((response) => {
-      console.log(response.data);
+    useEffect(() => {
+        // 로그인 상태 체크 API 호출
+        axios.get('/api/v1/auth/status', { withCredentials: true })  // 쿠키를 자동으로 포함하도록 설정
+        .then((response) => {
+          console.log(response.data);
 
-      if (response.data.isLoggedIn) {
-        setToken("authenticated"); // 로그인된 상태를 의미하는 값
-        setRole(response.data.role); // 역할 정보 저장
-      } else {
-        setToken(null);
-        setRole(null);
-      }
-    })
-    .catch((error) => {
-      console.error("로그인 상태 확인 오류:", error);
-      setToken(null);
-      setRole(null);
-    });
-}, []);
+          if (response.data.isLoggedIn) {
+            setToken("authenticated"); // 로그인된 상태를 의미하는 값
+            setRole(response.data.role); // 역할 정보 저장
+          } else {
+            setToken(null);
+            setRole(null);
+          }
+        })
+        .catch((error) => {
+          console.error("로그인 상태 확인 오류:", error);
+          setToken(null);
+          setRole(null);
+        });
+        }, [role]);
+
+
 
   const handleCreate = async () => {
     if (!newContent.trim()) {
@@ -82,7 +83,7 @@ useEffect(() => {
     }
 
     // 토큰 권한 확인 및 엔드포인트 결정
-    const isAdmin = checkIfAdminFromToken(token); // 관리자 여부 확인
+    const isAdmin = checkIfAdminFromToken(role); // 관리자 여부 확인
     const endpoint = isAdmin
       ? `/api/v1/admin/inquiries/${id}/reply`
       : `/api/v1/user/inquiries/${id}/comment`;
@@ -138,7 +139,7 @@ useEffect(() => {
     if (!editingId) return;
 
     // isAdmin 선언
-    const isAdmin = checkIfAdminFromToken(token); // 관리자 여부 확인
+    const isAdmin = checkIfAdminFromToken(role); // 관리자 여부 확인
 
     const endpoint = isAdmin
       ? `/api/v1/admin/inquiries/${id}/reply/${editingId}`
@@ -168,12 +169,14 @@ const handleDelete = async (id: number, type: 'comment' | 'reply',  editingId: n
     return;
   }
 
+   // isAdmin 선언
+      const isAdmin = checkIfAdminFromToken(role); // 관리자 여부 확인
 
     // 댓글/답변 타입에 따라 다른 엔드포인트 설정
-    const endpoint =
-      type === 'comment'
-        ? `/api/v1/user/inquiries/${id}/comment/${editingId}` // 댓글 삭제
-        : `/api/v1/admin/inquiries/${id}/reply/${editingId}`; // 답변 삭제
+    const endpoint = isAdmin
+        ? `/api/v1/admin/inquiries/${id}/reply/${editingId}` // 답변 삭제
+        : `/api/v1/user/inquiries/${id}/comment/${editingId}`; // 댓글 삭제
+
 
     try {
       await axios.delete(endpoint, { withCredentials: true });
