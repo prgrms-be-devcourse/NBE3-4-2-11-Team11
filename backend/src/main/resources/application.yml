@@ -89,6 +89,7 @@ mail:
     mail.smtp.auth: true
     mail.smtp.starttls.enable: true
 
+
 springdoc:
   default-produces-media-type: application/json;charset=UTF-8  # 기본 JSON 미디어 타입
 

@@ -38,7 +38,8 @@ export default function AdminDashboard() {
       console.error("로그아웃 API 호출 실패:", error);
     } finally {
       logout();
-      router.push("/login");
+      // 필요한 경우 상태 변경 함수 호출 (예: setAuthState(false)) 추가
+      router.replace("/login");
     }
   };
 
@@ -58,11 +59,11 @@ export default function AdminDashboard() {
         >
           공지사항 관리
         </button>
-        <button className="bg-green-500 text-white px-6 py-3 rounded-lg shadow-md hover:bg-green-600">
-          사용자 관리
-        </button>
-        <button className="bg-yellow-500 text-white px-6 py-3 rounded-lg shadow-md hover:bg-yellow-600">
-          시스템 로그 보기
+        <button
+          className="bg-green-500 text-white px-6 py-3 rounded-lg shadow-md hover:bg-green-600"
+          onClick={() => router.push("/admin/userstats")}
+        >
+          사용자 이용 현황
         </button>
       </div>
     </div>

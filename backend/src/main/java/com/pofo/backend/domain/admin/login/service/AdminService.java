@@ -8,7 +8,6 @@ import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -49,27 +48,6 @@ public class AdminService {
         }
     }
 
-//    @Transactional
-//    public void recordLoginFailure(String username) {
-//        Optional<Admin> optionalAdmin = adminRepository.findByUsername(username);
-//        if (optionalAdmin.isPresent()) {
-//            Admin admin = optionalAdmin.get();
-//            int newFailureCount = admin.getFailureCount() + 1;
-//            admin.setFailureCount(newFailureCount);
-//
-//            if (newFailureCount >= 5) {
-//                admin.setStatus(Admin.Status.INACTIVE);
-//            }
-//            adminRepository.save(admin);
-//
-//            AdminLoginHistory loginHistory = AdminLoginHistory.builder()
-//                    .admin(admin)
-//                    .loginStatus(AdminLoginHistory.FAILED)
-//                    .failureCount(newFailureCount)
-//                    .build();
-//            adminLoginHistoryRepository.save(loginHistory);
-//        }
-//    }
 
     @Transactional
     public void recordLoginFailure(String username) {
