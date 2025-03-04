@@ -659,7 +659,7 @@ public class ProjectServiceTest {
         when(mockProject1.isDeleted()).thenReturn(true);
         when(mockProject2.isDeleted()).thenReturn(true);
 
-        when(projectRepository.findAllByIdAndIsDeletedTrue(projectIds)).thenReturn(List.of(mockProject1, mockProject2));
+        when(projectRepository.findByIdInAndIsDeletedTrue(projectIds)).thenReturn(List.of(mockProject1, mockProject2));
 
         // When
         doNothing().when(mockProject1).setDeleted(false);
@@ -690,7 +690,7 @@ public class ProjectServiceTest {
         when(mockProject1.isDeleted()).thenReturn(true);
         when(mockProject2.isDeleted()).thenReturn(true);
 
-        when(projectRepository.findAllByIdAndIsDeletedTrue(projectIds)).thenReturn(List.of(mockProject1, mockProject2));
+        when(projectRepository.findByIdInAndIsDeletedTrue(projectIds)).thenReturn(List.of(mockProject1, mockProject2));
 
         // 스킬 및 툴 삭제 Mock 설정
         doNothing().when(skillService).deleteProjectSkills(projectIds);

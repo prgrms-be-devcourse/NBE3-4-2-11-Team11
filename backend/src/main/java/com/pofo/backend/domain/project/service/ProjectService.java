@@ -313,7 +313,7 @@ public class ProjectService {
     //요청된 프로젝트 ID 중에서, 휴지통에 있는 프로젝트만 조회하고 검증하는 메서드
     private List<Project> validateTrashProjects(List<Long> projectIds) {
 
-        List<Project> trashProjects = projectRepository.findAllByIdAndIsDeletedTrue(projectIds);
+        List<Project> trashProjects = projectRepository.findByIdInAndIsDeletedTrue(projectIds);
 
         Set<Long> validTrashIds = trashProjects.stream()
                 .map(Project::getId)
