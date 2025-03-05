@@ -9,9 +9,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Date;
 
 /*
  *
@@ -27,57 +30,80 @@ import org.springframework.web.bind.annotation.*;
 public class TokenRefreshController {
 
     private final TokenProvider tokenProvider;
-    private final UserRepository userRepository;
+
+    @Value("${jwt.expiration.time}")
+    private Long validationTime;
 
     @PostMapping("/refresh")
     public ResponseEntity<RsData<TokenDto>> refreshToken(HttpServletRequest request,  HttpServletResponse response) {
 
-        String  refreshToken = extractRefreshTokenFromCookies(request);
+        // ✅ Refresh Token & Access Token 각각 쿠키에서 추출
+        String refreshToken = extractRefreshTokenFromCookies(request);
+        String accessToken = extractAccessTokenFromCookies(request);
 
-        // Refresh Token 유효성 검사
+        // 🚨 Refresh Token이 없거나 유효하지 않으면 로그아웃 처리
         if (refreshToken == null || refreshToken.isEmpty() || !tokenProvider.validateToken(refreshToken)) {
-            return ResponseEntity.status(401).body(
-                    new RsData<>("401", "Refresh Token이 유효하지 않음",
-                            TokenDto.builder()
-                                    .accessToken("")
-                                    .refreshToken("")
-                                    .type("Bearer")
-                                    .accessTokenValidationTime(0L)
-                                    .refreshTokenValidationTime(0L)
-                                    .build()
-                    )
-            );
+            log.error("🚨 Refresh Token이 유효하지 않음 → 로그아웃 필요");
+            return ResponseEntity.status(401).body(new RsData<>("401", "Refresh Token이 유효하지 않음", new TokenDto()));
         }
 
-        // 토큰에서 인증 정보 획득 (관리자/일반 사용자를 구분하여 조회)
+        // ✅ Refresh Token이 유효하면 Authentication 가져오기
         Authentication authentication = tokenProvider.getAuthenticationFromRefreshToken(refreshToken);
         if (authentication == null) {
-            return ResponseEntity.status(401)
-                    .body(new RsData<>("401", "인증 정보를 가져올 수 없음", null));
+            log.error("🚨 인증 정보를 가져올 수 없음 → 로그아웃 필요");
+            return ResponseEntity.status(401).body(new RsData<>("401", "인증 정보를 가져올 수 없음", new TokenDto()));
         }
 
-        // 새 Access Token 발급
-        String newAccessToken = tokenProvider.generateAccessToken(authentication);
-
-        // ✅ Set-Cookie로 새로운 accessCookie 설정
-//        response.addHeader("Set-Cookie", "accessCookie=" + newAccessToken + "; Path=/; HttpOnly; Secure; SameSite=None");
-// 예: 현재 환경이 프로덕션인지 여부를 판단 (여기서는 간단히 isProd 변수 사용)
-        boolean isProd = false; // 개발 환경에서는 false, 프로덕션에서는 true
-
-        StringBuilder cookieHeader = new StringBuilder();
-        cookieHeader.append("accessCookie=").append(newAccessToken)
-                .append("; Path=/; HttpOnly");
-        if (isProd) {
-            cookieHeader.append("; Secure; SameSite=None");
+        // ✅ 현재 Access Token의 남은 만료 시간 확인
+        long currentAccessTokenExpiry = 0;
+        if (accessToken != null && !accessToken.isEmpty() && tokenProvider.validateToken(accessToken)) {
+            currentAccessTokenExpiry = tokenProvider.getExpiration(accessToken);
         }
-        response.addHeader("Set-Cookie", cookieHeader.toString());
 
-        TokenDto newTokenResponse = TokenDto.builder()
-                .accessToken(newAccessToken)
-                .refreshToken(refreshToken) // 기존 Refresh Token 유지
-                .build();
+        long thresholdTime = validationTime / 5; // 만료시간의 20% 이하일 때만 갱신
 
-        return ResponseEntity.ok(new RsData<>("200", "Access Token 갱신 성공", newTokenResponse));
+        // ✅ accessToken이 없으면 Refresh Token으로 갱신 시도
+        if (accessToken == null || accessToken.isEmpty()) {
+            log.warn("⚠️ Access Token이 존재하지 않음 → Refresh Token으로 재발급 시도");
+
+            // ✅ 새 Access Token 발급
+            String newAccessToken = tokenProvider.generateAccessToken(authentication);
+
+            // ✅ 새 Access Token을 쿠키에 저장
+            response.addHeader("Set-Cookie", "accessCookie=" + newAccessToken + "; Path=/; HttpOnly");
+
+            log.info("🔄 Access Token이 없어서 Refresh Token으로 새 Access Token 발급 완료!");
+            return ResponseEntity.ok(new RsData<>("200", "Access Token이 없어서 새로 발급됨",
+                    TokenDto.builder()
+                            .accessToken(newAccessToken)
+                            .refreshToken(refreshToken)
+                            .type("Bearer")
+                            .accessTokenValidationTime(null)
+                            .refreshTokenValidationTime(null)
+                            .build()
+            ));
+        }
+
+        // ✅ Access Token 만료 시간이 20% 이하로 남았을 때만 갱신
+        if (currentAccessTokenExpiry < thresholdTime) {
+            // ✅ 새 Access Token 발급
+            String newAccessToken = tokenProvider.generateAccessToken(authentication);
+
+            // ✅ 새 Access Token을 쿠키에 저장
+            response.addHeader("Set-Cookie", "accessCookie=" + newAccessToken + "; Path=/; HttpOnly");
+
+            TokenDto newTokenResponse = TokenDto.builder()
+                    .accessToken(newAccessToken)
+                    .refreshToken(refreshToken) // 기존 Refresh Token 유지
+                    .build();
+
+            log.info("✅ Access Token 갱신 완료");
+            return ResponseEntity.ok(new RsData<>("200", "Access Token 갱신 성공", newTokenResponse));
+        }
+
+        log.info("⏳ Access Token 아직 유효 (남은 시간: " + currentAccessTokenExpiry + "ms)");
+        return ResponseEntity.ok(new RsData<>("200", "Access Token이 아직 유효합니다.", new TokenDto()));
+
     }
 
     /**
@@ -95,6 +121,18 @@ public class TokenRefreshController {
             }
         }
 
+        return null;
+    }
+
+    private String extractAccessTokenFromCookies(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("accessCookie".equals(cookie.getName())) { // ✅ Access Token 쿠키 이름
+                    return cookie.getValue();
+                }
+            }
+        }
         return null;
     }
 
