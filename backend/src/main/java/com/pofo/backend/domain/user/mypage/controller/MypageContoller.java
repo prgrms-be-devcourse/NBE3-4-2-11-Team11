@@ -37,7 +37,6 @@ public class MypageContoller {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(new RsData<>("404", "유저 정보를 찾을 수 없습니다.", null));
         }
-        log.info(optionalUser.get().getEmail());
 
         return ResponseEntity.ok(new RsData<>("200", "유저 정보 조회 성공", optionalUser.get()));
     }

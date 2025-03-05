@@ -15,4 +15,6 @@ public interface OauthRepository extends JpaRepository<Oauth, Long> {
     Optional<Oauth> findByUser(User user);
 
     Optional<Oauth> findByIdentifyAndProvider(String identify, Oauth.Provider provider);
+
+    void deleteByUser(User user);
 }

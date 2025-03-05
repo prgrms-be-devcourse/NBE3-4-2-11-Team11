@@ -79,12 +79,21 @@ export default function MyPage() {
                 <p className="mb-2"><strong>관심 직종:</strong> {userData.jobInterest || "정보 없음"}</p>
                 <p className="mb-2"><strong>취업 상태:</strong> {userData.userStatus}</p>
             </div>
-            <button
-                onClick={() => router.push("/edit-profile")}
-                className="mt-4 bg-blue-500 text-white px-4 py-2 rounded-md"
-            >
-                프로필 수정하기
-            </button>
+            <div className="flex flex-row gap-4 mt-4">
+                <button
+                    onClick={() => router.push("/edit-profile")}
+                    className="bg-blue-500 text-white px-4 py-2 rounded-md"
+                >
+                    프로필 수정하기
+                </button>
+
+                <button
+                    onClick={() => router.push("/mypage/resign")}
+                    className="bg-red-700 text-white px-4 py-2 rounded-md"
+                >
+                    회원 탈퇴
+                </button>
+            </div>
         </div>
     );
 }
