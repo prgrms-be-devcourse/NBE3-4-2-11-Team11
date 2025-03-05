@@ -3,19 +3,19 @@ import { NextResponse } from 'next/server';
 export async function GET(request: Request) {
   try {
     console.log('[API] 요청 시작: /api/resume-detail'); // 디버깅 로그 추가
-    const accessToken = request.headers.get('Authorization')?.replace('Bearer ', '');
     const response = await fetch('http://localhost:8080/api/v1/user/resume', {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${accessToken}`, 
         'Content-Type': 'application/json',
+        'Cookie': request.headers.get('cookie') || '', 
       },
+      credentials: 'include',
     });
     if (response.status === 400) {
       return NextResponse.json({ error: '이력서가 없습니다.', redirectTo: '/mypage/resume/create' }, { status: 400 });
     }
     if (!response.ok) {
-        throw new Error(`[API] 요청 실패: ${response.status} ${response.statusText}`);
+      throw new Error(`[API] 요청 실패: ${response.status} ${response.statusText}`);
     }
 
     const data = await response.json();
@@ -24,7 +24,6 @@ export async function GET(request: Request) {
     }
     return NextResponse.json(data);
   } catch (err) {
-
     return NextResponse.json({ error: err instanceof Error ? err.message : '알 수 없는 오류' }, { status: 500 });
   }
 }

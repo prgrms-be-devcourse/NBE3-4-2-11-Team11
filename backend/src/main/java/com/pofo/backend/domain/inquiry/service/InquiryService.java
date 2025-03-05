@@ -1,6 +1,7 @@
 package com.pofo.backend.domain.inquiry.service;
 
 import com.pofo.backend.domain.comment.dto.response.CommentDetailResponse;
+import com.pofo.backend.domain.comment.repository.CommentRepository;
 import com.pofo.backend.domain.comment.service.CommentService;
 import com.pofo.backend.domain.inquiry.dto.request.InquiryCreateRequest;
 import com.pofo.backend.domain.inquiry.dto.request.InquiryUpdateRequest;
@@ -11,7 +12,6 @@ import com.pofo.backend.domain.inquiry.entity.Inquiry;
 import com.pofo.backend.domain.inquiry.exception.InquiryException;
 import com.pofo.backend.domain.inquiry.repository.InquiryRepository;
 import com.pofo.backend.domain.reply.dto.response.ReplyDetailResponse;
-import com.pofo.backend.domain.reply.entity.Reply;
 import com.pofo.backend.domain.reply.repository.ReplyRepository;
 import com.pofo.backend.domain.reply.service.ReplyService;
 import com.pofo.backend.domain.resume.resume.exception.UnauthorizedActionException;
@@ -34,6 +34,8 @@ public class InquiryService {
     private final InquiryRepository inquiryRepository;
 
     private final ReplyRepository replyRepository;
+
+    private final CommentRepository commentRepository;
 
     @Transactional
     public InquiryCreateResponse create(InquiryCreateRequest inquiryCreateRequest, User user) {
@@ -85,6 +87,8 @@ public class InquiryService {
         }
 
         try {
+            this.replyRepository.deleteByInquiryId(inquiry.getId());
+            this.commentRepository.deleteByInquiryId(inquiry.getId());
             this.inquiryRepository.delete(inquiry);
         } catch (Exception e) {
             throw new InquiryException("문의사항 삭제 중 오류가 발생했습니다. 원인: " + e.getMessage());

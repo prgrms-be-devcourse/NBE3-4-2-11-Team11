@@ -9,4 +9,5 @@ import java.util.Optional;
 public interface CommentRepository extends JpaRepository<Comment, Long> {
     Optional<Comment> findByInquiryIdAndId(Long inquiryId, Long id);
     List<Comment> findByInquiryId(Long inquiryId);
+    void deleteByInquiryId(Long inquiryId);
 }
