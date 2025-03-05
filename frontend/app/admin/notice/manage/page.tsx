@@ -52,7 +52,7 @@ const NoticeManagePage = () => {
     }
 
     try {
-      await api.delete(`/admin/notices/${id}`);
+      await api.delete(`/admin/notices/${id}`, { withCredentials: true });
       setNotices(notices.filter(notice => notice.id !== id));
       alert('공지사항이 성공적으로 삭제되었습니다!');
     } catch (error) {

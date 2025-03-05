@@ -14,21 +14,11 @@ const InquiryCreatePage = () => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('accessToken');
-      if (!token) {
-        console.error('No access token found');
-        alert('로그인이 필요합니다.');
-        router.push("/login");
-        return;
-      }
 
       const response = await axios.post("/api/v1/user/inquiry", {
         subject,
         content,
-      }, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      }, { withCredentials: true });
 
       if (response.status === 200) {
         alert("문의사항이 성공적으로 생성되었습니다!");

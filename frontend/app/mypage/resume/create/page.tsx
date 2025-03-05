@@ -121,15 +121,8 @@ export default function ResumeCreatePage() {
     useEffect(() => {
         const fetchResumeData = async () => {
           try {
-            const accessToken = localStorage.getItem('accessToken');
-            if (!accessToken) {
-              alert('로그인이 필요합니다.');
-              window.location.href = 'http://localhost:3000/login';
-              return;
-            }
             const skillsResponse = await fetch('http://localhost:8080/api/v1/user/resume/skills', {
               headers: {
-                'Authorization': `Bearer ${accessToken}`,
                 'Content-Type': 'application/json',
               },
               credentials: 'include',
@@ -140,7 +133,6 @@ export default function ResumeCreatePage() {
             // 툴 목록 가져오기
             const toolsResponse = await fetch('http://localhost:8080/api/v1/user/resume/tools', {
               headers: {
-               'Authorization': `Bearer ${accessToken}`,
                 'Content-Type': 'application/json',
               },
               credentials: 'include',
@@ -378,13 +370,6 @@ export default function ResumeCreatePage() {
     if (!formData.address) {
       alert("주소와 상세 주소를 모두 입력해주세요.");
     }
-
-    const accessToken = localStorage.getItem('accessToken');
-    if (!accessToken) {
-      alert('로그인이 필요합니다.');
-      window.location.href = 'http://localhost:3000/login';
-      return;
-    }
     const updatedFormData = {
         ...formData,
         skills: formData.skills.map(skill => (skill.id)),
@@ -395,7 +380,6 @@ export default function ResumeCreatePage() {
       const response = await fetch('http://localhost:8080/api/v1/user/resume', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
         credentials: "include",

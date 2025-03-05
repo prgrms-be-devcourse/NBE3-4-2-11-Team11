@@ -3,21 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import axios from "axios";
-import EditPopup from "./editPopup";
 import styles from "./inquiryDetail.module.css";
-
-// 전역적으로 선언하여 다른 함수에서도 호출 가능
-const checkIfAdminFromToken = (token: string | null): boolean => {
-  if (!token) return false; // 토큰이 없는 경우 관리자 아님
-
-  try {
-    const decodedToken = JSON.parse(atob(token.split(".")[1])); // JWT Payload 디코드
-    return decodedToken.auth === "ROLE_ADMIN"; // ROLE_ADMIN일 경우 관리자 true 반환
-  } catch (err) {
-    console.error("Invalid token:", err);
-    return false; // 디코딩 실패 시 관리자 아님
-  }
-};
 
 type ReplyDetailResponse = {
   id: number;
@@ -46,9 +32,7 @@ type RsData<T> = {
 const InquiryDetailPage = () => {
   const { id } = useParams();
   const router = useRouter();
-
   const [inquiry, setInquiry] = useState<InquiryDetailResponse | null>(null);
-  const [token, setToken] = useState<string | null>(null);
   const [repliesAndComments, setRepliesAndComments] = useState<
     Array<ReplyDetailResponse | CommentDetailResponse>
   >([]);
@@ -57,11 +41,35 @@ const InquiryDetailPage = () => {
   const [editingContent, setEditingContent] = useState<string>(""); // 수정 중인 content
   const [error, setError] = useState<string | null>(null); // 에러 상태 추가
   const [showEditPopup, setShowEditPopup] = useState<boolean>(false);
+  const [token, setToken] = useState<string | null>(null); // token 상태 정의
+  const [role, setRole] = useState<string | null>(null); // 역할 상태 추가
 
-  useEffect(() => {
-    const storedToken = localStorage.getItem("accessToken");
-    setToken(storedToken);
-  }, []);
+const checkIfAdminFromToken = (role) => {
+  return role === "admin";  // 역할이 ADMIN이면 true 반환
+  };
+
+    useEffect(() => {
+        // 로그인 상태 체크 API 호출
+        axios.get('/api/v1/auth/status', { withCredentials: true })  // 쿠키를 자동으로 포함하도록 설정
+        .then((response) => {
+          console.log(response.data);
+
+          if (response.data.isLoggedIn) {
+            setToken("authenticated"); // 로그인된 상태를 의미하는 값
+            setRole(response.data.role); // 역할 정보 저장
+          } else {
+            setToken(null);
+            setRole(null);
+          }
+        })
+        .catch((error) => {
+          console.error("로그인 상태 확인 오류:", error);
+          setToken(null);
+          setRole(null);
+        });
+        }, [role]);
+
+
 
   const handleCreate = async () => {
     if (!newContent.trim()) {
@@ -75,7 +83,7 @@ const InquiryDetailPage = () => {
     }
 
     // 토큰 권한 확인 및 엔드포인트 결정
-    const isAdmin = checkIfAdminFromToken(token); // 관리자 여부 확인
+    const isAdmin = checkIfAdminFromToken(role); // 관리자 여부 확인
     const endpoint = isAdmin
       ? `/api/v1/admin/inquiries/${id}/reply`
       : `/api/v1/user/inquiries/${id}/comment`;
@@ -83,11 +91,7 @@ const InquiryDetailPage = () => {
     try {
       const payload = { inquiryId: id, content: newContent };
 
-      const response = await axios.post(endpoint, payload, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.post(endpoint, payload, { withCredentials: true });
 
       // 리스트 초기화 및 성공 메시지
       setNewContent("");
@@ -131,23 +135,18 @@ const InquiryDetailPage = () => {
   };
 
   // 수정 내용 제출
-  const handleEditSubmit = async (newContent: string) => {
+    const handleEditSubmit = async (newContent: string) => {
     if (!editingId) return;
 
     // isAdmin 선언
-    const isAdmin = checkIfAdminFromToken(token);
+    const isAdmin = checkIfAdminFromToken(role); // 관리자 여부 확인
 
     const endpoint = isAdmin
       ? `/api/v1/admin/inquiries/${id}/reply/${editingId}`
       : `/api/v1/user/inquiries/${id}/comment/${editingId}`;
 
     try {
-      await axios.patch(endpoint, { content: newContent },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+      await axios.patch(endpoint, { content: newContent, withCredentials: true }
       );
       alert("성공적으로 수정되었습니다!");
       setEditingId(null);
@@ -170,18 +169,17 @@ const handleDelete = async (id: number, type: 'comment' | 'reply',  editingId: n
     return;
   }
 
+   // isAdmin 선언
+      const isAdmin = checkIfAdminFromToken(role); // 관리자 여부 확인
 
     // 댓글/답변 타입에 따라 다른 엔드포인트 설정
-    const endpoint =
-      type === 'comment'
-        ? `/api/v1/user/inquiries/${id}/comment/${editingId}` // 댓글 삭제
-        : `/api/v1/admin/inquiries/${id}/reply/${editingId}`; // 답변 삭제
+    const endpoint = isAdmin
+        ? `/api/v1/admin/inquiries/${id}/reply/${editingId}` // 답변 삭제
+        : `/api/v1/user/inquiries/${id}/comment/${editingId}`; // 댓글 삭제
 
-console.log("DELETE Request Endpoint:", endpoint);
+
     try {
-      await axios.delete(endpoint, {
-        headers: { Authorization: `Bearer ${token}` }, // 인증 헤더 추가
-      });
+      await axios.delete(endpoint, { withCredentials: true });
       alert('성공적으로 삭제되었습니다!');
       window.location.reload();
     } catch (error) {
@@ -191,22 +189,10 @@ console.log("DELETE Request Endpoint:", endpoint);
   };
 
   useEffect(() => {
-    // 클라이언트 사이드에서만 localStorage 접근
-    const storedToken = localStorage.getItem('accessToken');
-    setToken(storedToken);
-  }, []);
-
-  useEffect(() => {
     const fetchInquiry = async () => {
       try {
         const response = await axios.get<RsData<InquiryDetailResponse>>(
-          `/api/v1/common/inquiries/${id}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`, // 토큰을 헤더에 추가
-            },
-          }
-        );
+          `/api/v1/common/inquiries/${id}`);
         setInquiry(response.data.data); // Inquiry 정보와 repliesAndComments를 설정
       } catch (error) {
         console.error("Error fetching inquiry detail:", error);
@@ -227,9 +213,7 @@ console.log("DELETE Request Endpoint:", endpoint);
            <button
              onClick={() => {
                if (confirm("해당 문의글을 삭제하시겠습니까?")) {
-                 axios.delete(`/api/v1/user/inquiries/${id}`, {
-                   headers: { Authorization: `Bearer ${token}` },
-                 });
+                 axios.delete(`/api/v1/user/inquiries/${id}`,  { withCredentials: true });
                  alert("문의가 성공적으로 삭제되었습니다!");
                  router.push("/inquiry");
                }

@@ -111,22 +111,14 @@ export default function ResumeUpdatePage() {
   useEffect(() => {
     const fetchResumeData = async () => {
       try {
-        const accessToken = localStorage.getItem('accessToken');
-        if (!accessToken) {
-          alert('로그인이 필요합니다.');
-          window.location.href = 'http://localhost:3000/login';
-          return;
-        }
 
         const response = await fetch('http://localhost:8080/api/v1/user/resume', {
           method: 'GET',
           headers: {
-            'Authorization': `Bearer ${accessToken}`,
             'Content-Type': 'application/json',
           },
           credentials: 'include',
         });
-
         if (response.status === 404) {
           alert('이력서가 없습니다.');
           window.location.href = 'http://localhost:3000/mypage/resume/create';
@@ -153,7 +145,6 @@ export default function ResumeUpdatePage() {
         };
         const skillsResponse = await fetch('http://localhost:8080/api/v1/user/resume/skills', {
           headers: {
-            'Authorization': `Bearer ${accessToken}`,
             'Content-Type': 'application/json',
           },
           credentials: 'include',
@@ -164,7 +155,6 @@ export default function ResumeUpdatePage() {
         // 툴 목록 가져오기
         const toolsResponse = await fetch('http://localhost:8080/api/v1/user/resume/tools', {
           headers: {
-           'Authorization': `Bearer ${accessToken}`,
             'Content-Type': 'application/json',
           },
           credentials: 'include',
@@ -403,12 +393,6 @@ export default function ResumeUpdatePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const accessToken = localStorage.getItem('accessToken');
-    if (!accessToken) {
-      alert('로그인이 필요합니다.');
-      window.location.href = 'http://localhost:3000/login';
-      return;
-    }
     const updatedFormData = {
       ...formData,
       skills: formData.skills.map(skill => (skill.id)),
@@ -419,7 +403,6 @@ export default function ResumeUpdatePage() {
       const response = await fetch('http://localhost:8080/api/v1/user/resume', {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
         credentials: 'include',
