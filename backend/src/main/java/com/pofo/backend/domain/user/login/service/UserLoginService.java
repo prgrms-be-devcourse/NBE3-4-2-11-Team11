@@ -533,22 +533,21 @@ public class UserLoginService {
         return jwtToken;
     }
 
-
     public void updateLastLogin(String email) {
         Optional<User> userOpt = userRepository.findByEmail(email);
         if (userOpt.isPresent()) {
             User user = userOpt.get();
+            // 마지막 로그인 시간 업데이트
             user.setLastLoginAt(LocalDateTime.now());
-            if ("Y".equals(user.getDormantFlg())) {
-                // 이미 휴먼 상태였다면 dormantStartAt이 존재하면 유지, 없으면 새로 설정
-                if (user.getDormantStartAt() == null) {
-                    user.setDormantStartAt(LocalDateTime.now());
-                }
+            // dormantFlg가 null이거나 "Y"인 경우, "N"으로 설정
+            if(user.getDormantFlg() == null || "Y".equals(user.getDormantFlg())) {
                 user.setDormantFlg("N");
-                user.setDormantEndAt(LocalDateTime.now());
+                user.setDormantStartAt(null);
+                user.setDormantEndAt(null);
             }
             userRepository.save(user);
         }
     }
+
 
 }
