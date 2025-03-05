@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,4 +21,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
             LocalDate age,
             @NotBlank(message = "닉네임을 입력 해 주세요.") String nickname
     );
+
+
+    List<User> findByLastLoginAtBeforeAndDormantFlg(LocalDateTime time, String dormantFlg);
+
 }
