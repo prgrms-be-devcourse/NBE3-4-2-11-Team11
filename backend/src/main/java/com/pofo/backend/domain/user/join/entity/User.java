@@ -34,6 +34,7 @@ public class User extends BaseEntity {
     @NotNull(message = "sex 값이 필요합니다.")
     public Sex sex;
 
+    @Setter
     @NotNull(message = "nickname 값이 필요합니다.")
     public String nickname;
 
@@ -50,10 +51,12 @@ public class User extends BaseEntity {
     private LocalDateTime lastLoginAt;
 
     // 관심 직종
+    @Setter
     @Column(nullable = true)
     private String jobInterest;
 
     // 취업 상태
+    @Setter
     @Enumerated(EnumType.STRING)
     @Column(nullable = true)
     private UserStatus userStatus;

@@ -81,7 +81,7 @@ export default function MyPage() {
             </div>
             <div className="flex flex-row gap-4 mt-4">
                 <button
-                    onClick={() => router.push("/edit-profile")}
+                    onClick={() => router.push("/mypage/edit")}
                     className="bg-blue-500 text-white px-4 py-2 rounded-md"
                 >
                     프로필 수정하기
