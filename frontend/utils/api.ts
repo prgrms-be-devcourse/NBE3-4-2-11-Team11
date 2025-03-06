@@ -12,6 +12,7 @@ export interface RefreshTokenResponse {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
 
+
 const api = axios.create({
     baseURL: API_URL,
     withCredentials: true, // ✅ 모든 요청에 자동으로 쿠키 포함
@@ -43,7 +44,11 @@ api.interceptors.response.use(
 
             if (refreshed) {
                 console.log("✅ Refresh Token으로 Access Token 갱신 성공, 요청 재시도");
-                login(); // ✅ 로그인 상태 업데이트
+
+                // ✅ localStorage에서 role 가져오기
+                const storedRole = localStorage.getItem("role") as "user" | "admin";
+
+                login(storedRole ?? "user");  // ✅ 로그인 상태 업데이트
 
                 // ✅ 기존 요청을 재시도, withCredentials 유지
                 return api({
