@@ -37,7 +37,7 @@ public class BoardResponseDto  {
     private final LocalDateTime createdAt;  // 작성일자
     private final UserDto user;  // 작성자 정보 (User 객체 대신 DTO 사용)
 
-    // 🔥 내부 클래스로 User 정보를 포함하는 DTO 생성
+    // 내부 클래스로 User 정보를 포함하는 DTO 생성
     @Getter
     public static class UserDto {
         private final Long id;  // 유저 ID
@@ -56,6 +56,6 @@ public class BoardResponseDto  {
         this.title = board.getTitle();
         this.content = board.getContent();
         this.createdAt = board.getCreatedAt();  // BaseTime의 필드 값 설정
-        this.user = new UserDto(board.getUser());  // 🔥 User 정보 포함
+        this.user = new UserDto(board.getUser());  //  User 정보 포함
     }
 }

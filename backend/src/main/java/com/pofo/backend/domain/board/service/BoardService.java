@@ -209,7 +209,7 @@ public class BoardService {
 
         // ✅ User 정보를 포함하여 게시글 생성
         Board board = Board.builder()
-                .user(user)  // 🔥 User 정보 추가
+                .user(user)  //User 정보 추가
                 .title(requestDto.getTitle())
                 .content(requestDto.getContent())
                 .build();
@@ -218,7 +218,7 @@ public class BoardService {
         return new RsData<>("201", "게시글 작성 성공", new BoardResponseDto(board));
     }
 
-    // ✅ 게시글 수정
+    // 게시글 수정
     @Transactional
     public RsData<BoardResponseDto> updatePost(Long id, BoardRequestDto requestDto) {
         Board board = findEntityOrThrow(boardRepository.findById(id), "게시글을 찾을 수 없습니다.");
@@ -235,15 +235,11 @@ public class BoardService {
         return new RsData<>("200", "게시글 수정 성공", new BoardResponseDto(board));
     }
 
-    // ✅ 게시글 삭제
+    // 게시글 삭제
     @Transactional
     public RsData<BoardDeleteResponseDto> deletePost(Long id, Long userId) {
         Board board = findEntityOrThrow(boardRepository.findById(id), "게시글을 찾을 수 없습니다.");
 
-        // 🔥 유저 ID가 제공되지 않았을 경우 예외 처리 추가
-        if (userId == null) {
-            throw new RuntimeException("400: 유저 ID는 필수 입력값입니다.");
-        }
 
         // ✅ 유저 ID 검증 추가
         if (!board.getUser().getId().equals(userId)) {
