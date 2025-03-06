@@ -44,7 +44,7 @@ public class ReplyService {
                     .build();
 
             this.replyRepository.save(reply);
-            inquiry.updateResponse(true); // 답변 등록으로 response 값 1로 변경
+            inquiry.addResponse(); // 답변 등록으로 response 값 1로 변경
             return new ReplyCreateResponse(reply.getId());
         } catch (Exception e) {
             throw new ReplyException("답변 생성 중 오류가 발생했습니다. 원인: " + e.getMessage());
@@ -83,7 +83,7 @@ public class ReplyService {
             this.replyRepository.delete(reply);
             Inquiry inquiry = this.inquiryRepository.findById(inquiryId)
                     .orElseThrow(() -> new ReplyException("문의사항을 찾을 수 없습니다."));
-            inquiry.updateResponse(false);
+            inquiry.deleteResponse();
         } catch (Exception e) {
             throw new ReplyException("답변 삭제 중 오류가 발생했습니다. 원인: " + e.getMessage());
         }

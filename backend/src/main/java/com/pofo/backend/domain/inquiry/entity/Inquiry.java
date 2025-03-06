@@ -31,8 +31,14 @@ public class Inquiry extends BaseTime {
 		this.content = content;
 	}
 
-	public void updateResponse(boolean response) {
-		this.response = response ? 1 : 0;
+	public void addResponse() {
+		this.response++;  // 답변 추가 시 +1
+	}
+
+	public void deleteResponse() {
+		if (this.response > 0) {
+			this.response--;  // 답변 삭제 시 -1
+		}
 	}
 
 	public Long getUserId() {
