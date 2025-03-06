@@ -2,7 +2,6 @@ package com.pofo.backend.domain.board.dto;
 
 import com.pofo.backend.domain.board.entity.Board;
 import lombok.Getter;
-
 import java.time.LocalDateTime;
 
 
@@ -14,7 +13,8 @@ public class BoardResponseDto  {
     private final String title;
     private final String content;
     private final LocalDateTime createdAt;  // 작성일자 필드 추가
-    private final String email;  // 작성자 이메일 추가
+    private final LocalDateTime updatedAt;  // 수정일자 필드 추가
+//    private final String email;  // 작성자 이메일 추가
 
 
     public BoardResponseDto(Board board) {
@@ -22,6 +22,7 @@ public class BoardResponseDto  {
         this.title = board.getTitle();
         this.content = board.getContent();
         this.createdAt = board.getCreatedAt();  // BaseTime의 필드 값 설정
-        this.email = board.getUser().getEmail();  // 작성자 이메일 설정
+        this.updatedAt = board.getUpdatedAt();  // 수정일자 추가
+//        this.email = board.getUser().getEmail();  // 작성자 이메일 설정
     }
 }
