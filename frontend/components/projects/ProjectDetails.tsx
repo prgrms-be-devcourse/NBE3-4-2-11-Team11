@@ -10,20 +10,37 @@ const ProjectDetails = () => {
   const [project, setProject] = useState<any>(null);
 
   useEffect(() => {
-    const fetchProject = async () => {
-      const res = await getProjectById(id);
-      console.log("📢 프로젝트 상세 API 응답:", res);
+    console.log("📢 useParams()에서 가져온 ID:", id);
 
-      if (res && res.resultCode === "200") {
-        setProject(res.data);
+    if (!id) {
+      console.error("❌ 프로젝트 ID가 존재하지 않습니다.");
+      return;
+    }
+
+    const fetchProject = async () => {
+      console.log(`📢 [ProjectDetails] API 요청을 보낼 ID: ${id}`);
+
+      const res = await getProjectById(id);
+      console.log("📢 [ProjectDetails] API 응답 데이터:", res);
+
+      if (res && res.resultCode === "200" && res.data) {
+        setProject(res.data.data);
+        console.log("📢 [ProjectDetails] 상태 업데이트 요청됨:", res.data);
       } else {
-        alert("프로젝트 정보를 불러오는 데 실패했습니다.");
+        alert(
+          `프로젝트 정보를 불러오는 데 실패했습니다. (오류 코드: ${res?.resultCode})`
+        );
+        console.error(`❌ 프로젝트 조회 실패. 오류 메시지: ${res?.message}`);
         router.push("/mypage/projects");
       }
     };
 
     fetchProject();
   }, [id]);
+
+  useEffect(() => {
+    console.log("📢 상태 변경 감지됨! project:", project);
+  }, [project]);
 
   const handleDelete = async () => {
     if (confirm("정말로 이 프로젝트를 삭제하시겠습니까?")) {
@@ -33,6 +50,13 @@ const ProjectDetails = () => {
   };
 
   if (!project) return <p>로딩 중...</p>;
+
+  // ✅ 대표 이미지 우선순위: thumbnailPath > imageUrl
+  const imageUrl = project.thumbnailPath
+    ? project.thumbnailPath.startsWith("http")
+      ? project.thumbnailPath
+      : `http://localhost:8080/uploads/${project.thumbnailPath}` // ✅ 로컬 경로라면 URL 변환
+    : project.imageUrl;
 
   return (
     <div className="container">
@@ -97,7 +121,7 @@ const ProjectDetails = () => {
       </div>
 
       <div className="image-container">
-        <img src={project.imageUrl} alt="프로젝트 이미지" />
+        <img src={imageUrl} alt="프로젝트 이미지" />
       </div>
 
       <div className="button-group">
