@@ -1,17 +1,8 @@
 spring:
-  main:
-    allow-bean-definition-overriding: true
-
   application:
     name: backend
   config:
     import: optional:file:.env[.properties]  # .env 파일을 .properties 형식으로 로드
-
-  servlet:
-    multipart:
-      enabled: true
-      max-request-size: 20MB
-      max-file-size: 10MB
 
   datasource:
     url: ${DB_URL}  # .env에서 로드한 DB_URL 사용
@@ -33,7 +24,6 @@ spring:
         show_sql: true
         default_batch_fetch_size: 100  # 배치 페치 크기
         highlight-sql: true  # SQL 강조
-    show-sql: false
 
   security:
     oauth2:
@@ -51,7 +41,8 @@ spring:
             client_secret: ${SPRING_SECURITY_GOOGLE_CLIENT_SECRET}
             redirect-uri: ${SPRING_SECURITY_GOOGLE_REDIRECT_URI}
             authorization-grant-type: authorization_code
-            scope: email
+            scope:
+              - email
             client-name: Google
             provider: google
           kakao:
@@ -85,56 +76,39 @@ spring:
   profiles:
     active: oauth
 
-
-file:
-  upload-dir: ${user.dir}/uploads/
-
-#mail:
-##  host: ${SPRING_MAIL_HOST}
-##  port: ${SPRING_MAIL_PORT}
-##  username: ${SPRING_MAIL_USERNAME}
-##  password: ${SPRING_MAIL_PASSWORD}
-##  properties:
-##    mail.smtp.auth: true
-##    mail.smtp.starttls.enable: true
-
-  mail:
-    host: smtp.naver.com
-    port: 587
-    username: wyzmqkr11@naver.com
-    password: cokr4586749!
-    properties:
-      mail.smtp.auth: true
-      mail.smtp.starttls.enable: true
+mail:
+  host: ${SPRING_MAIL_HOST}
+  port: ${SPRING_MAIL_PORT}
+  username: ${SPRING_MAIL_USERNAME}
+  password: ${SPRING_MAIL_PASSWORD}
+  properties:
+    mail.smtp.auth: true
+    mail.smtp.starttls.enable: true
 
 springdoc:
   default-produces-media-type: application/json;charset=UTF-8  # 기본 JSON 미디어 타입
 
 logging:
   level:
-    org.hibernate.SQL: ERROR            # Hibernate SQL 로그를 ERROR 레벨로 변경
-    org.hibernate.orm.jdbc.bind: ERROR    # Hibernate 바인딩 로그를 ERROR 레벨로 변경
-    org.hibernate.orm.jdbc.extract: ERROR # Hibernate JDBC 추출 로그를 ERROR 레벨로 변경
-    org.springframework.data.redis: INFO
-    root: INFO
-    com.pofo.backend.common.security.jwt: DEBUG
+    org.hibernate.SQL: DEBUG  # Hibernate SQL 로그 레벨 설정
+    org.hibernate.orm.jdbc.bind: TRACE  # Hibernate 바인딩 로그 레벨 설정
+    org.hibernate.orm.jdbc.extract: TRACE  # Hibernate JDBC 추출 로그 레벨 설정
+    org.springframework.data.redis: DEBUG  # Spring Data Redis 로그 레벨 추가
 
 jwt:
   secret:
     key: ${JWT_SECRET_KEY}
   expiration:
-    time: ${JWT_VALIDATION_TIME}
+    time: 3600000  # AccessToken expired time : 1h(60min)
   refresh-token:
-    expiration-time: ${JWT_REFRESH_VALIDATION_TIME}
-
-auth:
-  key: ${AUTHORIZATION_KEY}
+    expiration-time: 1800000  # RefreshToken expired time : 30min
 
 aes:
   secret:
     key: ${AES_SECRET_KEY}
 
-
+auth :
+  key : ${AUTHORIZATION_KEY}
 
 # JWT Test Settings (commented out)
 #jwt:
@@ -142,3 +116,6 @@ aes:
 #    time: 60000  # AccessToken expired time : 1m(60sec)
 #  refresh-token:
 #    expiration-time: 120000  # RefreshToken expired time : 2min(120sec)
+
+file:
+  upload-dir: ${FILE_UPLOAD_DIR}

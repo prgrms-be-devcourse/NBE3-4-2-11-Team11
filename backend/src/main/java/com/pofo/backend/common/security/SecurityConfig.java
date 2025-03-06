@@ -83,6 +83,7 @@ public class SecurityConfig {
                         // 유저 로그인, OAuth2 로그인은 인증 없이 접근 가능하도록 허용
                         .requestMatchers(
                                 "/api/v1/user/join",
+                                "/api/v1/user/join/force",
                                 "/api/v1/user/login",
                                 "/api/v1/user/last-login-provider",
                                 "/api/v1/user/naver/login",
@@ -98,7 +99,8 @@ public class SecurityConfig {
                                 "/api/v1/user/send-verification/**",
                                 "/api/v1/user/verify-code",
                                 "/api/v1/token/refresh",
-                                "/api/v1/user/oauth2/**"
+                                "/api/v1/user/oauth2/**",
+                                "/api/v1/user/mypage"
                         ).permitAll()
                         .anyRequest().authenticated()
                 );
@@ -136,6 +138,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
+
         configuration.setAllowedOrigins(List.of("http://localhost:3000")); // ✅ 프론트엔드 주소 허용
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowCredentials(true);

@@ -1,9 +1,9 @@
-// app/layout.tsx
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css"; // 경로 확인 필수!
 import Header from "../components/Header";
 import TokenRefreshProvider from "../components/TokenRefreshProvider"; // 클라이언트 전용 컴포넌트
+import { AuthProvider } from "../components/AuthProvider"; // ✅ 로그인 상태를 감싸기 위해 추가
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -21,13 +21,14 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-
   return (
     <html lang="ko">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-100 text-gray-900`}>
-        <Header />
-        <TokenRefreshProvider />
-        <main className="container mx-auto min-h-screen px-4">{children}</main>
+        <AuthProvider> {/* ✅ 로그인 상태 관리 추가 */}
+          <Header />
+          <TokenRefreshProvider />
+          <main className="container mx-auto min-h-screen px-4">{children}</main>
+        </AuthProvider>
       </body>
     </html>
   );

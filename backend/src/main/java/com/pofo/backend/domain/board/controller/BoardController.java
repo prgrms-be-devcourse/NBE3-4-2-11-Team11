@@ -3,9 +3,12 @@ package com.pofo.backend.domain.board.controller;
 import com.pofo.backend.common.rsData.RsData;
 import com.pofo.backend.domain.board.dto.*;
 import com.pofo.backend.domain.board.service.BoardService;
+import com.pofo.backend.domain.user.join.entity.User;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @CrossOrigin("*") // 모든 도메인에서 요청 허용 (Next.js 연동 가능)
@@ -35,6 +38,27 @@ public class BoardController {
         return ResponseEntity.status(201).body(boardService.createPost(requestDto));
     }
 
+//    @PostMapping
+//    public ResponseEntity<RsData<BoardResponseDto>> createPost(
+//            @Valid @RequestBody BoardRequestDto requestDto,
+//            @AuthenticationPrincipal User user // 🔥 로그인한 사용자 정보 자동 주입
+//    ) {
+//        // ✅ 디버깅: user가 null인지 확인
+//        System.out.println("📢 게시글 작성 요청 도착");
+//        System.out.println("🔹 로그인된 사용자: " + (user != null ? user.getEmail() : "null"));
+//
+//        if (user == null) { // 🔥 로그인하지 않은 경우
+//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+//                    .body(new RsData<>("401", "로그인이 필요합니다.", null));
+//        }
+//
+//        return ResponseEntity.status(HttpStatus.CREATED)
+//                .body(boardService.createPost(requestDto, user)); // 🔥 user 객체를 서비스로 전달
+//    }
+
+
+
+
     // 게시글 수정 (PATCH /api/v1/user/boards/{id})
     @PatchMapping("/{id}")
     public ResponseEntity<RsData<BoardResponseDto>> updatePost(
@@ -45,7 +69,11 @@ public class BoardController {
 
     // 게시글 삭제 (DELETE /api/v1/user/boards/{id})
     @DeleteMapping("/{id}")
-    public ResponseEntity<RsData<BoardDeleteResponseDto>> deletePost(@PathVariable Long id) {
-        return ResponseEntity.ok(boardService.deletePost(id));
+    public ResponseEntity<RsData<BoardDeleteResponseDto>> deletePost(
+            @PathVariable("id") Long boardId,  // ✅ 게시글 ID (Path Variable)
+            @RequestBody BoardDeleteRequestDto requestDto // ✅ 유저 ID (Request Body)
+    ) {
+        return ResponseEntity.ok(boardService.deletePost(boardId, requestDto.getUserId()));
     }
+
 }

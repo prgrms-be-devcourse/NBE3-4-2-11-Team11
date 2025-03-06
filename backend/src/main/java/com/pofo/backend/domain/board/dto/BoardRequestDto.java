@@ -22,6 +22,6 @@ public class BoardRequestDto {
     @NotBlank(message = "내용은 비어 있을 수 없습니다.") //  내용 필수 입력
     private String content;
 
-    @NotBlank(message = "이메일은 필수 입력값입니다.")
-    private String email;
+    @NotNull(message = "유저 ID는 필수 입력값입니다.") //
+    private long userId;  //null 방지
 }
