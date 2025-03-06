@@ -43,6 +43,8 @@ const InquiryDetailPage = () => {
   const [showEditPopup, setShowEditPopup] = useState<boolean>(false);
   const [token, setToken] = useState<string | null>(null); // token 상태 정의
   const [role, setRole] = useState<string | null>(null); // 역할 상태 추가
+  const [currentReplyOrComment, setCurrentReplyOrComment] = useState<ReplyDetailResponse | null>(null);
+
 
 const checkIfAdminFromToken = (role) => {
   return role === "admin";  // 역할이 ADMIN이면 true 반환
@@ -132,14 +134,31 @@ const checkIfAdminFromToken = (role) => {
     setEditingId(replyOrComment.id);
     setEditingContent(replyOrComment.content); // 기존 내용을 편집 폼에 반영
     setShowEditPopup(true);
+
+    setCurrentReplyOrComment(replyOrComment);
+
   };
 
   // 수정 내용 제출
     const handleEditSubmit = async (newContent: string) => {
-    if (!editingId) return;
+    if (!editingId || !currentReplyOrComment) return; // currentReplyOrComment가 null이면 바로 리턴
+
+    const { type } = currentReplyOrComment; // replyOrComment 객체에서 type을 가져옴
 
     // isAdmin 선언
     const isAdmin = checkIfAdminFromToken(role); // 관리자 여부 확인
+
+  // 관리자가 유저의 댓글을 수정하려면 권한 없음
+  if (isAdmin && type === 'comment') {
+    alert('수정할 권한이 없습니다.');
+    return;
+  }
+
+  // 유저가 관리자의 답변을 수정하려면 권한 없음
+  if (!isAdmin && type === 'reply') {
+    alert('수정할 권한이 없습니다.');
+    return;
+  }
 
     const endpoint = isAdmin
       ? `/api/v1/admin/inquiries/${id}/reply/${editingId}`
@@ -169,8 +188,20 @@ const handleDelete = async (id: number, type: 'comment' | 'reply',  editingId: n
     return;
   }
 
-   // isAdmin 선언
-      const isAdmin = checkIfAdminFromToken(role); // 관리자 여부 확인
+  // isAdmin 선언
+  const isAdmin = checkIfAdminFromToken(role); // 관리자 여부 확인
+
+  // 관리자가 유저의 댓글/답변을 삭제하려면 권한 없음
+  if (isAdmin && type === 'comment') {
+    alert('삭제할 권한이 없습니다.');
+    return;
+  }
+
+  // 유저가 관리자의 답변을 삭제하려면 권한 없음
+  if (!isAdmin && type === 'reply') {
+    alert('삭제할 권한이 없습니다.');
+    return;
+  }
 
     // 댓글/답변 타입에 따라 다른 엔드포인트 설정
     const endpoint = isAdmin
@@ -185,8 +216,11 @@ const handleDelete = async (id: number, type: 'comment' | 'reply',  editingId: n
     } catch (error) {
       console.error('삭제 중 오류 발생:', error);
       alert('삭제에 실패했습니다.');
+      return;
     }
   };
+
+const isAdmin = checkIfAdminFromToken(role); // 관리자 여부 확인
 
   useEffect(() => {
     const fetchInquiry = async () => {
@@ -211,23 +245,37 @@ const handleDelete = async (id: number, type: 'comment' | 'reply',  editingId: n
        <div className="p-4 relative">
          <div className="absolute top-12 right-4 flex space-x-2">
            <button
-             onClick={() => {
+             onClick={async () => {
+               if (isAdmin) {
+                 alert('삭제할 권한이 없습니다.');
+                 return;  // 관리자는 삭제할 수 없도록 처리
+               }
                if (confirm("해당 문의글을 삭제하시겠습니까?")) {
-                 axios.delete(`/api/v1/user/inquiries/${id}`,  { withCredentials: true });
-                 alert("문의가 성공적으로 삭제되었습니다!");
-                 router.push("/inquiry");
+                 try {
+                   await axios.delete(`/api/v1/user/inquiries/${id}`, { withCredentials: true });
+                   alert("문의가 성공적으로 삭제되었습니다!");
+                   router.push("/inquiry");
+                 } catch (error) {
+                   alert("삭제에 실패했습니다.");
+                 }
                }
              }}
              className="text-sm text-gray-500 hover:underline"
            >
              삭제
            </button>
-           <button
-             onClick={() => router.push(`/inquiry/edit/${id}`)}
-             className="text-sm text-gray-500 hover:underline"
-           >
-             수정
-           </button>
+          <button
+            onClick={() => {
+              if (isAdmin) {
+                alert('수정할 권한이 없습니다.');
+                return;  // 관리자는 수정할 수 없도록 처리
+              }
+              router.push(`/inquiry/edit/${id}`); // 수정 페이지로 이동
+            }}
+            className="text-sm text-gray-500 hover:underline"
+          >
+            수정
+          </button>
          </div>
          <div className={styles.inquiryDetailContainer}>
          {/* 문의 제목 및 상세 정보 출력 */}
@@ -296,7 +344,15 @@ const handleDelete = async (id: number, type: 'comment' | 'reply',  editingId: n
               {replyOrComment.content}
             </div>
           )}
-          <span className={styles.replyDate}>{replyOrComment.createdAt}</span>
+          <span className={styles.replyDate}>
+            {new Date(replyOrComment.createdAt).toLocaleString('ko-KR', {
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit',
+            })}
+          </span>
         </div>
       );
     } else if (replyOrComment.type === 'reply') {
@@ -349,7 +405,15 @@ const handleDelete = async (id: number, type: 'comment' | 'reply',  editingId: n
               {replyOrComment.content}
             </div>
           )}
-          <span className={styles.replyDate}>{replyOrComment.createdAt}</span>
+          <span className={styles.replyDate}>
+            {new Date(replyOrComment.createdAt).toLocaleString('ko-KR', {
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit',
+            })}
+          </span>
         </div>
       );
     }
