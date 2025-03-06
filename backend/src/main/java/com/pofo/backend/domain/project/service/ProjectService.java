@@ -1,6 +1,7 @@
 package com.pofo.backend.domain.project.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.pofo.backend.domain.mapper.ProjectMapper;
@@ -46,13 +47,22 @@ public class ProjectService {
     public ProjectCreateResponse createProject(String projectRequestJson, User user, MultipartFile thumbnail) {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule()); // LocalDate 변환 지원
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false); // ✅ 알 수 없는 필드 무시
+
         ProjectCreateRequest projectRequest;
 
         try {
             if (projectRequestJson == null) {
                 throw ProjectCreationException.badRequest("projectRequest가 필요합니다.");
             }
+
+            System.out.println("📢 Parsing JSON: " + projectRequestJson);
+
             projectRequest = objectMapper.readValue(projectRequestJson, ProjectCreateRequest.class);
+
+            System.out.println("📢 Parsed description: " + projectRequest.getDescription());
+
+
         } catch (JsonProcessingException e) {
             throw ProjectCreationException.badRequest("잘못된 JSON 형식입니다.");
         }
@@ -77,6 +87,8 @@ public class ProjectService {
                     .isDeleted(false)
                     .build();
 
+            System.out.println("📢 Project entity description: " + project.getDescription());
+
             projectRepository.save(project);
 
             skillService.addProjectSkills(project.getId(), projectRequest.getSkills());
@@ -87,6 +99,7 @@ public class ProjectService {
         }catch (ProjectCreationException ex) {
             throw ex;  // 이미 정의된 예외는 다시 던진다.
         }catch (Exception ex) {
+            ex.printStackTrace();
             throw ProjectCreationException.serverError("프로젝트 등록 중 오류가 발생했습니다.");
         }
     }
