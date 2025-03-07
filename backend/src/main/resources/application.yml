@@ -91,6 +91,8 @@ spring:
   mvc:
     static-path-pattern: /uploads/**
 
+file:
+  upload-dir: ${user.dir}/uploads/
 
 mail:
   host: ${SPRING_MAIL_HOST}

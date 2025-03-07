@@ -1,5 +1,6 @@
 package com.pofo.backend.domain.project.service;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -13,7 +14,8 @@ import java.util.UUID;
 public class FileService {
 
     // 파일 저장할 기본 경로
-    private final String uploadDir = "C:/DevCourse_Project/NBE3-4-2-11-Team11/backend/uploads/";
+    @Value("${file.upload-dir}")
+    private String uploadDir;
 
     // 썸네일 업로드 메서드
     public String uploadThumbnail(MultipartFile file) {
