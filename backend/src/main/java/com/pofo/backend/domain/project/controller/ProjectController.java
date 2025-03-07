@@ -11,6 +11,7 @@ import com.pofo.backend.domain.project.service.ProjectService;
 import com.pofo.backend.domain.user.join.entity.User;
 import com.pofo.backend.domain.user.join.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/user")
@@ -29,17 +31,20 @@ public class ProjectController {
     private final UserRepository userRepository;
     private final FileService fileService;
 
-    //프로젝트 등록
-    @PostMapping(value = "/project", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/projects", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<RsData<ProjectCreateResponse>> createProject(
-            @RequestPart("projectRequest") String projectRequestJson, // 🔥 JSON을 String으로 받음
+            @RequestPart("projectRequest") String projectRequestJson,
             @RequestPart(value = "thumbnail", required = false) MultipartFile thumbnail,
             @AuthenticationPrincipal CustomUserDetails customUserDetails
     ) {
-        User user = customUserDetails.getUser();
-        ProjectCreateResponse response = projectService.createProject(projectRequestJson, user, thumbnail);
+        //log.info("📢 [createProject] 요청이 들어옴");
+        //log.info("📢 [createProject] projectRequestJson 내용: {}", projectRequestJson);
+        //log.info("📢 [createProject] 썸네일 파일: {}", (thumbnail != null ? thumbnail.getOriginalFilename() : "없음"));
+
+        ProjectCreateResponse response = projectService.createProject(customUserDetails.getUser(), projectRequestJson, thumbnail);
+
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new RsData<>("201", "프로젝트 등록이 완료되었습니다.", response));
+                .body(new RsData<>("201", "프로젝트 등록이 완료되었습니다.", response)); // ✅ response 그대로 반환
     }
 
 
@@ -86,11 +91,16 @@ public class ProjectController {
             @AuthenticationPrincipal CustomUserDetails customUserDetails
     ) {
         User user = customUserDetails.getUser();
-
         Boolean deleteThumbnail = deleteThumbnailStr != null && deleteThumbnailStr.equalsIgnoreCase("true");
 
+        //요청 데이터 확인 로그 추가
+        //System.out.println("📢 [updateProject] projectRequestJson 내용: " + projectRequestJson);
+        //System.out.println("📢 [updateProject] 썸네일 파일: " + (thumbnail != null ? thumbnail.getOriginalFilename() : "없음"));
+        //System.out.println("📢 [updateProject] deleteThumbnail 값: " + deleteThumbnail);
+
         ProjectUpdateResponse response = projectService.updateProject(projectId, projectRequestJson, user, thumbnail, deleteThumbnail);
-        return ResponseEntity.status(HttpStatus.OK).body(new RsData<>("201", "프로젝트 수정이 완료되었습니다.", response));
+
+        return ResponseEntity.status(HttpStatus.OK).body(new RsData<>("200", "✅ 프로젝트 업데이트 성공", response));
     }
 
 
