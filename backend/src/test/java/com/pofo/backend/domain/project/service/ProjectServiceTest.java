@@ -126,17 +126,22 @@ public class ProjectServiceTest {
     }
 
     @Test
-    @DisplayName("프로젝트 등록 성공")
+    @DisplayName("✅ 프로젝트 등록 성공")
     void t1() throws JsonProcessingException {
-
-        objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-
         // Given
         ProjectCreateRequest request = projectCreateRequest();
         String projectRequestJson = objectMapper.writeValueAsString(request);
-        MultipartFile mockFile = mock(MultipartFile.class); // Mock 파일 생성
 
+        // ✅ Mock MultipartFile 생성 (썸네일 파일 업로드 테스트를 위해 필요)
+        MultipartFile mockFile = mock(MultipartFile.class);
+        when(mockFile.isEmpty()).thenReturn(false);
+        when(mockFile.getOriginalFilename()).thenReturn("mock_thumbnail.jpg");
+
+        // ✅ 파일 업로드 Mock 설정 (실제 업로드 대신 경로 반환)
+        String mockThumbnailPath = "mocked/path/to/thumbnail.jpg";
+        when(fileService.uploadThumbnail(any(MultipartFile.class))).thenReturn(mockThumbnailPath);
+
+        // ✅ 실제 저장될 프로젝트 객체 (spy로 감싸기)
         Project realProject = spy(Project.builder()
                 .user(mockUser)
                 .name(request.getName())
@@ -147,40 +152,49 @@ public class ProjectServiceTest {
                 .repositoryLink(request.getRepositoryLink())
                 .description(request.getDescription())
                 .imageUrl(request.getImageUrl())
+                .thumbnailPath(mockThumbnailPath) // ✅ Mock 썸네일 경로 추가
                 .isDeleted(false)
                 .build());
 
+        // ✅ 프로젝트 저장 Mocking
         when(projectRepository.save(any(Project.class))).thenReturn(realProject);
-        when(fileService.uploadThumbnail(any(MultipartFile.class))).thenReturn("mocked/path/to/thumbnail.jpg");
 
-        // When
-        ProjectCreateResponse response = projectService.createProject(projectRequestJson, mockUser, mockFile);
+        // ✅ Service 메서드 호출
+        ProjectCreateResponse response = projectService.createProject(mockUser, projectRequestJson, mockFile);
 
         // Then
-        assertNotNull(response);
-        verify(projectRepository).save(any(Project.class));
+        assertNotNull(response); // ✅ 응답이 null이 아닌지 확인
+        assertEquals(realProject.getId(), response.getProjectId()); // ✅ 반환된 ID 검증
+        verify(projectRepository).save(any(Project.class)); // ✅ 프로젝트 저장이 호출되었는지 검증
     }
 
-    @Test
-    @DisplayName("프로젝트 등록 실패 - 예외 발생")
-    void t3() throws JsonProcessingException{
 
+    @Test
+    @DisplayName("❌ 프로젝트 등록 실패 - 예외 발생")
+    void t3() throws JsonProcessingException {
+        // Given
         ProjectCreateRequest request = projectCreateRequest();
         String projectRequestJson = objectMapper.writeValueAsString(request);
-        MultipartFile mockFile = mock(MultipartFile.class);
 
+        // ✅ Mock MultipartFile 생성 (실패 시에도 필요)
+        MultipartFile mockFile = mock(MultipartFile.class);
+        when(mockFile.isEmpty()).thenReturn(false);
+        when(mockFile.getOriginalFilename()).thenReturn("mock_thumbnail.jpg");
+
+        // ✅ 프로젝트 저장 시 강제 예외 발생하도록 설정
         doThrow(new ProjectCreationException("400", "프로젝트 등록 중 오류가 발생했습니다."))
                 .when(projectRepository).save(any(Project.class));
 
         // When & Then
         ProjectCreationException exception = assertThrows(ProjectCreationException.class, () -> {
-            projectService.createProject(projectRequestJson, mockUser, mockFile);
+            projectService.createProject(mockUser, projectRequestJson, mockFile);
         });
 
         RsData<Void> rsData = exception.getRsData();
         assertEquals("400", rsData.getResultCode());
         assertEquals("프로젝트 등록 중 오류가 발생했습니다.", rsData.getMessage());
     }
+
 
     @Test
     @DisplayName("프로젝트 전체 조회 성공")
