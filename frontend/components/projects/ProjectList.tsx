@@ -51,7 +51,7 @@ const ProjectList = () => {
           alert("로그인이 필요합니다.");
           router.push("/login");
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error(
           "❌ 로그인 상태 확인 또는 프로젝트 목록 가져오기 실패:",
           error.response ? error.response.data : error.message
@@ -65,7 +65,8 @@ const ProjectList = () => {
   }, [searchKeyword]); // ✅ 검색어 변경 시 API 다시 호출
 
   // ✅ 체크박스 선택 핸들러
-  const handleSelectProject = (projectId: string) => {
+  const handleSelectProject = (event: React.MouseEvent, projectId: string) => {
+    event.stopPropagation(); // ✅ 상세보기 이동 차단
     setSelectedProjects((prev) =>
       prev.includes(projectId)
         ? prev.filter((id) => id !== projectId)
@@ -88,24 +89,17 @@ const ProjectList = () => {
 
     if (!confirm("선택한 프로젝트를 휴지통으로 이동하시겠습니까?")) return;
 
-    console.log("🚀 [handleMoveToTrash] 선택한 프로젝트:", selectedProjects);
-
-    const res = await moveToTrash(selectedProjects); // ✅ API 호출
-
-    console.log("📢 [handleMoveToTrash] 응답 데이터:", res);
-
-    if (res.code === "401") {
-      alert("로그인이 필요합니다. 로그인 페이지로 이동합니다.");
-      window.location.href = "/login";
-      return;
-    }
+    const res = await moveToTrash(selectedProjects);
 
     if (res.code === "200") {
       alert("휴지통으로 이동 완료!");
       setProjects((prevProjects) =>
         prevProjects.filter((p) => !selectedProjects.includes(p.projectId))
-      ); // ✅ UI에서 제거
+      );
       setSelectedProjects([]); // ✅ 선택 초기화
+
+      // ✅ 휴지통 목록 페이지로 이동
+      router.push("/mypage/projects/trash");
     } else {
       alert(`오류 발생: ${res.message}`);
     }
@@ -114,10 +108,13 @@ const ProjectList = () => {
   return (
     <div className="container">
       <div className="header">
-        {/* ✅ "선택 취소" 버튼과 "선택한 프로젝트 휴지통 이동" 버튼 */}
+        {/* 왼쪽: 휴지통으로 이동 버튼 */}
         {isSelecting ? (
-          <div className="selection-container">
-            <button className="cancel-button" onClick={toggleSelectionMode}>
+          <div>
+            <button
+              className="cancel-button"
+              onClick={() => setIsSelecting(false)}
+            >
               ❌ 선택 취소
             </button>
             <button
@@ -129,12 +126,12 @@ const ProjectList = () => {
             </button>
           </div>
         ) : (
-          <button className="trash-button" onClick={toggleSelectionMode}>
+          <button className="trash-button" onClick={() => setIsSelecting(true)}>
             🗑️ 휴지통으로 이동
           </button>
         )}
 
-        {/* ✅ 프로젝트 검색을 중앙에 위치 */}
+        {/* 가운데: 검색창 */}
         <div className="search-container">
           <Search className="search-icon" size={20} />
           <input
@@ -145,38 +142,54 @@ const ProjectList = () => {
           />
         </div>
 
-        {/* ✅ 기존 "새 프로젝트 추가" 버튼 유지 */}
+        {/* 오른쪽: 새 프로젝트 추가 버튼 👀 수정된 부분 */}
         <button
           className="add-button"
           onClick={() => router.push("/mypage/projects/new")}
         >
           + 새 프로젝트 추가
         </button>
+
+        <button
+          className="trash-list-button"
+          onClick={() => router.push("/mypage/projects/trash")}
+        >
+          🗑️ 휴지통 목록 보기
+        </button>
       </div>
 
       <div className="grid">
         {projects.length > 0 ? (
-          projects.map((project: any) => {
-            return (
-              <div key={project.projectId} className="card">
-                {/* ✅ 체크박스는 선택 모드일 때만 표시 */}
-                {isSelecting && (
-                  <input
-                    type="checkbox"
-                    checked={selectedProjects.includes(project.projectId)}
-                    onChange={() => handleSelectProject(project.projectId)}
-                  />
-                )}
-                <img
-                  src={project.thumbnailPath || project.imageUrl}
-                  alt={project.name}
-                  onError={(e) => (e.currentTarget.src = "/fallback-image.jpg")}
+          projects.map((project: any) => (
+            <div
+              key={project.projectId}
+              className="card"
+              onClick={() =>
+                router.push(`/mypage/projects/${project.projectId}`)
+              }
+              style={{ cursor: "pointer" }}
+            >
+              {/* ✅ 체크박스 클릭 시 상세 조회로 이동하지 않도록 수정 */}
+              {isSelecting && (
+                <input
+                  type="checkbox"
+                  checked={selectedProjects.includes(project.projectId)}
+                  onClick={(event) => event.stopPropagation()} // ✅ 추가: 클릭 이벤트 전파 방지
+                  onChange={(event) => {
+                    event.stopPropagation(); // ✅ 변경 이벤트도 전파 방지
+                    handleSelectProject(event, project.projectId);
+                  }}
                 />
-                <h3>{project.name}</h3>
-                <p>{project.description}</p>
-              </div>
-            );
-          })
+              )}
+              <img
+                src={project.thumbnailPath || "/default_project.png"}
+                alt={project.name}
+                onError={(e) => (e.currentTarget.src = "/default_project.png")}
+              />
+              <h3>{project.name}</h3>
+              <p>{project.description}</p>
+            </div>
+          ))
         ) : (
           <p>등록된 프로젝트가 없습니다.</p>
         )}
@@ -189,39 +202,31 @@ const ProjectList = () => {
         }
         .header {
           display: flex;
+          flex-wrap: wrap;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 20px;
-          position: relative;
-        }
-        .selection-container {
-          display: flex;
-          flex-direction: column;
-          align-items: flex-start;
           gap: 10px;
+          padding: 10px;
         }
         .search-container {
+          flex-grow: 1;
+          max-width: 300px;
           display: flex;
           align-items: center;
           border: 1px solid #ddd;
           border-radius: 5px;
           padding: 5px;
-          width: 300px;
-          justify-content: center;
-          position: absolute;
-          left: 50%;
-          transform: translateX(-50%); /* ✅ 프로젝트 검색을 중앙 정렬 */
         }
         .search-icon {
           color: gray;
           margin-left: 5px;
         }
         .search-container input {
+          flex-grow: 1;
           border: none;
           outline: none;
           font-size: 1rem;
           text-align: center;
-          width: 200px;
         }
         .trash-button {
           background-color: #ff4500;
@@ -251,6 +256,7 @@ const ProjectList = () => {
           cursor: pointer;
         }
         .add-button {
+          margin-left: auto;
           background-color: #007bff;
           color: white;
           border: none;
@@ -259,6 +265,17 @@ const ProjectList = () => {
           border-radius: 5px;
           cursor: pointer;
         }
+        .trash-list-button {
+          background-color: #6c757d;
+          color: white;
+          border: none;
+          padding: 10px 15px;
+          font-size: 1rem;
+          border-radius: 5px;
+          cursor: pointer;
+          margin-left: 10px;
+        }
+
         .grid {
           display: flex;
           flex-wrap: wrap;
