@@ -9,7 +9,6 @@ interface Post {
   title: string;        // 게시글 제목
   content: string;      // 게시글 내용
   createdAt: string;    // 작성일자
-  email: string;        // 작성자 이메일 (nickname -> email로 변경)
 }
 
 const BoardListPage = () => {
@@ -76,7 +75,6 @@ const BoardListPage = () => {
 
                 <div className="text-right">
                   {/* 작성자 닉네임 표시 */}
-                  <div className="text-sm text-gray-700 text-right mt-1">작성자: {post.email}</div>
                   <span className="text-sm text-gray-600">{new Date(post.createdAt).toLocaleDateString()}</span>
                 </div>
                 
