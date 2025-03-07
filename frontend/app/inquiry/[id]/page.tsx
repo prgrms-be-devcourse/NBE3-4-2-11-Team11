@@ -281,7 +281,13 @@ const isAdmin = checkIfAdminFromToken(role); // 관리자 여부 확인
          {/* 문의 제목 및 상세 정보 출력 */}
           <div className={styles.inquiryDetailSubjectRow}>
            <h1 className={styles.inquiryDetailHeader}>{inquiry.subject}</h1>
-           <p className={styles.inquiryDetailDate}>{new Date(inquiry.createdAt).toLocaleDateString('ko-KR')}</p>
+           <p className={styles.inquiryDetailDate}>{new Date(inquiry.createdAt).toLocaleDateString('ko-KR', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+      })}</p>
           </div>
           {/* 구분선 */}
           <hr className={styles.inquiryDetailDivider}/>

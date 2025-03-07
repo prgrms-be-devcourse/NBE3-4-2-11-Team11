@@ -90,7 +90,7 @@
   display: flex; /* 자식 요소를 플렉스 박스로 배치 */
   flex-direction: column;
   width: 100%; /* 변경: 부모 요소의 너비를 100%로 확장 */
-  max-width: 1370px; /* 추가: 상단 콘텐츠와 동일한 최대 너비 지정 */
+  max-width: 1500px; /* 추가: 상단 콘텐츠와 동일한 최대 너비 지정 */
   margin-left: auto; /* 추가: 가운데 정렬 */
   margin-right: auto; /* 추가: 가운데 정렬 */
 }

@@ -54,29 +54,29 @@ const InquiryEditPage = () => {
   }
 
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold">문의사항 수정</h1>
+    <div className="max-w-5xl mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">문의사항 수정</h1>
       <form onSubmit={handleSubmit}>
-        <div>
-          <label className="block mb-2">제목</label>
+        <div className="mb-4">
+          <label className="block text-grey-700">제목</label>
           <input
             type="text"
             value={inquiry.subject}
             onChange={(e) => setInquiry({ ...inquiry, subject: e.target.value })}
-            className="border p-2 w-full"
+            className="w-full px-3 py-2 border rounded"
             required
           />
         </div>
-        <div className="mt-4">
-          <label className="block mb-2">내용</label>
+        <div className="mb-4">
+          <label className="block text-gray-700">내용</label>
           <textarea
             value={inquiry.content}
             onChange={(e) => setInquiry({ ...inquiry, content: e.target.value })}
-            className="border p-2 w-full"
+            className="w-full px-3 py-2 border rounded"
             required
           />
         </div>
-        <button type="submit" className="bg-blue-500 text-white px-4 py-2 mt-4 rounded">
+        <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded ml-auto block">
           수정하기
         </button>
       </form>
