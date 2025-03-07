@@ -109,5 +109,13 @@ public class SkillService {
         return skillRepository.findAllByProjection();
     }
 
+    public List<String> getProjectSkillNames(Long projectId) {
+        return projectSkillRepository.findByProjectId(projectId)
+                .stream()
+                .map(ps -> ps.getSkill().getName())
+                .collect(Collectors.toList());
+    }
+
+
 
 }
