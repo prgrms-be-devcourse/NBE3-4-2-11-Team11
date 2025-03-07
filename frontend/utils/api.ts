@@ -43,7 +43,7 @@ api.interceptors.response.use(
 
             if (refreshed) {
                 console.log("✅ Refresh Token으로 Access Token 갱신 성공, 요청 재시도");
-                login(); // ✅ 로그인 상태 업데이트
+                login(role || "user");
 
                 // ✅ 기존 요청을 재시도, withCredentials 유지
                 return api({

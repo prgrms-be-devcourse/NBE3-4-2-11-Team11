@@ -219,7 +219,7 @@ public class TokenProvider {
         try {
             Jwts.parserBuilder()
                     .setSigningKey(key)
-                    .setAllowedClockSkewSeconds(5) // 5초의 오차 허용
+                    .setAllowedClockSkewSeconds(10)
                     .build()
                     .parseClaimsJws(token);
             return true;
@@ -240,6 +240,7 @@ public class TokenProvider {
         try {
             return Jwts.parserBuilder()
                     .setSigningKey(this.key)
+                    .setAllowedClockSkewSeconds(10)
                     .build()
                     .parseClaimsJws(token)
                     .getBody();
@@ -258,9 +259,11 @@ public class TokenProvider {
      * @param accessToken JWT Access Token 문자열
      * @return 남은 유효 시간 (밀리초)
      */
+    // Access Token의 남은 만료 시간을  허용 오차 적용하여 계산
     public Long getExpiration(String accessToken) {
         Date expiration = Jwts.parserBuilder()
                 .setSigningKey(key)
+                .setAllowedClockSkewSeconds(10)
                 .build()
                 .parseClaimsJws(accessToken)
                 .getBody()
@@ -280,8 +283,15 @@ public class TokenProvider {
         return key;
     }
 
+
+    // 토큰 만료 시간 계산에도 초 허용 오차 적용
     public long getTokenExpirationTime(String token) {
-        Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(key)
+                .setAllowedClockSkewSeconds(10)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
         return claims.getExpiration().getTime() - System.currentTimeMillis();
     }
 

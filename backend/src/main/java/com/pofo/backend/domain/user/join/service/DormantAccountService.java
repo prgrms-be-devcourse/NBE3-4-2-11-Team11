@@ -34,9 +34,9 @@ public class DormantAccountService {
 //            userRepository.save(user);
 //        }
 //    }
-    @Scheduled(cron = "0 */1 * * * ?")
+    @Scheduled(cron = "0 0 0 * * ?")  // 매일 0시 정각에 실행
     public void markDormantAccounts() {
-        LocalDateTime threshold = LocalDateTime.now().minusMinutes(1);
+        LocalDateTime threshold = LocalDateTime.now().minusYears(1);
         // 커스텀 쿼리 메서드를 사용하여 dormantFlg가 "N", null, "N/A" 인 사용자들을 조회
         List<User> inactiveUsers = userRepository.findInactiveUsers(threshold);
         System.out.println("휴먼 처리 대상 사용자 수: " + inactiveUsers.size());
