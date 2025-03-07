@@ -31,14 +31,11 @@ const ProjectForm: React.FC = () => {
     tools: [] as Tool[],
   });
 
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      const file = e.target.files[0];
-      setFormData((prev) => ({
-        ...prev,
-        thumbnail: file,
-        thumbnailPath: URL.createObjectURL(file),
-      }));
+      setSelectedFile(e.target.files[0]);
     }
   };
 
@@ -50,18 +47,14 @@ const ProjectForm: React.FC = () => {
       try {
         const skillsResponse = await fetch(
           "http://localhost:8080/api/v1/user/resume/skills",
-          {
-            credentials: "include",
-          }
+          { credentials: "include" }
         );
         const skillsData = await skillsResponse.json();
         setSkillOptions(skillsData.data);
 
         const toolsResponse = await fetch(
           "http://localhost:8080/api/v1/user/resume/tools",
-          {
-            credentials: "include",
-          }
+          { credentials: "include" }
         );
         const toolsData = await toolsResponse.json();
         setToolOptions(toolsData.data);
@@ -118,34 +111,36 @@ const ProjectForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const formattedData = {
+    // ✅ 프로젝트 데이터 JSON 변환
+    const projectData = {
       ...formData,
-      skills: formData.skills.map((skill) => skill.id),
-      tools: formData.tools.map((tool) => tool.id),
+      skills: formData.skills.map((skill) => skill.name),
+      tools: formData.tools.map((tool) => tool.name),
     };
 
-    console.log(
-      "📢 [handleSubmit] 변환된 요청 데이터:",
-      JSON.stringify(formattedData, null, 2)
-    );
+    console.log("📢 [handleSubmit] 변환된 요청 데이터:", projectData);
 
+    // ✅ FormData 생성
     const formDataObj = new FormData();
-    const jsonBlob = new Blob([JSON.stringify(formattedData)], {
+    const jsonBlob = new Blob([JSON.stringify(projectData)], {
       type: "application/json",
     });
     formDataObj.append("projectRequest", jsonBlob);
 
-    if (formData.thumbnailPath) {
-      formDataObj.append("thumbnail", formData.thumbnailPath);
+    // ✅ 파일이 있으면 `thumbnail` 필드로 추가
+    if (selectedFile) {
+      formDataObj.append("thumbnail", selectedFile);
     }
+
+    console.log("📢 [handleSubmit] 최종 전송 데이터:", formDataObj);
 
     const response = await createProject(formDataObj);
 
     if (response.resultCode === "201") {
-      alert("프로젝트가 성공적으로 등록되었습니다!");
+      alert("🎉 프로젝트가 성공적으로 등록되었습니다!");
       router.push("/mypage/projects");
     } else {
-      alert(`프로젝트 등록 실패: ${response.message}`);
+      alert(`❌ 프로젝트 등록 실패: ${response.message}`);
     }
   };
 
