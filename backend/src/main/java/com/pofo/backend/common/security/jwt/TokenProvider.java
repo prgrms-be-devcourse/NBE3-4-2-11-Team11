@@ -9,7 +9,6 @@ import com.pofo.backend.domain.user.join.entity.User;
 import com.pofo.backend.domain.user.join.repository.UserRepository;
 import io.jsonwebtoken.*;
 import jakarta.annotation.PostConstruct;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,7 +18,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -219,7 +217,7 @@ public class TokenProvider {
         try {
             Jwts.parserBuilder()
                     .setSigningKey(key)
-                    .setAllowedClockSkewSeconds(5) // 5초의 오차 허용
+                    .setAllowedClockSkewSeconds(10)
                     .build()
                     .parseClaimsJws(token);
             return true;
@@ -240,6 +238,7 @@ public class TokenProvider {
         try {
             return Jwts.parserBuilder()
                     .setSigningKey(this.key)
+                    .setAllowedClockSkewSeconds(10)
                     .build()
                     .parseClaimsJws(token)
                     .getBody();
@@ -258,9 +257,11 @@ public class TokenProvider {
      * @param accessToken JWT Access Token 문자열
      * @return 남은 유효 시간 (밀리초)
      */
+    // Access Token의 남은 만료 시간을  허용 오차 적용하여 계산
     public Long getExpiration(String accessToken) {
         Date expiration = Jwts.parserBuilder()
                 .setSigningKey(key)
+                .setAllowedClockSkewSeconds(10)
                 .build()
                 .parseClaimsJws(accessToken)
                 .getBody()
@@ -268,32 +269,8 @@ public class TokenProvider {
         return expiration.getTime() - System.currentTimeMillis();
     }
 
-    public Long getValidationTime() {
-        return validationTime;
-    }
-
-    public Long getRefreshTokenValidationTime() {
-        return refreshTokenValidationTime;
-    }
-
     public SecretKey getKey() {
         return key;
-    }
-
-    public long getTokenExpirationTime(String token) {
-        Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
-        return claims.getExpiration().getTime() - System.currentTimeMillis();
-    }
-
-    // ✅ HTTP 요청에서 Access Token을 추출
-    public static String extractAccessTokenFromRequest(HttpServletRequest request) {
-        String authorizationHeader = request.getHeader(AUTH_HEADER);
-
-        if (StringUtils.hasText(authorizationHeader) && authorizationHeader.startsWith(TOKEN_PREFIX)) {
-            return authorizationHeader.substring(TOKEN_PREFIX.length());
-        }
-
-        return null; // ✅ Access Token이 없으면 null 반환
     }
 
 
@@ -313,5 +290,4 @@ public class TokenProvider {
         }
         return null;
     }
-
 }
