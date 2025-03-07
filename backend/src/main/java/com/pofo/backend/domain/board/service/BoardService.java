@@ -323,18 +323,52 @@ public class BoardService {
         return new RsData<>("200", "게시글 수정 성공", new BoardResponseDto(board));
     }
 
+//    @Transactional
+//    public RsData<BoardDeleteResponseDto> deletePost(Long id) {
+//        Long currentUserId = getCurrentUserId();
+//        Board board = findEntityOrThrow(boardRepository.findById(id), "게시글을 찾을 수 없습니다.");
+//
+//        if (!board.getUser().getId().equals(currentUserId)) {
+//            throw new RuntimeException("403: 본인이 작성한 게시글만 삭제할 수 있습니다.");
+//        }
+//
+//        boardRepository.delete(board);
+//        return new RsData<>("200", "게시글 삭제 성공", new BoardDeleteResponseDto("게시글이 삭제되었습니다."));
+//    }
+
+
+//@Transactional
+//public RsData<BoardDeleteResponseDto> deletePost(Long id, BoardDeleteRequestDto requestDto) {
+//    Board board = findEntityOrThrow(boardRepository.findById(id), "게시글을 찾을 수 없습니다.");
+//
+//    // ✅ 요청 바디에서 받은 userId와 게시글 작성자의 userId 비교
+//    if (!board.getUser().getId().equals(requestDto.getUserId())) {
+//        throw new RuntimeException("403: 본인이 작성한 게시글만 삭제할 수 있습니다.");
+//    }
+//
+//    boardRepository.delete(board);
+//    return new RsData<>("200", "게시글 삭제 성공", new BoardDeleteResponseDto("게시글이 삭제되었습니다."));
+//}
+
     @Transactional
     public RsData<BoardDeleteResponseDto> deletePost(Long id) {
-        Long currentUserId = getCurrentUserId();
-        Board board = findEntityOrThrow(boardRepository.findById(id), "게시글을 찾을 수 없습니다.");
+        Long currentUserId = getCurrentUserId(); // ✅ 현재 로그인한 사용자의 ID 가져오기
+        Board board = boardRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("404: 게시글을 찾을 수 없습니다.")); // ✅ 게시글 존재 여부 확인
 
+        // ✅ 작성자 검증: 로그인한 사용자 ID와 게시글 작성자의 ID 비교
         if (!board.getUser().getId().equals(currentUserId)) {
-            throw new RuntimeException("403: 본인이 작성한 게시글만 삭제할 수 있습니다.");
+            throw new SecurityException("403: 본인이 작성한 게시글만 삭제할 수 있습니다."); // ✅ 예외 타입 변경 (보안 예외)
         }
 
-        boardRepository.delete(board);
-        return new RsData<>("200", "게시글 삭제 성공", new BoardDeleteResponseDto("게시글이 삭제되었습니다."));
+        boardRepository.delete(board); // ✅ 게시글 삭제
+
+        // ✅ 삭제 성공 메시지 반환
+        return new RsData<>("200", "게시글 삭제 성공", new BoardDeleteResponseDto("게시글이 성공적으로 삭제되었습니다."));
     }
+
+
+
 
     private Long getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
