@@ -1,63 +1,23 @@
-import { useAuthStore } from "@/store/authStore";
-
 const BASE_URL = "/api/v1/user";
 
-
-// ✅ 공통 요청 옵션 함수 (JWT 토큰 포함)
-const getAuthHeaders = () => {
-  const token = useAuthStore.getState().accessToken; // ✅ Zustand에서 accessToken 가져오기
-  if (!token) {
-    console.warn("❌ JWT 토큰 없음, 인증 필요");
-    return null;
-  }
-
-  return {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`, // ✅ JWT 토큰 포함
-  };
-};
-
-
 // ✅ 프로젝트 생성 (POST)
-export const createProject = async (projectData: FormData) => {
-  console.log("📢 [createProject] 요청 데이터:", projectData);
-
-  // ✅ 인증 헤더 가져오기
-  const headers = await getAuthHeaders();
-  if (!headers) {
-    console.error("❌ 인증 실패 → 로그인 페이지로 이동 필요");
-    return { resultCode: "401", message: "Unauthorized" };
-  }
-
+export const createProject = async (formDataObj: FormData) => {
   try {
-    const res = await fetch("http://localhost:8080/api/v1/user/project", {
+    const response = await fetch("http://localhost:8080/api/v1/user/projects", {
       method: "POST",
-      headers: {
-        ...headers, // ✅ 인증 헤더 추가
-        Accept: "application/json",
-      },
+      body: formDataObj,
       credentials: "include",
-      body: projectData,
     });
 
-    console.log("📢 [createProject] API 응답 상태 코드:", res.status);
+    const result = await response.json();
+    console.log("📢 [createProject] API 응답:", result);
 
-    if (res.status === 415) {
-      console.error("❌ 프로젝트 생성 실패: Content-Type이 지원되지 않음");
-      return { resultCode: "415", message: "Unsupported Media Type" };
-    }
-
-    const data = await res.json();
-    console.log("📢 [createProject] API 응답 데이터:", data);
-
-    return data;
+    return result;
   } catch (error) {
-    console.error("❌ 프로젝트 생성 중 오류 발생:", error);
-    return { resultCode: "500", message: "Internal Server Error" };
+    console.error("❌ [createProject] 프로젝트 생성 중 오류 발생:", error);
+    return { resultCode: "500", message: "서버 오류" };
   }
 };
-
-
 
 // ✅ 프로젝트 전체 조회 (GET)
 export const getProjects = async (keyword: string = "") => {
@@ -104,11 +64,12 @@ export const getProjectById = async (projectId?: string) => {
     const res = await fetch(`${BASE_URL}/projects/${projectId}`, {
       method: "GET",
       headers: {
-        Accept: "application/json",
+       "Content-Type": "application/json",
+        Accept: "application/json", //chatGPT가 알려준코드..ㅎ
       },
       credentials: "include", // ✅ 쿠키에서 accessToken 자동 포함
     });
-
+    console.log(`data = ,${projectId}`);
     console.log("📢 [getProjectById] API 응답 상태 코드:", res.status);
 
     if (!res.ok) {
@@ -128,49 +89,89 @@ export const getProjectById = async (projectId?: string) => {
 
 
 // ✅ 프로젝트 수정 (PUT)
-export const updateProject = async (projectId: string, projectData: any) => {
-  const headers = getAuthHeaders();
-  if (!headers) return { code: "401", message: "Unauthorized" };
+export const updateProject = async (projectId: string, projectData: any, thumbnail?: File) => {
+  try {
+    const formData = new FormData();
 
-  const res = await fetch(`${BASE_URL}/projects/${projectId}`, {
-    method: "PUT",
-    headers,
-    body: JSON.stringify(projectData),
-  });
+    // ✅ projectId, thumbnailPath 제외하고 새로운 객체 생성
+    const { projectId: _, thumbnailPath: __, ...filteredProjectData } = projectData;
 
-  return res.json();
+    // ✅ JSON을 Blob으로 변환하여 추가
+    formData.append(
+      "projectRequest",
+      new Blob([JSON.stringify(filteredProjectData)], { type: "application/json" })
+    );
+
+    // ✅ 썸네일이 있을 때만 추가
+    if (thumbnail) {
+      formData.append("thumbnail", thumbnail);
+      formData.append("deleteThumbnail", "false");
+    } else if (!projectData.thumbnailPath || projectData.thumbnailPath === "/default_project.png") {
+      formData.append("deleteThumbnail", "true");
+    } else {
+      formData.append("deleteThumbnail", "false");
+    }
+
+    // 📢 FormData 확인 (중요)
+    console.log("📢 [updateProject] 최종 전송 데이터:");
+    for (let pair of formData.entries()) {
+      console.log(`🔹 ${pair[0]}:`, pair[1]);
+    };
+
+    // ✅ PUT 요청 전송
+    const res = await fetch(`${BASE_URL}/projects/${projectId}`, {
+      method: "PUT",
+      credentials: "include",
+      body: formData,
+    });
+
+    console.log("📢 [updateProject] API 응답 상태 코드:", res.status);
+
+    if (!res.ok) {
+      return { resultCode: res.status.toString(), message: "프로젝트 업데이트 실패" };
+    }
+
+    const responseData = await res.json();
+    console.log("📢 [updateProject] API 응답 데이터:", responseData);
+
+    return responseData;
+  } catch (error) {
+    console.error("❌ 프로젝트 업데이트 중 오류 발생:", error);
+    return { resultCode: "500", message: "프로젝트 업데이트 중 오류가 발생했습니다." };
+  }
 };
+ 
 
 // ✅ 프로젝트 삭제 (DELETE)
 export const deleteProject = async (projectId: string) => {
-  const headers = getAuthHeaders();
-  if (!headers) return { code: "401", message: "Unauthorized" };
+  try {
+    const res = await fetch(`${BASE_URL}/projects/${projectId}`, {
+      method: "DELETE",
+      credentials: "include", // ✅ 쿠키 포함 요청
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
 
-  const res = await fetch(`${BASE_URL}/projects/${projectId}`, {
-    method: "DELETE",
-    headers, // ✅ JWT 토큰 추가
-  });
+    if (!res.ok) {
+      return { code: res.status.toString(), message: "삭제 실패" };
+    }
 
-  return res.json();
+    return { code: "200", message: "삭제 성공" };
+  } catch (error) {
+    console.error("❌ [deleteProject] 프로젝트 삭제 중 오류 발생:", error);
+    return { code: "500", message: "서버 오류" };
+  }
 };
+
 
 // ✅ 프로젝트를 휴지통으로 이동
 export const moveToTrash = async (projectIds: string[]) => {
-  const headers = await getAuthHeaders(); // ✅ 인증 헤더 가져오기
-
-  if (!headers) {
-    console.error("❌ [moveToTrash] JWT 토큰 없음 → 로그인 페이지로 이동");
-    window.location.href = "/login";
-    return { code: "401", message: "Unauthorized" };
-  }
-
-  // ✅ 프로젝트 ID를 쿼리스트링으로 변환
   const queryString = projectIds.map(id => `projectIds=${id}`).join("&");
 
   try {
-    const res = await fetch(`${BASE_URL}/projects?${queryString}`, { // ✅ 쿼리스트링으로 데이터 전달
+    const res = await fetch(`${BASE_URL}/projects?${queryString}`, {
       method: "DELETE",
-      headers,
       credentials: "include", // ✅ 쿠키 포함 요청
     });
 
@@ -190,14 +191,10 @@ export const moveToTrash = async (projectIds: string[]) => {
 
 // ✅ 휴지통 목록 조회 (GET)
 export const getTrashProjects = async () => {
-  const headers = getAuthHeaders();
-  if (!headers) return { code: "401", message: "Unauthorized" };
-
   try {
     const res = await fetch(`${BASE_URL}/projects/trash`, {
       method: "GET",
-      headers,
-      credentials: "include", // ✅ JWT 토큰 포함 요청
+      credentials: "include", // ✅ 쿠키 포함 요청
     });
 
     if (!res.ok) {
@@ -212,27 +209,51 @@ export const getTrashProjects = async () => {
   }
 };
 
-// ✅ 선택한 프로젝트 복원 (POST)
-export const restoreProjects = async (projectIds: string[]) => {
-  const headers = getAuthHeaders();
-  if (!headers) return { code: "401", message: "Unauthorized" };
 
+// ✅ 선택한 프로젝트 복구 (POST)
+export const restoreProjects = async (projectIds: number[]) => {
   try {
-    const res = await fetch(`${BASE_URL}/projects/restore`, {
+    // ✅ 쿼리스트링으로 변환 (예: ?projectIds=28&projectIds=34)
+    const queryString = projectIds.map(id => `projectIds=${id}`).join("&");
+
+    const res = await fetch(`${BASE_URL}/projects/restore?${queryString}`, { 
       method: "POST",
-      headers,
-      credentials: "include", // ✅ JWT 토큰 포함 요청
-      body: JSON.stringify({ projectIds }),
+      credentials: "include", // ✅ 쿠키 포함 요청
     });
 
     if (!res.ok) {
-      return { code: res.status.toString(), message: "복원 실패" };
+      const errorData = await res.json();
+      console.error("❌ 복구 실패: ", errorData);
+      return { code: res.status.toString(), message: errorData.message || "복구 실패" };
     }
 
     const data = await res.json();
     return { code: "200", data: data.data };
   } catch (error) {
     console.error("❌ [restoreProjects] 복원 중 오류 발생:", error);
+    return { code: "500", message: "서버 오류" };
+  }
+};
+
+export const permanentlyDeleteProjects = async (projectIds: number[]) => {
+  try {
+    // ✅ 쿼리스트링 변환 (예: ?projectIds=28&projectIds=34)
+    const queryString = projectIds.map(id => `projectIds=${id}`).join("&");
+
+    const res = await fetch(`${BASE_URL}/projects/permanent?${queryString}`, { 
+      method: "DELETE",
+      credentials: "include", // ✅ 쿠키 포함 요청
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      console.error("❌ 완전 삭제 실패: ", errorData);
+      return { code: res.status.toString(), message: errorData.message || "삭제 실패" };
+    }
+
+    return { code: "200", message: "삭제 성공" };
+  } catch (error) {
+    console.error("❌ [permanentlyDeleteProjects] 삭제 중 오류 발생:", error);
     return { code: "500", message: "서버 오류" };
   }
 };
