@@ -38,8 +38,8 @@ public class Project extends BaseTime {
 
     private String repositoryLink;
 
-
-    @Column(nullable = false)
+    @Lob
+    @Column(columnDefinition = "TEXT",nullable = false)
     private String description;
 
 
