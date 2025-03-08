@@ -187,7 +187,7 @@ const ProjectList = () => {
                 onError={(e) => (e.currentTarget.src = "/default_project.png")}
               />
               <h3>{project.name}</h3>
-              <p>{project.description}</p>
+              <p className="description">{project.description}</p>
             </div>
           ))
         ) : (
@@ -207,6 +207,17 @@ const ProjectList = () => {
           align-items: center;
           gap: 10px;
           padding: 10px;
+        }
+        .description {
+          display: -webkit-box;
+          -webkit-line-clamp: 2; /* 최대 2줄까지만 표시 */
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          max-height: 3.2em; /* 줄 높이에 맞게 설정 */
+          line-height: 1.6em; /* 줄 높이 설정 */
+          font-size: 1rem;
+          color: #555; /* 가독성을 위한 색상 */
         }
         .search-container {
           flex-grow: 1;

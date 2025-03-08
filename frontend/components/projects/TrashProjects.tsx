@@ -157,7 +157,7 @@ const TrashProjects = () => {
                 onError={(e) => (e.currentTarget.src = "/default_project.png")}
               />
               <h3>{project.name}</h3>
-              <p>{project.description}</p>
+              <p className="description">{project.description}</p>
             </div>
           ))
         ) : (
@@ -181,9 +181,15 @@ const TrashProjects = () => {
           margin-bottom: 10px;
         }
         .description {
-          font-size: 1.2rem; /* ✅ 설명은 적당한 크기로 */
-          color: gray;
-          margin-bottom: 20px;
+          display: -webkit-box;
+          -webkit-line-clamp: 2; /* 최대 2줄까지만 표시 */
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          max-height: 3.2em; /* 줄 높이에 맞게 설정 */
+          line-height: 1.6em; /* 줄 높이 설정 */
+          font-size: 1rem;
+          color: #555; /* 가독성을 위한 색상 */
         }
         .top-header {
           display: flex;
