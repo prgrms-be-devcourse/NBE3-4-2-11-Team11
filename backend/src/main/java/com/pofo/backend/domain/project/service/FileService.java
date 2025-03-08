@@ -38,7 +38,7 @@ public class FileService {
             file.transferTo(filePath.toFile());
 
             // 4. 저장된 파일 경로 반환
-            return filePath.toString();
+            return "http://localhost:8080/uploads/" + fileName;
         } catch (IOException e) {
             e.printStackTrace();
             throw new RuntimeException("파일 업로드 중 오류가 발생했습니다.", e);
@@ -51,7 +51,10 @@ public class FileService {
             return; // 파일 경로가 없으면 삭제할 필요 없음
         }
 
-        File file = new File(filePath);
+        // ✅ 저장된 파일의 물리적 경로를 가져와 삭제
+        String fileName = filePath.replace("http://localhost:8080/uploads/", "");
+        File file = new File(uploadDir + fileName);
+
         if (file.exists() && !file.delete()) {
             throw new RuntimeException("파일 삭제 실패: " + filePath);
         }

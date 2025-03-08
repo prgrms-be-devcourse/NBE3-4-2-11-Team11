@@ -107,4 +107,12 @@ public class ToolService {
         return toolRepository.findAllByProjection();
     }
 
+    public List<String> getProjectToolNames(Long projectId) {
+        return projectToolRepository.findByProjectId(projectId)
+                .stream()
+                .map(pt -> pt.getTool().getName())
+                .collect(Collectors.toList());
+    }
+
+
 }

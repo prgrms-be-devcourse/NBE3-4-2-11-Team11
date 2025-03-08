@@ -36,10 +36,14 @@ public class ProjectUpdateRequest {
     @NotBlank
     private String imageUrl;
 
+    private String thumbnailPath;
+
     // 기술 및 도구 목록 추가
     @NotEmpty
     private List<String> skills;
     @NotEmpty
     private List<String> tools;
+
+    private boolean isDeleted;
 
 }

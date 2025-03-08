@@ -13,7 +13,10 @@ const ProjectItem: React.FC<ProjectItemProps> = ({ project }) => {
 
   return (
     <li>
-      <Link href={`/mypage/projects/${project.id}`}>
+      <Link
+        href={`/mypage/projects/${project.id}`}
+        onClick={() => console.log(`📢 클릭된 프로젝트 ID: ${project.id}`)}
+      >
         <h3>{project.name}</h3>
         <p>{project.description}</p>
       </Link>

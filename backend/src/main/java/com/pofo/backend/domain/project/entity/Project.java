@@ -1,5 +1,6 @@
 package com.pofo.backend.domain.project.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.pofo.backend.common.jpa.entity.BaseTime;
 import com.pofo.backend.domain.skill.entity.ProjectSkill;
 import com.pofo.backend.domain.tool.entity.ProjectTool;
@@ -37,11 +38,15 @@ public class Project extends BaseTime {
 
     private String repositoryLink;
 
-    @Column(nullable = false)
+    @Lob
+    @Column(columnDefinition = "TEXT",nullable = false)
     private String description;
+
+
     @Column(nullable = false)
     private String imageUrl;
 
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY) // ✅ JSON에서 thumbnailPath를 무시
     private String thumbnailPath; // 서버에 저장된 썸네일 파일 경로
 
 

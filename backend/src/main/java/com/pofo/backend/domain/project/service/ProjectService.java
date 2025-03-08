@@ -1,6 +1,7 @@
 package com.pofo.backend.domain.project.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.pofo.backend.domain.mapper.ProjectMapper;
@@ -18,6 +19,7 @@ import com.pofo.backend.domain.tool.repository.ProjectToolRepository;
 import com.pofo.backend.domain.tool.service.ToolService;
 import com.pofo.backend.domain.user.join.entity.User;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +29,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -43,59 +46,70 @@ public class ProjectService {
     private final FileService fileService;
 
 
-    public ProjectCreateResponse createProject(String projectRequestJson, User user, MultipartFile thumbnail) {
+    public ProjectCreateResponse createProject(User user, String projectRequestJson, MultipartFile thumbnail) {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule()); // LocalDate 변환 지원
-        ProjectCreateRequest projectRequest;
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false); //알 수 없는 필드 무시
 
+        ProjectCreateRequest request;
         try {
             if (projectRequestJson == null) {
                 throw ProjectCreationException.badRequest("projectRequest가 필요합니다.");
             }
-            projectRequest = objectMapper.readValue(projectRequestJson, ProjectCreateRequest.class);
+
+            log.info("📢 [createProject] JSON 파싱 시작: {}", projectRequestJson);
+            request = objectMapper.readValue(projectRequestJson, ProjectCreateRequest.class);
+            log.info("✅ [createProject] JSON 파싱 완료: 프로젝트 이름 -> {}", request.getName());
+
         } catch (JsonProcessingException e) {
             throw ProjectCreationException.badRequest("잘못된 JSON 형식입니다.");
         }
 
         try {
+            // ✅ 썸네일 저장
             String thumbnailPath = null;
             if (thumbnail != null && !thumbnail.isEmpty()) {
                 thumbnailPath = fileService.uploadThumbnail(thumbnail);
+                log.info("📢 [createProject] 썸네일 저장 완료: {}", thumbnailPath);
             }
 
+            // ✅ 프로젝트 엔티티 생성 및 저장
             Project project = Project.builder()
                     .user(user)
-                    .name(projectRequest.getName())
-                    .startDate(projectRequest.getStartDate())
-                    .endDate(projectRequest.getEndDate())
-                    .memberCount(projectRequest.getMemberCount())
-                    .position(projectRequest.getPosition())
-                    .repositoryLink(projectRequest.getRepositoryLink())
-                    .description(projectRequest.getDescription())
-                    .imageUrl(projectRequest.getImageUrl())
+                    .name(request.getName())
+                    .startDate(request.getStartDate())
+                    .endDate(request.getEndDate())
+                    .memberCount(request.getMemberCount())
+                    .position(request.getPosition())
+                    .repositoryLink(request.getRepositoryLink())
+                    .description(request.getDescription())
+                    .imageUrl(request.getImageUrl())
                     .thumbnailPath(thumbnailPath)
                     .isDeleted(false)
                     .build();
 
             projectRepository.save(project);
 
-            skillService.addProjectSkills(project.getId(), projectRequest.getSkills());
-            toolService.addProjectTools(project.getId(), projectRequest.getTools());
+            // ✅ 기술 스택 & 사용 도구 저장
+            skillService.addProjectSkills(project.getId(), request.getSkills());
+            toolService.addProjectTools(project.getId(), request.getTools());
 
-            return new ProjectCreateResponse(project.getId());
+            return new ProjectCreateResponse(project.getId()); // ✅ projectId 반환
 
-        }catch (ProjectCreationException ex) {
+        } catch (ProjectCreationException ex) {
             throw ex;  // 이미 정의된 예외는 다시 던진다.
         }catch (Exception ex) {
+            ex.printStackTrace();
             throw ProjectCreationException.serverError("프로젝트 등록 중 오류가 발생했습니다.");
         }
     }
 
 
+
     public List<ProjectDetailResponse> detailAllProject(User user) {
 
         try {
-            List<Project> projects = projectRepository.findAllByOrderByIdDesc();
+            List<Project> projects = projectRepository.findByIsDeletedFalseOrderByIdDesc();
 
             // 프로젝트가 없으면 예외 처리
             if (projects.isEmpty()) {
@@ -150,7 +164,7 @@ public class ProjectService {
     public List<ProjectDetailResponse> searchProjectsByKeyword(User user, String keyword) {
         try {
             // 이름이나 설명에 키워드가 포함된 프로젝트 검색
-            List<Project> projects = projectRepository.findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(keyword, keyword);
+            List<Project> projects = projectRepository.searchByKeyword(keyword);
 
             // 접근 권한 필터링 (자신의 프로젝트만 조회)
             List<Project> accessibleProjects = projects.stream()
@@ -175,30 +189,52 @@ public class ProjectService {
     }
 
 
-    public ProjectUpdateResponse updateProject(Long projectId, String projectRequestJson, User user, MultipartFile thumbnail, Boolean deleteThumbnail) {
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule()); // LocalDate 변환 지원
-        ProjectUpdateRequest request = null;
+    @Transactional
+    public ProjectUpdateResponse updateProject(
+            Long projectId,
+            String projectRequestJson,
+            User user,
+            MultipartFile thumbnail,
+            Boolean deleteThumbnail
+    ) {
 
+        // JSON -> ProjectUpdateRequest 변환
+        ProjectUpdateRequest request = null;
         try {
-            if (projectRequestJson != null && !projectRequestJson.trim().isEmpty()) {  // 빈 문자열 예외 처리 추가
+            if (projectRequestJson != null && !projectRequestJson.trim().isEmpty()) {
+                ObjectMapper objectMapper = new ObjectMapper();
+                objectMapper.registerModule(new JavaTimeModule()); // LocalDate 변환 지원
                 request = objectMapper.readValue(projectRequestJson, ProjectUpdateRequest.class);
             }
-        } catch (JsonProcessingException | IllegalArgumentException e) {  // 예외 유형 확장
+        } catch (JsonProcessingException e) {
             throw ProjectCreationException.badRequest("잘못된 JSON 형식입니다.");
         }
 
+        // 프로젝트 조회
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> ProjectCreationException.notFound("해당 프로젝트를 찾을 수 없습니다."));
 
+        // 권한 확인
         if (!project.getUser().equals(user)) {
             throw ProjectCreationException.forbidden("프로젝트 수정할 권한이 없습니다.");
         }
 
+        // 프로젝트 데이터 업데이트 (썸네일 처리 포함)
+        return updateProjectData(project, request, thumbnail, deleteThumbnail);
+    }
+
+
+
+    private ProjectUpdateResponse updateProjectData(
+            Project project,
+            ProjectUpdateRequest request,
+            MultipartFile thumbnail,
+            Boolean deleteThumbnail
+    ) {
         try {
             String thumbnailPath = project.getThumbnailPath();
 
-            // 썸네일 삭제 요청이 있을 경우 (null 체크 추가)
+            // 썸네일 삭제 처리
             if (deleteThumbnail != null && deleteThumbnail) {
                 if (thumbnailPath != null) {
                     fileService.deleteFile(thumbnailPath);
@@ -214,7 +250,7 @@ public class ProjectService {
                 thumbnailPath = fileService.uploadThumbnail(thumbnail);
             }
 
-            // JSON이 포함된 경우만 업데이트 수행
+            // 기본 정보 업데이트
             if (request != null) {
                 project.updateBasicInfo(
                         request.getName(),
@@ -226,9 +262,16 @@ public class ProjectService {
                         request.getDescription(),
                         request.getImageUrl()
                 );
+
+                if (request.getSkills() != null) {
+                    skillService.updateProjectSkills(project.getId(), request.getSkills());
+                }
+
+                if (request.getTools() != null) {
+                    toolService.updateProjectTools(project.getId(), request.getTools());
+                }
             }
 
-            // 썸네일이 수정되지 않은 경우 기존 썸네일 유지
             project.setThumbnailPath(thumbnailPath != null ? thumbnailPath : project.getThumbnailPath());
 
             projectRepository.save(project);
@@ -244,16 +287,17 @@ public class ProjectService {
                     project.getDescription(),
                     project.getImageUrl(),
                     project.getThumbnailPath(),
-                    request != null ? request.getSkills() : project.getProjectSkills().stream().map(ps -> ps.getSkill().getName()).collect(Collectors.toList()),
-                    request != null ? request.getTools() : project.getProjectTools().stream().map(pt -> pt.getTool().getName()).collect(Collectors.toList()),
+                    skillService.getProjectSkillNames(project.getId()),
+                    toolService.getProjectToolNames(project.getId()),
                     project.isDeleted()
             );
 
+        } catch (ProjectCreationException ex) {
+            throw ex;
         } catch (Exception ex) {
             throw ProjectCreationException.serverError("프로젝트 수정 중 오류가 발생했습니다.");
         }
     }
-
 
     public void deleteProject(Long projectId, User user) {
 
@@ -351,6 +395,5 @@ public class ProjectService {
         toolService.deleteProjectTools(userProjectIds);
         projectRepository.deleteAll(trashProjects);
     }
-
 
 }
