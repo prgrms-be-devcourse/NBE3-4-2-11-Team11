@@ -1,3 +1,6 @@
+file:
+  upload-dir: ${user.dir}/uploads/
+
 spring:
   main:
     allow-bean-definition-overriding: true
@@ -87,21 +90,18 @@ spring:
 
   web:
     resources:
-      static-locations: file:///C:/DevCourse_Project/NBE3-4-2-11-Team11/backend/uploads/
+      static-locations: file:${file.upload-dir}/
   mvc:
     static-path-pattern: /uploads/**
 
-file:
-  upload-dir: ${user.dir}/uploads/
-
-mail:
-  host: ${SPRING_MAIL_HOST}
-  port: ${SPRING_MAIL_PORT}
-  username: ${SPRING_MAIL_USERNAME}
-  password: ${SPRING_MAIL_PASSWORD}
-  properties:
-    mail.smtp.auth: true
-    mail.smtp.starttls.enable: true
+  mail:
+    host: ${SPRING_MAIL_HOST}
+    port: ${SPRING_MAIL_PORT}
+    username: ${SPRING_MAIL_USERNAME}
+    password: ${SPRING_MAIL_PASSWORD}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
 
 springdoc:
   default-produces-media-type: application/json;charset=UTF-8  # 기본 JSON 미디어 타입
