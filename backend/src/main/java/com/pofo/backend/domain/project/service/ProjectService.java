@@ -109,7 +109,7 @@ public class ProjectService {
     public List<ProjectDetailResponse> detailAllProject(User user) {
 
         try {
-            List<Project> projects = projectRepository.findAllByOrderByIdDesc();
+            List<Project> projects = projectRepository.findByIsDeletedFalseOrderByIdDesc();
 
             // 프로젝트가 없으면 예외 처리
             if (projects.isEmpty()) {
@@ -164,7 +164,7 @@ public class ProjectService {
     public List<ProjectDetailResponse> searchProjectsByKeyword(User user, String keyword) {
         try {
             // 이름이나 설명에 키워드가 포함된 프로젝트 검색
-            List<Project> projects = projectRepository.findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(keyword, keyword);
+            List<Project> projects = projectRepository.searchByKeyword(keyword);
 
             // 접근 권한 필터링 (자신의 프로젝트만 조회)
             List<Project> accessibleProjects = projects.stream()
