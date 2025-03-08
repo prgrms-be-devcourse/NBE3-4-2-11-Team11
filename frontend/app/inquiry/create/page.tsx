@@ -13,22 +13,10 @@ const InquiryCreatePage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem('accessToken');
-      if (!token) {
-        console.error('No access token found');
-        alert('로그인이 필요합니다.');
-        router.push("/login");
-        return;
-      }
-
       const response = await axios.post("/api/v1/user/inquiry", {
         subject,
         content,
-      }, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      }, { withCredentials: true });
 
       if (response.status === 200) {
         alert("문의사항이 성공적으로 생성되었습니다!");
@@ -42,7 +30,7 @@ const InquiryCreatePage = () => {
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-4">
+    <div className="max-w-5xl mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">문의사항 작성</h1>
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
@@ -67,9 +55,8 @@ const InquiryCreatePage = () => {
         </div>
         <button
           type="submit"
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-        >
-          제출하기
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 ml-auto block">
+          작성하기
         </button>
       </form>
       {message && <p className="mt-4 text-red-500">{message}</p>}

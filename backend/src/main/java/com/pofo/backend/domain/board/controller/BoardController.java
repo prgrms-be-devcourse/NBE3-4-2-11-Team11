@@ -48,4 +48,14 @@ public class BoardController {
     public ResponseEntity<RsData<BoardDeleteResponseDto>> deletePost(@PathVariable Long id) {
         return ResponseEntity.ok(boardService.deletePost(id));
     }
+
+//    // ✅ 요청 바디(`userId`)를 포함하여 처리하는 방식
+//    @DeleteMapping("/{id}")
+//    public ResponseEntity<RsData<BoardDeleteResponseDto>> deletePost(
+//            @PathVariable Long id,
+//            @RequestBody BoardDeleteRequestDto requestDto // ✅ 요청 바디 추가
+//    ) {
+//        return ResponseEntity.ok(boardService.deletePost(id, requestDto));
+//    }
+
 }

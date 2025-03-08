@@ -95,31 +95,29 @@ export default function ResumePage() {
   useEffect(() => {
     const fetchResumeData = async () => {
       try {
-        const accessToken = localStorage.getItem('accessToken'); 
-        if (!accessToken) 
-        {
-          alert('로그인이 필요합니다.');
-  window.location.href = 'http://localhost:3000/login';
-  return;
-        }
         console.log('✅ API 요청 시작');
-
+  
         const response = await fetch('/api/resume-detail', {
           method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${accessToken}`, 
-            'Content-Type': 'application/json',
-          },
-        });  
+          credentials: 'include', 
+        });
         console.log('🔄 응답 상태:', response.status, response.statusText);
+  
+        if (response.status === 500) {
+          alert('로그인을 해야 가능한 서비스입니다.');
+          window.location.href = 'http://localhost:3000/login'; // 이력서 생성 페이지로 리디렉션
+          return;
+        }
         if (response.status === 400) {
           alert('이력서가 없습니다.');
           window.location.href = 'http://localhost:3000/mypage/resume/create'; // 이력서 생성 페이지로 리디렉션
           return;
         }
+  
         if (!response.ok) {
           throw new Error('Failed to fetch resume data');
         }
+  
         const data: ApiResponse = await response.json();
         setResumeData(data.data);
       } catch (err) {
@@ -128,9 +126,10 @@ export default function ResumePage() {
         setLoading(false);
       }
     };
-
+  
     fetchResumeData();
   }, []);
+  
 
   const calculateAge = (birthDateString: string): number => {
     const birthDate = new Date(birthDateString);
@@ -157,12 +156,6 @@ export default function ResumePage() {
     });
   };
   const handleDelete = async () => {
-    const accessToken = localStorage.getItem('accessToken');
-    if (!accessToken) {
-      alert('로그인이 필요합니다.');
-      return;
-    }
-
     const confirmDelete = window.confirm('정말 삭제하시겠습니까?');
     if (!confirmDelete) return;
 
@@ -170,9 +163,9 @@ export default function ResumePage() {
       const response = await fetch('http://localhost:8080/api/v1/user/resume', {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
+        credentials: 'include', 
       });
 
       if (!response.ok) {

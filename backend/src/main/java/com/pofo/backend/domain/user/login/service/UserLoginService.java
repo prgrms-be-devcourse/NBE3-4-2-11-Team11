@@ -29,6 +29,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -524,8 +525,29 @@ public class UserLoginService {
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
         request.getSession().setAttribute("SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext());
 
+        updateLastLogin(userInfo.getEmail());
+
+
         TokenDto jwtToken = tokenProvider.createToken(authentication);
 
         return jwtToken;
     }
+
+    public void updateLastLogin(String email) {
+        Optional<User> userOpt = userRepository.findByEmail(email);
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            // 마지막 로그인 시간 업데이트
+            user.setLastLoginAt(LocalDateTime.now());
+            // dormantFlg가 null이거나 "Y"인 경우, "N"으로 설정
+            if(user.getDormantFlg() == null || "Y".equals(user.getDormantFlg())) {
+                user.setDormantFlg("N");
+                user.setDormantStartAt(null);
+                user.setDormantEndAt(null);
+            }
+            userRepository.save(user);
+        }
+    }
+
+
 }

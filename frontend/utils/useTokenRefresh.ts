@@ -40,6 +40,8 @@ const useTokenRefresh = () => {
 
     }, 20000); // 20초마다 실행
 
+
+
     return () => clearInterval(interval);
   }, [isLoggedIn, refreshAccessToken]); // ✅ refreshAccessToken 추가하여 최신 상태 반영
 };
