@@ -215,7 +215,7 @@ public class ProjectServiceTest {
         when(projectMapper.projectToProjectDetailResponse(mockProject)).thenReturn(mockProjectResponse);
 
         List<Project> mockProjectList = List.of(mockProject);
-        when(projectRepository.findAllByOrderByIdDesc()).thenReturn(mockProjectList);
+        when(projectRepository.findByIsDeletedFalseOrderByIdDesc()).thenReturn(mockProjectList);
 
         // When
         List<ProjectDetailResponse> response = projectService.detailAllProject(mockUser);
@@ -237,7 +237,7 @@ public class ProjectServiceTest {
         assertTrue(response.get(0).getTools().containsAll(List.of("IntelliJ IDEA", "Docker")));
 
         // Verify
-        verify(projectRepository).findAllByOrderByIdDesc();
+        verify(projectRepository).findByIsDeletedFalseOrderByIdDesc();
         verify(projectMapper).projectToProjectDetailResponse(mockProject);
     }
 
@@ -265,7 +265,7 @@ public class ProjectServiceTest {
     @DisplayName("프로젝트 전체 조회 실패 - 예기치 않은 오류 발생")
     void t6(){
         //given
-        when(projectRepository.findAllByOrderByIdDesc()).thenThrow(new RuntimeException("Unexpected error"));
+        when(projectRepository.findByIsDeletedFalseOrderByIdDesc()).thenThrow(new RuntimeException("Unexpected error"));
 
         //when & then
         ProjectCreationException exception = assertThrows(ProjectCreationException.class, () -> {
@@ -287,7 +287,7 @@ public class ProjectServiceTest {
         //when & Then
         when(mockProjectResponse.getName()).thenReturn("커피 원두 주문 시스템");
         when(mockProjectResponse.getDescription()).thenReturn("원두를 주문할 수 있는 편리한 웹 서비스");
-        when(projectRepository.findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(keyword, keyword))
+        when(projectRepository.searchByKeyword(keyword))
                 .thenReturn(List.of(mockProject));
         when(projectMapper.projectToProjectDetailResponse(mockProject)).thenReturn(mockProjectResponse);
         when(mockProject.getUser()).thenReturn(mockUser);
@@ -301,7 +301,7 @@ public class ProjectServiceTest {
         assertEquals("원두를 주문할 수 있는 편리한 웹 서비스", response.get(0).getDescription());
 
         // Verify
-        verify(projectRepository).findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(keyword, keyword);
+        verify(projectRepository).searchByKeyword(keyword);
         verify(projectMapper).projectToProjectDetailResponse(mockProject);
     }
 
@@ -310,7 +310,7 @@ public class ProjectServiceTest {
     void t17() {
         // Given
         String keyword = "없는키워드";
-        when(projectRepository.findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(keyword, keyword))
+        when(projectRepository.searchByKeyword(keyword))
                 .thenReturn(Collections.emptyList());
 
         // When & Then
@@ -328,7 +328,7 @@ public class ProjectServiceTest {
     void t18() {
         // Given
         String keyword = "커피";
-        when(projectRepository.findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(keyword, keyword))
+        when(projectRepository.searchByKeyword(keyword))
                 .thenThrow(new DataAccessException("Database error") {});
 
         // When & Then
@@ -346,7 +346,7 @@ public class ProjectServiceTest {
     void t19() {
         // Given
         String keyword = "커피";
-        when(projectRepository.findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(keyword, keyword))
+        when(projectRepository.searchByKeyword(keyword))
                 .thenThrow(new RuntimeException("Unexpected error"));
 
         // When & Then
